@@ -1,0 +1,95 @@
+{
+  "nodes": {
+    "impeccable": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792115107,
+        "narHash": "sha256-Hcroujxp0rjciZwAHJAYhGMVWCghmZDh5+zPpzxjZpk=",
+        "owner": "pbakaus",
+        "repo": "impeccable",
+        "rev": "5bf0a069dc857e1b5f4b090e004d9d5b231416ca",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pbakaus",
+        "repo": "impeccable",
+        "type": "github"
+      }
+    },
+    "jmo-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791662545,
+        "narHash": "sha256-FCuopgils9AH0ejDVhHk9p+BoKP9ZG8tnL1dKF7QQbU=",
+        "owner": "23jmo",
+        "repo": "jmo-skills",
+        "rev": "6082bf2c472857d6cfda48995ab985b69345aac6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "23jmo",
+        "repo": "jmo-skills",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1791883866,
+        "narHash": "sha256-yvkDdToRZ4IgPc9tSBzzCYJvTLf8n5eE3rgUkpCuD5A=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "a033e66ab94a6bedf2c3d58d93a36319d3cbbbaf",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-26.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "ponytail": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792026135,
+        "narHash": "sha256-rHFO5SqvOM7r8b8TDXUP7Wvf/HnqH+h9HbIAZWhHQVw=",
+        "owner": "DietrichGebert",
+        "repo": "ponytail",
+        "rev": "84740e3d344b69b4a133201fa519eb37a62a2b2a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "DietrichGebert",
+        "repo": "ponytail",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "impeccable": "impeccable",
+        "jmo-skills": "jmo-skills",
+        "nixpkgs": "nixpkgs",
+        "ponytail": "ponytail",
+        "the-architect": "the-architect"
+      }
+    },
+    "the-architect": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785259087,
+        "narHash": "sha256-mF/cjWVDcOUIwzrsIK9z+N6sKWeVoBroriGupCovclA=",
+        "owner": "Hainrixz",
+        "repo": "the-architect",
+        "rev": "774a02278f4fa99cc44d484911007d1ba29318ab",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Hainrixz",
+        "repo": "the-architect",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
