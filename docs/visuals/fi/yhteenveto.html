@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>If Life Partner · Yhteenveto</title>
+<link rel="stylesheet" href="../visuals.css">
+<style>
+  body { grid-template-rows: 1fr auto; }
+  .one {
+    display: grid;
+    grid-template-columns: 5fr 6fr;
+    gap: clamp(40px, 6vw, 110px);
+    padding: clamp(40px, 5.5vw, 88px) clamp(32px, 5vw, 96px) 0;
+    align-items: center;
+  }
+  .what .name { font-size: 18px; font-weight: 700; margin: 0 0 26px; display: flex; align-items: center; gap: 14px; }
+  .what h1 {
+    font-size: clamp(52px, 5.4vw, 88px);
+    line-height: 0.96;
+    letter-spacing: -0.035em;
+    margin: 0 0 30px;
+    max-width: 12ch;
+  }
+  .what p { font-size: clamp(20px, 1.55vw, 25px); line-height: 1.4; margin: 0; max-width: 34ch; }
+  .mark { display: block; width: 260px; height: auto; margin-top: 48px; }
+  .mark text { font-size: 14px; font-weight: 600; }
+
+  .why h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 8px; }
+  .why ul { list-style: none; margin: 0; padding: 0; }
+  .why li {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    column-gap: 18px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .why li:first-child { border-top: 1px solid var(--rule); }
+  .why .ask { font-size: 15px; color: var(--ink-soft); margin: 0 0 4px; }
+  .why .ans { font-size: clamp(21px, 1.6vw, 26px); line-height: 1.28; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+  .dot { width: 30px; height: 30px; margin-top: 4px; }
+  .dot circle { mix-blend-mode: multiply; }
+
+  .close {
+    margin: 0;
+    padding: 26px clamp(32px, 5vw, 96px) 34px;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 24px;
+    font-size: clamp(24px, 2vw, 32px); font-weight: 700; letter-spacing: -0.02em;
+  }
+  .close small { font-size: 15px; font-weight: 400; color: var(--ink-soft); letter-spacing: 0; }
+
+  @media (max-width: 900px) {
+    .one { grid-template-columns: 1fr; }
+    .close { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<main class="one">
+  <section class="what">
+    <p class="name"><span class="swatch blue"></span>If Life Partner</p>
+    <h1>Kodin riskit kuntoon ennen vahinkoa.</h1>
+    <p>Sovellus löytää kotisi riskit, auttaa korjaamaan ne luotetun kumppanin kanssa ja laskee vakuutuksesi hintaa, kun työ on tehty.</p>
+  </section>
+
+  <section class="why">
+    <h2>Näin se vastaa Ifin haasteeseen</h2>
+    <ul>
+      <li>
+        <svg class="dot" viewBox="0 0 30 30" aria-hidden="true"><circle cx="11" cy="15" r="10" fill="var(--blue)"/><circle cx="19" cy="15" r="10" fill="var(--spruce)"/></svg>
+        <div><p class="ask">Estää vahingon</p><p class="ans">Riskit korjataan ennen kuin niistä tulee korvauksia.</p></div>
+      </li>
+      <li>
+        <svg class="dot" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="10" fill="var(--spruce)"/></svg>
+        <div><p class="ask">Helpottaa elämänmuutosta</p><p class="ans">Kodin ostaja saa heti selkeän listan siitä, mitä tarkistaa.</p></div>
+      </li>
+      <li>
+        <svg class="dot" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="10" fill="var(--spruce)"/></svg>
+        <div><p class="ask">Ohjaa parempiin päätöksiin</p><p class="ans">Jokaisen riskin kohdalla näkyy, paljonko korjaaminen hyödyttää.</p></div>
+      </li>
+      <li>
+        <svg class="dot" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="10" fill="var(--blue)"/></svg>
+        <div><p class="ask">Tuo arvoa Ifille</p><p class="ans">Vähemmän korvauksia, pysyvämmät asiakkaat ja uusia kumppaneita.</p></div>
+      </li>
+    </ul>
+  </section>
+</main>
+<p class="close">Vakuutus ei ole keskiössä. Koti on. <small><span class="swatch blue"></span>&nbsp;If&nbsp;&nbsp; <span class="swatch spruce"></span>&nbsp;Asiakas</small></p>
+</body>
+</html>
