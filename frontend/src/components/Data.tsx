@@ -4,15 +4,17 @@ import { Card } from "./ui";
 
 function Notice({ message }: { message: string }) {
   return (
-    <Card className="bg-danger-soft shadow-none">
-      <p className="font-semibold">The data could not load</p>
-      <p className="mt-1 text-muted-foreground">{message}</p>
-    </Card>
+    <div role="alert">
+      <Card tone="danger">
+        <p className="font-semibold">The data could not load</p>
+        <p className="mt-1 text-muted-foreground">{message}</p>
+      </Card>
+    </div>
   );
 }
 
 function Skeleton() {
-  return <div className="h-48 animate-pulse rounded-2xl bg-card/60" />;
+  return <div role="status" aria-label="Loading" className="h-40 animate-pulse rounded-xl border bg-card" />;
 }
 
 async function Resolve({ load }: { load: () => Promise<ReactNode> }) {

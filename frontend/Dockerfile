@@ -1,4 +1,4 @@
-# If Life Partner staff dashboard (Next.js, standalone output).
+# If Ensurance staff dashboard (Next.js, standalone output).
 # Build: docker build -t ilp-frontend frontend
 # Run:   docker run --rm -p 3000:3000 -e BACKEND_URL=http://<backend>:8000 -e ADMIN_TOKEN=<admin-token> ilp-frontend
 FROM node:24-alpine AS deps

@@ -4,7 +4,7 @@ import { Simulator } from "@/components/Simulator";
 import { PageHeader } from "@/components/ui";
 import { getClasses, getCustomers } from "@/lib/api";
 
-export const metadata: Metadata = { title: "Simulator · If Life Partner Staff" };
+export const metadata: Metadata = { title: "Simulator · If Ensurance Staff" };
 
 async function Load() {
   const [customers, classes] = await Promise.all([getCustomers(), getClasses()]);
