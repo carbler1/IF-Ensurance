@@ -31,7 +31,7 @@ Rules of the design:
 - `flake.nix`, `flake.lock`: the dev shell. `.envrc`: loads it through direnv.
 - `docs/`: documentation. `docs/systemdesign/`: the API contract and the decision log.
 - `.plans/`: specs written by the `interview` skill.
-- `backend/`: FastAPI, the worker and the database models (SQLAlchemy). `mobile-app/`: the customer app (Expo). `frontend/`: the If staff dashboard (Next.js), which reads and writes Postgres directly.
+- `backend/`: FastAPI, the worker and the database models (SQLAlchemy). `mobile-app/`: the customer app (Expo). `frontend/`: the If staff dashboard (Next.js), which goes through the backend's `/v1/admin` API.
 - `docker-compose.yml`: runs Postgres, `backend`, `frontend` and a web demo of `mobile-app` together. Copy `.env.example` to `.env` first.
 - `archive/`: superseded material, ignored by git. Do not read it or build from it unless Antton asks.
 

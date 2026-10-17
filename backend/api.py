@@ -10,10 +10,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
-from backend import db, engine, maintenance
-from backend.models import Document, Home, Job, Profile
+from backend import admin, db, engine, insurance, maintenance
+from backend.models import Document, Home, Job, Profile, RiskText
 
 HOME_ID = "home_01"  # the single demo home
+CUSTOMER_ID = "cust_01"  # the demo customer who owns it, with a cottage, a boat, a car and a dog
 
 app = FastAPI(title="If Life Partner")
 app.add_middleware(
@@ -41,7 +42,10 @@ async def _http_error(request, exc: HTTPException):
 
 @app.exception_handler(RequestValidationError)
 async def _bad_request(request, exc):
-    return _err(400, "bad_request", "The request is not valid.")
+    first = (exc.errors() or [{}])[0]
+    field = ".".join(str(p) for p in first.get("loc", ())[1:])
+    detail = f" {field}: {first['msg']}." if field and first.get("msg") else ""
+    return _err(400, "bad_request", "The request is not valid." + detail)
 
 
 @app.exception_handler(Exception)
@@ -119,6 +123,23 @@ def get_risk(risk_id: str):
         raise HTTPException(404, f"Risk {risk_id} not found.")
 
 
+@v1.get("/me/insurances")
+def get_insurances():
+    """Every insured object of the customer with the fixes that apply, their points and premium cuts."""
+    with db.connect() as s:
+        result = insurance.simulate(s, insurance.customer_objects(s, CUSTOMER_ID))
+        texts = {t.risk_id: t for t in s.scalars(select(RiskText).where(RiskText.home_id == HOME_ID))}
+    hints = {r["id"]: r for d in insurance.definitions() for r in d["risks"]}
+    for o in result["objects"]:
+        for f in o["fixes"]:
+            t, h = texts.get(f["risk_id"]), hints[f["risk_id"]]
+            f["why"] = t.why if t else engine._strip(h["why_hint"])
+            f["benefit"] = t.benefit if t else engine._strip(h["benefit_hint"])
+            for k in ("rule_id", "rule_label", "rule_context"):
+                f.pop(k, None)
+    return result
+
+
 @v1.get("/homes/me/maintenance")
 def get_maintenance():
     return _read(maintenance.maintenance)
@@ -132,6 +153,8 @@ except ImportError:  # upload.py not written yet
     pass
 
 app.include_router(v1)
+# The staff dashboard's routes have their own token (X-Admin-Token), not the customer bearer token.
+app.include_router(admin.router, prefix="/v1")
 
 
 @app.get("/health")

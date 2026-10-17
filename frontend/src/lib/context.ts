@@ -1,14 +1,13 @@
 // Turns a rule's context condition into plain words, and builds one from simple rows.
-import type { Condition } from "./match";
+import type { Condition, Field, FieldKind } from "./types";
 
-export type FieldKind = "enum" | "year" | "date";
-export type FieldInfo = { name: string; kind: FieldKind; options: string[] };
+export type FieldInfo = Pick<Field, "name" | "kind" | "options">;
 
 export const fieldLabel = (name: string) => name.replaceAll("_", " ").replace(/^\w/, (c) => c.toUpperCase());
 const valueLabel = (v: string | number) => String(v).replaceAll("_", " ");
 
 export function describe(c: Condition | null): string[] {
-  if (!c) return ["Any home"];
+  if (!c) return ["Always"];
   switch (c.op) {
     case "and":
       return c.args.flatMap(describe);

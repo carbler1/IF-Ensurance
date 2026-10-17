@@ -83,3 +83,50 @@ def test_fix_rules(tmp_path, monkeypatch):
         s.get(FixRule, "example.elec_check_pre1970").active = 0
         s.commit()
         assert check_value(1965) == (80, 40)   # an inactive rule never applies
+
+
+def test_admin_and_insurances(tmp_path, monkeypatch):
+    from backend import db
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "t.sqlite")
+    monkeypatch.setattr(db, "UPLOADS", tmp_path / "up")
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("CUSTOMER_TOKEN", "t")
+    monkeypatch.setenv("ADMIN_TOKEN", "a")
+    from backend.api import app
+    A = {"X-Admin-Token": "a"}
+    with TestClient(app) as c:
+        assert c.get("/v1/admin/classes").status_code == 401
+        assert c.get("/v1/admin/classes", headers=H).status_code == 401  # the customer token is not enough
+
+        classes = {k["class_id"]: k for k in c.get("/v1/admin/classes", headers=A).json()["classes"]}
+        assert list(classes) == ["house", "cottage", "boat", "car", "dog"]
+        assert all(len(classes[k]["risks"]) == 2 for k in ("cottage", "boat", "car", "dog"))
+
+        cust = c.get("/v1/admin/customers", headers=A).json()["customers"]
+        assert len(cust) == 1 and [o["class_id"] for o in cust[0]["objects"]] == ["house", "cottage", "boat", "car", "dog"]
+        dog = next(o for o in cust[0]["objects"] if o["class_id"] == "dog")
+        assert {f["risk_id"] for f in dog["fixes"]} == {"dog.vaccination.expired", "dog.joints.large_breed_check"}
+
+        # A context rule for young dogs does not apply to Ruska (born 2018); one for large dogs does.
+        bad = {"risk_id": "dog.vaccination.expired", "label": "x", "priority": 5, "points": 1,
+               "half_life_years": 1, "premium_reduction_eur": 1, "context": {"op": "lt", "field": "building_year", "value": 1}}
+        assert c.post("/v1/admin/rules", headers=A, json=bad).status_code == 400  # a house field on a dog risk
+        good = {**bad, "label": "Large dogs", "points": 70, "premium_reduction_eur": 45,
+                "context": {"op": "eq", "field": "breed_size", "value": "large"}}
+        rule = c.post("/v1/admin/rules", headers=A, json=good).json()
+        sim = c.post("/v1/admin/simulate", headers=A, json={"objects": [
+            {"class_id": "dog", "profile": {"breed_size": "large", "birth_year": 2018, "vaccinations_valid": "no"}}]}).json()
+        vacc = next(f for f in sim["objects"][0]["fixes"] if f["risk_id"] == "dog.vaccination.expired")
+        assert (vacc["points"], vacc["premium_reduction_eur"], vacc["rule_id"]) == (70, 45, rule["rule_id"])
+        assert c.delete(f"/v1/admin/rules/{rule['rule_id']}", headers=A).status_code == 204
+        assert c.delete("/v1/admin/rules/default.dog.vaccination.expired", headers=A).status_code == 409
+
+        # The premium cut of a class stops at its cap.
+        c.patch("/v1/admin/classes/dog", headers=A, json={"base_annual_premium_eur": 100, "max_reduction_percent": 10})
+        sim = c.post("/v1/admin/simulate", headers=A, json={"objects": [
+            {"class_id": "dog", "profile": {"breed_size": "large", "birth_year": 2018, "vaccinations_valid": "no"}}]}).json()
+        assert sim["objects"][0]["premium"]["cut"] == 10 and sim["objects"][0]["premium"]["capped"]
+
+        mine = c.get("/v1/me/insurances", headers=H).json()
+        assert len(mine["objects"]) == 5 and mine["score"]["start"] == 1000
+        assert all({"why", "benefit", "points", "premium_reduction_eur"} <= set(f) for o in mine["objects"] for f in o["fixes"])

@@ -82,8 +82,28 @@ Example: `fixtures/api/score.json`.
 Example: `fixtures/api/maintenance.json`.
 `due_at` = base date + `interval_years`, where the base date is the last known evidence for the entry (confirmed work order or profile fact). With no evidence, `due_at` is the profile creation date. `due_at` is never before the profile creation date. `status` is `overdue`, `upcoming` (within 90 days) or `scheduled`. Sorted by `due_at`. The list is computed at each read and nothing is stored. `item_id` is opaque and may change between reads; use `risk_id` as the key.
 
-## If staff dashboard
-The staff dashboard in `frontend/` reads and writes Postgres directly. It has no API endpoints. `backend/models.py` owns the tables; the dashboard keeps a copy of their shape in `frontend/src/db/schema.ts`.
+### GET /me/insurances
+Added 2026-10-17. Every insured object of the demo customer (house, summer cottage, boat, car, dog) with the fixes that apply to it, each with `points`, `premium_reduction_eur`, `half_life_years`, `why` and `benefit`, the object's premium (`base`, `cut`, `after`), and the customer's Care Score if every fix is confirmed. The house uses the catalogue; the other four classes use the mock `data/insurance-classes.json` (two risks each).
+
+## Admin (If staff dashboard)
+Added 2026-10-17. The dashboard in `frontend/` calls these from its server and never touches the database. Auth: header `X-Admin-Token: <ADMIN_TOKEN>` from `.env`; the customer token does not work here.
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/admin/overview` | Counts: customers, homes, documents and work orders by status, active rules, classes |
+| GET | `/admin/customers` | Each customer with their objects, profiles, open fixes, premiums and Care Score with every fix done |
+| GET | `/admin/classes` | The five insurance classes: profile fields, risks, base premium, cap |
+| PATCH | `/admin/classes/{class_id}` | `base_annual_premium_eur`, `max_reduction_percent` (0–100) |
+| GET, PATCH | `/admin/settings` | `score_start`: the Care Score of a new customer |
+| GET | `/admin/rules` | All fix rules |
+| POST | `/admin/rules` | A context rule: `risk_id`, `label`, `context` (applies_when grammar over the class's fields), `priority`, `points`, `half_life_years`, `premium_reduction_eur`. `400` on a bad context |
+| PATCH | `/admin/rules/{rule_id}` | The numbers, `priority` (not for a default rule) and `active` |
+| DELETE | `/admin/rules/{rule_id}` | `204`. `409` for a default rule |
+| POST | `/admin/simulate` | `{"objects": [{"class_id", "profile"}]}` → fixes, points and premiums per object, and the totals. Nothing is saved |
+| GET, PATCH | `/admin/partners`, `/admin/partners/{partner_id}` | Prices (min ≤ max), If discount, vetting, listing tier |
+| GET, PATCH | `/admin/tiers`, `/admin/tiers/{index}` | Name, minimum score (between the neighbours), rewards |
+
+Rule choice (`engine.fix_value`): of a fix's active rules whose context matches the object's profile, the highest priority wins; the default rule (priority 0, no context) is the fallback. A class's premium cuts add up to its cap.
 
 `GET /health` (no auth, outside `/v1`) returns `{"status": "ok"}` for docker compose.
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Data } from "@/components/Data";
 import { Card, PageHeader, eur } from "@/components/ui";
-import { getCounts, getSettings } from "@/lib/data";
+import { getClasses, getOverview } from "@/lib/api";
 
 function Tile({ label, value, sub }: { label: string; value: string | number; sub: string }) {
   return (
@@ -15,22 +15,23 @@ function Tile({ label, value, sub }: { label: string; value: string | number; su
 }
 
 async function Tiles() {
-  const [c, s] = await Promise.all([getCounts(), getSettings()]);
+  const [c, classes] = await Promise.all([getOverview(), getClasses()]);
   const total = (o: Record<string, number>) => Object.values(o).reduce((a, b) => a + b, 0);
+  const premiums = classes.reduce((a, k) => a + k.base_annual_premium_eur, 0);
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <Tile label="Customers" value={c.customers} sub="Homes with a profile" />
-      <Tile label="Documents" value={total(c.docs)} sub={`${c.docs.processed ?? 0} processed · ${c.docs.failed ?? 0} failed`} />
-      <Tile label="Work orders" value={total(c.orders)} sub={`${c.orders.booked ?? 0} booked · ${c.orders.confirmed ?? 0} confirmed`} />
-      <Tile label="Base premium" value={eur(s.baseAnnualPremiumEur)} sub={`Per year · ${c.activeRules} active fix rules`} />
+      <Tile label="Customers" value={c.customers} sub={`${c.classes} insurance classes`} />
+      <Tile label="Documents" value={total(c.documents)} sub={`${c.documents.processed ?? 0} processed · ${c.documents.failed ?? 0} failed`} />
+      <Tile label="Work orders" value={total(c.work_orders)} sub={`${c.work_orders.booked ?? 0} booked · ${c.work_orders.confirmed ?? 0} confirmed`} />
+      <Tile label="Base premiums" value={eur(premiums)} sub={`All five classes per year · ${c.active_rules} active fix rules`} />
     </div>
   );
 }
 
 const sections = [
-  { href: "/scoring", title: "Score & pricing", text: "Set the Care Score points and the premium cut of each fix, per context." },
-  { href: "/simulator", title: "Simulator", text: "Try a home and see its score and premium with every fix confirmed." },
-  { href: "/customers", title: "Customers", text: "Each home, how complete its profile is and what it could still gain." },
+  { href: "/scoring", title: "Score & pricing", text: "Set the Care Score points and the premium cut of each fix, per insurance class and context." },
+  { href: "/simulator", title: "Simulator", text: "Try a customer's house, cottage, boat, car and dog and see their score and premiums with every fix confirmed." },
+  { href: "/customers", title: "Customers", text: "Each customer, their insured objects and what they could still gain." },
   { href: "/partners", title: "Partners", text: "Price ranges, the If discount and vetting for each partner." },
   { href: "/tiers", title: "Tiers & rewards", text: "Care Score thresholds and the reward of each tier." },
 ];

@@ -1,8 +1,7 @@
 """The database tables as SQLAlchemy 2.0 models. DESIGN.md §5. db.py creates them with
 Base.metadata.create_all; there is no SQL schema file. The database is Postgres in docker
 compose (DATABASE_URL) and a SQLite file otherwise. To reset: drop the database and seed again.
-The staff dashboard (frontend/src/db/schema.ts) reads and writes these tables directly;
-keep its copy of a table in step when you change one here.
+Only the backend touches the database; the staff dashboard goes through /v1/admin.
 
 Times are ISO 8601 UTC strings and JSON columns are text.
 """
@@ -142,26 +141,48 @@ class FixRule(Base):
 
 
 class InsuranceSettings(Base):
-    """One row (settings_id 1): the global numbers of the score and the premium."""
+    """One row (settings_id 1): the global numbers of the Care Score."""
 
     __tablename__ = "insurance_settings"
 
     settings_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
-    score_start: Mapped[int] = mapped_column(Integer)  # Care Score of a new home
+    score_start: Mapped[int] = mapped_column(Integer)  # Care Score of a new customer
+    updated_at: Mapped[str] = mapped_column(Text)
+
+
+class InsuranceClass(Base):
+    """The premium numbers of one insurance class: house, cottage, boat, car, dog.
+    The risks and profile fields of a class are static data (backend/insurance.py)."""
+
+    __tablename__ = "insurance_classes"
+
+    class_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    name: Mapped[str] = mapped_column(Text)
     base_annual_premium_eur: Mapped[int] = mapped_column(Integer)
     max_reduction_percent: Mapped[int] = mapped_column(Integer)  # cap on the sum of fix reductions
     updated_at: Mapped[str] = mapped_column(Text)
 
 
-class ReferenceData(Base):
-    """Copies of the static files the dashboard needs (the catalogue, the profile schema),
-    refreshed from data/ each time the backend starts. The files stay the source."""
+class Customer(Base):
+    __tablename__ = "customers"
 
-    __tablename__ = "reference_data"
+    customer_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    name: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[str] = mapped_column(Text)
 
-    key: Mapped[str] = mapped_column(Text, primary_key=True)  # catalogue, profile_schema
-    data: Mapped[str] = mapped_column(Text)  # JSON
-    updated_at: Mapped[str] = mapped_column(Text)
+
+class InsuredObject(Base):
+    """One insured thing of a customer. A house keeps its profile in profiles (object_id is the
+    home_id, the pipeline fills it); every other class keeps a small profile here."""
+
+    __tablename__ = "insured_objects"
+
+    object_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    customer_id: Mapped[str] = mapped_column(Text, ForeignKey("customers.customer_id"))
+    class_id: Mapped[str] = mapped_column(Text, ForeignKey("insurance_classes.class_id"))
+    name: Mapped[str] = mapped_column(Text)
+    profile: Mapped[str | None] = mapped_column(Text)  # JSON {field: value}; null for a house
+    created_at: Mapped[str] = mapped_column(Text)
 
 
 if __name__ == "__main__":

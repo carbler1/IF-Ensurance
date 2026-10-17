@@ -1,6 +1,8 @@
 # Postgres, the backend (FastAPI + worker), the If staff dashboard (Next.js) and the web demo
-# of the customer app (Expo). The dashboard reads and writes Postgres directly.
-# Setup: cp .env.example .env and set POSTGRES_PASSWORD and the tokens. Then: docker compose up --build
+# of the customer app (Expo). Only the backend talks to Postgres; the dashboard calls the
+# backend's /v1/admin API. Postgres has no host port, so nothing else can reach it.
+# Setup: cp .env.example .env and set POSTGRES_PASSWORD, ADMIN_TOKEN and the tokens.
+# Then: docker compose up --build
 # Dashboard: http://localhost:3000   App demo: http://localhost:8082   API: http://localhost:8000
 services:
   postgres:
@@ -9,8 +11,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-ilp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:-ilp}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432" # for local tools and `npm run dev` in frontend/
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -30,6 +30,7 @@ services:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ilp}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ilp}
       # Ollama runs on the host, outside the container.
       OLLAMA_URL: ${OLLAMA_URL_DOCKER:-http://host.docker.internal:11434}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?Set ADMIN_TOKEN in .env}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -48,11 +49,12 @@ services:
   frontend:
     build: ./frontend
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-ilp}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ilp}
+      # Server-side calls over the compose network; the browser never sees the token.
+      BACKEND_URL: http://backend:8000
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?Set ADMIN_TOKEN in .env}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
-      # The backend creates the tables and seeds them on its first start.
       backend:
         condition: service_healthy
 

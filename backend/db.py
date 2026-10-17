@@ -13,7 +13,8 @@ from pathlib import Path
 from sqlalchemy import Engine, create_engine, event, select, text
 from sqlalchemy.orm import Session
 
-from backend.models import Base, FixRule, Home, InsuranceSettings, Partner, Profile, ReferenceData, Tier
+from backend.models import (Base, Customer, FixRule, Home, InsuranceClass, InsuranceSettings, InsuredObject, Partner,
+                            Profile, Tier)
 
 ROOT = Path(__file__).resolve().parent.parent
 VAR = ROOT / "var"
@@ -64,8 +65,9 @@ def now_iso() -> str:
 
 
 def seed(s: Session) -> None:
-    """Create home_01 (Esimerkkikatu 3, 20100 Turku) with every profile field "unknown".
-    Copy the mock partners and tiers into their tables the first time."""
+    """Create home_01 (Esimerkkikatu 3, 20100 Turku) with every profile field "unknown", the demo
+    customer with a house, a cottage, a boat, a car and a dog, and the mock partners, tiers,
+    insurance classes and fix rules. Rows that exist stay as they are."""
     now = now_iso()
     props = json.loads((ROOT / "data" / "home-profile.schema.json").read_text())["properties"]
     unknown = {"value": "unknown", "confidence": 0, "source": "none", "evidence": None, "doubt": False}
@@ -91,31 +93,35 @@ def seed(s: Session) -> None:
             deductible_reduction_eur=t["deductible_reduction_eur"], free_checkups=json.dumps(t["free_checkups"]),
             partner_discount_percent=t["partner_discount_percent"], updated_at=now))
 
-    # Mock numbers (decision 8): base premium, cap and the euro value of a fix are placeholders.
-    add_missing(InsuranceSettings, 1, InsuranceSettings(
-        settings_id=1, score_start=tiers_file["score_start"], base_annual_premium_eur=900,
-        max_reduction_percent=25, updated_at=now))
+    # Mock numbers (decision 8): premiums, caps and the euro value of a fix are placeholders.
+    add_missing(InsuranceSettings, 1, InsuranceSettings(settings_id=1, score_start=tiers_file["score_start"], updated_at=now))
+    other = json.loads((ROOT / "data" / "insurance-classes.json").read_text())
+    names = {"house": "House", **{c["class_id"]: c["name"] for c in other["classes"]}}
+    for class_id, premium in other["base_premiums_eur"].items():
+        add_missing(InsuranceClass, class_id, InsuranceClass(
+            class_id=class_id, name=names[class_id], base_annual_premium_eur=premium, max_reduction_percent=25,
+            updated_at=now))
+    cust = other["demo_customer"]
+    add_missing(Customer, cust["customer_id"], Customer(customer_id=cust["customer_id"], name=cust["name"], created_at=now))
+    s.flush()  # objects reference the customer and the classes
+    for o in cust["objects"]:
+        add_missing(InsuredObject, o["object_id"], InsuredObject(
+            object_id=o["object_id"], customer_id=cust["customer_id"], class_id=o["class_id"], name=o["name"],
+            profile=json.dumps(o["profile"]) if "profile" in o else None, created_at=now))
+
     entries = json.loads((ROOT / "data" / "catalogue.json").read_text())["entries"]
+    entries += [r for c in other["classes"] for r in c["risks"]]
     half_lives = json.loads((ROOT / "fixtures" / "half-lives.json").read_text())["defaults"]
     for e in entries:
         add_missing(FixRule, f"default.{e['id']}", FixRule(
             rule_id=f"default.{e['id']}", risk_id=e["id"], label="Default", context=None, priority=0,
-            points=e["points"], half_life_years=e.get("half_life_years") or half_lives[e["category"]],
+            points=e["points"], half_life_years=e.get("half_life_years") or half_lives.get(e["category"], 5),
             premium_reduction_eur=e["points"] // 2, active=1, updated_at=now))
     # One example of a context rule, so the dashboard shows how a context changes the value.
     add_missing(FixRule, "example.elec_check_pre1970", FixRule(
         rule_id="example.elec_check_pre1970", risk_id="elec.check.overdue", label="Houses built before 1970",
         context=json.dumps({"op": "lt", "field": "building_year", "value": 1970}), priority=10,
         points=110, half_life_years=10, premium_reduction_eur=60, active=1, updated_at=now))
-    s.commit()
-    sync_reference_data(s)
-
-
-def sync_reference_data(s: Session) -> None:
-    """Copy data/catalogue.json and data/home-profile.schema.json into reference_data."""
-    now = now_iso()
-    for key, path in (("catalogue", "catalogue.json"), ("profile_schema", "home-profile.schema.json")):
-        s.merge(ReferenceData(key=key, data=(ROOT / "data" / path).read_text(), updated_at=now))
     s.commit()
 
 

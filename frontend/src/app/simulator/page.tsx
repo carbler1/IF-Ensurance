@@ -2,22 +2,19 @@ import type { Metadata } from "next";
 import { Data } from "@/components/Data";
 import { Simulator } from "@/components/Simulator";
 import { PageHeader } from "@/components/ui";
-import { getCatalogue, getCustomers, getProfileFields, getRules, getSettings, getTiers } from "@/lib/data";
+import { getClasses, getCustomers, getTiers } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Simulator · If Life Partner Staff" };
 
 async function Load() {
-  const [customers, catalogue, rules, settings, tiers, fields] = await Promise.all([
-    getCustomers(), getCatalogue(), getRules(), getSettings(), getTiers(), getProfileFields(),
-  ]);
-  const homes = customers.map((c) => ({ homeId: c.homeId, label: `${c.street}, ${c.city}`, profile: c.profile }));
-  return <Simulator homes={homes} catalogue={catalogue} rules={rules} settings={settings} tiers={tiers} fields={fields} />;
+  const [customers, classes, tiers] = await Promise.all([getCustomers(), getClasses(), getTiers()]);
+  return <Simulator customers={customers} classes={classes} tierMins={tiers.map((t) => t.min_score)} />;
 }
 
 export default function SimulatorPage() {
   return (
     <>
-      <PageHeader title="Simulator" sub="See what a home gains when every fix that applies to it is confirmed, with the current rules. Nothing here is saved." />
+      <PageHeader title="Simulator" sub="See what a customer gains when every fix on their house, cottage, boat, car and dog is confirmed, with the current rules." />
       <Data load={() => Load()} />
     </>
   );

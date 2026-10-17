@@ -1,5 +1,5 @@
 import { Suspense, type ReactNode } from "react";
-import { DataError } from "@/lib/data";
+import { ApiError } from "@/lib/api";
 import { Card } from "./ui";
 
 function Notice({ message }: { message: string }) {
@@ -19,7 +19,7 @@ async function Resolve({ load }: { load: () => Promise<ReactNode> }) {
   try {
     return await load();
   } catch (e) {
-    if (e instanceof DataError) return <Notice message={e.message} />;
+    if (e instanceof ApiError) return <Notice message={e.message} />;
     throw e;
   }
 }

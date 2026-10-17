@@ -1,21 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { RotateCcw } from "lucide-react";
-import { fieldLabel, describe, type FieldInfo } from "@/lib/context";
-import { UNKNOWN, profileValue, type Profile, type ProfileValue } from "@/lib/match";
-import { simulate, type CatalogueEntry, type Rule, type Settings, type TierRow } from "@/lib/math";
+import { runSimulation, type SimInput } from "@/app/actions";
+import { describe, fieldLabel } from "@/lib/context";
+import type { Customer, Field, InsuranceClass, ProfileValue, Simulation } from "@/lib/types";
 import { smallInputClass } from "./form";
 import { ScoreRing } from "./ScoreRing";
-import { Card, IconTile, Pill, categoryIcon, eur, humanize, tierColor } from "./ui";
+import { Card, IconTile, Pill, categoryIcon, classIcon, eur, humanize, tierColor } from "./ui";
 
-type Home = { homeId: string; label: string; profile: Profile };
+const UNKNOWN = "unknown";
 
-const flatten = (p: Profile, fields: FieldInfo[]): Record<string, ProfileValue> =>
-  Object.fromEntries(fields.map((f) => [f.name, profileValue(p, f.name)]));
-
-function FieldControl({ field, value, onChange }: { field: FieldInfo; value: ProfileValue; onChange: (v: ProfileValue) => void }) {
-  const unknown = value === UNKNOWN;
+function FieldControl({ field, value, onChange }: { field: Field; value: ProfileValue; onChange: (v: ProfileValue) => void }) {
   if (field.kind === "enum") {
     return (
       <select aria-label={fieldLabel(field.name)} value={String(value)} onChange={(e) => onChange(e.target.value)} className={smallInputClass}>
@@ -25,110 +21,168 @@ function FieldControl({ field, value, onChange }: { field: FieldInfo; value: Pro
     );
   }
   return (
-    <div className="flex gap-2">
-      <input
-        aria-label={fieldLabel(field.name)}
-        type={field.kind === "date" ? "date" : "number"}
-        value={unknown ? "" : String(value)}
-        placeholder="Unknown"
-        onChange={(e) => onChange(e.target.value === "" ? UNKNOWN : field.kind === "year" ? Number(e.target.value) : e.target.value)}
-        className={smallInputClass}
-      />
-    </div>
+    <input
+      aria-label={fieldLabel(field.name)}
+      type={field.kind === "date" ? "date" : "number"}
+      value={value === UNKNOWN ? "" : String(value)}
+      placeholder="Unknown"
+      onChange={(e) => onChange(e.target.value === "" ? UNKNOWN : field.kind === "year" ? Number(e.target.value) : e.target.value)}
+      className={smallInputClass}
+    />
   );
 }
 
-export function Simulator({ homes, catalogue, rules, settings, tiers, fields }: { homes: Home[]; catalogue: CatalogueEntry[]; rules: Rule[]; settings: Settings; tiers: TierRow[]; fields: FieldInfo[] }) {
-  const [homeId, setHomeId] = useState(homes[0]?.homeId ?? "");
-  const base = homes.find((h) => h.homeId === homeId);
-  const [values, setValues] = useState<Record<string, ProfileValue>>(() => flatten(base?.profile ?? {}, fields));
-  const sim = useMemo(() => simulate(values, catalogue, rules, settings, tiers), [values, catalogue, rules, settings, tiers]);
-  const ringMax = Math.round(Math.max(...tiers.map((t) => t.minScore), settings.scoreStart) * 1.25);
-  const known = Object.values(values).filter((v) => v !== UNKNOWN).length;
+const inputsOf = (c: Customer | undefined, classes: InsuranceClass[]): SimInput[] =>
+  (c?.objects ?? []).map((o) => {
+    const fields = classes.find((k) => k.class_id === o.class_id)?.fields ?? [];
+    return { object_id: o.object_id, class_id: o.class_id, name: o.name, profile: Object.fromEntries(fields.map((f) => [f.name, o.profile[f.name] ?? UNKNOWN])) };
+  });
 
-  const pickHome = (id: string) => {
-    setHomeId(id);
-    setValues(flatten(homes.find((h) => h.homeId === id)?.profile ?? {}, fields));
+export function Simulator({ customers, classes, tierMins }: { customers: Customer[]; classes: InsuranceClass[]; tierMins: number[] }) {
+  const [customerId, setCustomerId] = useState(customers[0]?.customer_id ?? "");
+  const customer = customers.find((c) => c.customer_id === customerId);
+  const [inputs, setInputs] = useState<SimInput[]>(() => inputsOf(customer, classes));
+  const [active, setActive] = useState(0);
+  const [sim, setSim] = useState<Simulation | null>(customer ?? null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const first = useRef(true);
+
+  // Ask the backend again a moment after the last change.
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    const id = setTimeout(() => startTransition(async () => {
+      const r = await runSimulation(inputs);
+      if (r.ok) { setSim(r.result); setError(null); } else setError(r.message);
+    }), 250);
+    return () => clearTimeout(id);
+  }, [inputs]);
+
+  const pickCustomer = (id: string) => {
+    setCustomerId(id);
+    setInputs(inputsOf(customers.find((c) => c.customer_id === id), classes));
+    setActive(0);
   };
+  const setValue = (field: string, v: ProfileValue) =>
+    setInputs(inputs.map((o, i) => (i === active ? { ...o, profile: { ...o.profile, [field]: v } } : o)));
+
+  const obj = inputs[active];
+  const cls = classes.find((c) => c.class_id === obj?.class_id);
+  const result = sim?.objects[active];
+  const ringMax = Math.round(Math.max(...tierMins, sim?.score.start ?? 1000) * 1.25);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-      <Card className="h-fit">
-        <h2 className="text-xl font-semibold">Home</h2>
-        <label className="mt-3 block">
-          <span className="mb-1 block font-medium">Start from a customer</span>
-          <select value={homeId} onChange={(e) => pickHome(e.target.value)} className={smallInputClass}>
-            {homes.map((h) => <option key={h.homeId} value={h.homeId}>{h.label}</option>)}
-            <option value="">Empty profile</option>
-          </select>
-        </label>
-        <div className="mt-4 flex items-center justify-between gap-2">
-          <p className="text-sm text-muted-foreground">{known} of {fields.length} fields known. Change any value to see the effect.</p>
-          <button type="button" onClick={() => pickHome(homeId)} className="flex h-11 shrink-0 items-center gap-1 rounded-xl px-3 font-medium text-primary hover:bg-accent">
-            <RotateCcw className="h-4 w-4" />Reset
-          </button>
-        </div>
-        <div className="mt-2 space-y-3">
-          {fields.map((f) => (
-            <label key={f.name} className="block">
-              <span className="mb-1 block text-sm font-medium">{fieldLabel(f.name)}</span>
-              <FieldControl field={f} value={values[f.name] ?? UNKNOWN} onChange={(v) => setValues({ ...values, [f.name]: v })} />
-            </label>
-          ))}
+    <div className="space-y-4">
+      <Card className="flex flex-col items-center gap-6 text-center md:flex-row md:text-left">
+        {sim && <ScoreRing score={sim.score.start} projected={sim.score.after} max={ringMax} tierMins={tierMins} />}
+        <div className="grid w-full flex-1 gap-4 sm:grid-cols-3">
+          <label className="block sm:col-span-3">
+            <span className="mb-1 block font-medium">Customer</span>
+            <select value={customerId} onChange={(e) => pickCustomer(e.target.value)} className={smallInputClass}>
+              {customers.map((c) => <option key={c.customer_id} value={c.customer_id}>{c.name}</option>)}
+            </select>
+          </label>
+          <div>
+            <p className="text-sm text-muted-foreground">Tier after every fix</p>
+            <p className="mt-1 flex items-center justify-center gap-2 text-xl font-semibold md:justify-start">
+              {sim?.score.tier_after && <span className={`h-3 w-3 rounded-full ${tierColor[sim.score.tier_after.index] ?? "bg-primary"}`} />}
+              {sim?.score.tier_after?.name ?? "—"}
+            </p>
+            <p className="text-sm text-muted-foreground">Now {sim?.score.tier_before?.name ?? "—"} · deductible −{eur(sim?.score.tier_after?.deductible_reduction_eur ?? 0)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">All premiums per year</p>
+            <p className="mt-1 font-display text-3xl font-semibold tabular-nums">{eur(sim?.premium.after ?? 0)}</p>
+            <p className="text-sm text-muted-foreground"><span className="line-through">{eur(sim?.premium.base ?? 0)}</span> · <span className="font-semibold text-success">−{eur(sim?.premium.cut ?? 0)}</span></p>
+          </div>
+          <div aria-live="polite" className="text-sm text-muted-foreground">
+            {pending ? "Calculating…" : error ? <span className="font-semibold text-destructive">{error}</span> : "Numbers from the backend with the current rules. Nothing is saved."}
+          </div>
         </div>
       </Card>
 
-      <div className="space-y-4">
-        <Card className="flex flex-col items-center gap-6 text-center md:flex-row md:text-left">
-          <ScoreRing score={settings.scoreStart} projected={sim.scoreAfter} max={ringMax} tierMins={tiers.map((t) => t.minScore)} />
-          <div className="grid flex-1 gap-4 sm:grid-cols-2">
-            <div>
-              <p className="text-sm text-muted-foreground">Tier after every fix</p>
-              <p className="mt-1 flex items-center justify-center gap-2 text-xl font-semibold md:justify-start">
-                {sim.tierAfter && <span className={`h-3 w-3 rounded-full ${tierColor[sim.tierAfter.index] ?? "bg-primary"}`} />}
-                {sim.tierAfter?.name ?? "—"}
-              </p>
-              <p className="text-sm text-muted-foreground">Now {sim.tierBefore?.name ?? "—"} · deductible −{eur(sim.tierAfter?.deductibleReductionEur ?? 0)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Premium per year</p>
-              <p className="mt-1 font-display text-3xl font-semibold tabular-nums">{eur(sim.premiumAfter)}</p>
-              <p className="text-sm text-muted-foreground">
-                <span className="line-through">{eur(settings.baseAnnualPremiumEur)}</span> · <span className="font-semibold text-success">−{eur(sim.premiumCut)}</span>
-              </p>
-              {sim.capped && <p className="mt-1 text-sm text-muted-foreground">Capped at {settings.maxReductionPercent} % (fixes add up to {eur(sim.premiumCutRaw)}).</p>}
-            </div>
-          </div>
-        </Card>
-
-        <h2 className="pt-2 text-xl font-semibold">{sim.fixes.length} fixes apply to this home</h2>
-        {sim.fixes.length === 0 && <Card className="text-muted-foreground">No catalogue fix applies. Fill in more of the profile, for example the building year.</Card>}
-        {sim.fixes.map((f) => {
-          const Icon = categoryIcon[f.entry.category] ?? categoryIcon.roof;
+      <div role="tablist" aria-label="Insured object" className="grid gap-3 sm:grid-cols-5">
+        {inputs.map((o, i) => {
+          const Icon = classIcon[o.class_id] ?? classIcon.house;
+          const r = sim?.objects[i];
+          const on = i === active;
           return (
-            <Card key={f.entry.id}>
-              <div className="flex items-start gap-4">
-                <IconTile icon={Icon} />
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-xl font-semibold">{f.entry.title}</h3>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {f.rule ? (
-                      <Pill tone={f.rule.context ? "accent" : "secondary"}>{f.rule.context ? `${f.rule.label}: ${describe(f.rule.context).join(", ")}` : "Default rule"}</Pill>
-                    ) : (
-                      <Pill tone="warning">No active rule · catalogue points, no premium cut</Pill>
-                    )}
-                    {f.halfLifeYears && <Pill>Halves every {f.halfLifeYears} years</Pill>}
-                  </div>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="font-display text-3xl font-semibold text-primary-light tabular-nums">+{f.points}</p>
-                  <p className="text-sm font-semibold text-success">−{eur(f.premiumReductionEur)} / year</p>
-                </div>
-              </div>
-            </Card>
+            <button key={o.object_id ?? i} role="tab" aria-selected={on} type="button" onClick={() => setActive(i)}
+              className={`rounded-2xl border-2 bg-card p-4 text-left ${on ? "border-primary bg-accent" : "border-transparent shadow-soft"}`}>
+              <span className="flex items-center gap-2 font-semibold"><Icon className="h-5 w-5 text-primary" aria-hidden />{r?.class_name ?? o.class_id}</span>
+              <span className="mt-1 block truncate text-sm text-muted-foreground">{o.name}</span>
+              <span className="mt-2 block font-display text-2xl font-semibold text-primary-light tabular-nums">+{r?.points ?? 0}</span>
+              <span className="block text-sm font-semibold text-success">−{eur(r?.premium.cut ?? 0)} / year</span>
+            </button>
           );
         })}
       </div>
+
+      {obj && cls && (
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+          <Card className="h-fit">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-xl font-semibold">{cls.name}</h2>
+              <button type="button" onClick={() => setInputs(inputs.map((o, i) => (i === active ? inputsOf(customer, classes)[i] : o)))} className="flex h-11 items-center gap-1 rounded-xl px-3 font-medium text-primary hover:bg-accent">
+                <RotateCcw className="h-4 w-4" />Reset
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground">{obj.name}. Change any value to see the effect.</p>
+            <div className="mt-3 space-y-3">
+              {cls.fields.map((f) => (
+                <label key={f.name} className="block">
+                  <span className="mb-1 block text-sm font-medium">{fieldLabel(f.name)}</span>
+                  <FieldControl field={f} value={obj.profile[f.name] ?? UNKNOWN} onChange={(v) => setValue(f.name, v)} />
+                </label>
+              ))}
+            </div>
+          </Card>
+
+          <div className="space-y-4">
+            {result && (
+              <Card className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">{cls.name} premium per year</p>
+                  <p className="font-display text-3xl font-semibold tabular-nums">{eur(result.premium.after)}</p>
+                  <p className="text-sm text-muted-foreground"><span className="line-through">{eur(result.premium.base)}</span> · <span className="font-semibold text-success">−{eur(result.premium.cut)}</span>
+                    {result.premium.capped && ` · capped at ${result.premium.max_reduction_percent} % (fixes add up to ${eur(result.premium.cut_raw)})`}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-display text-3xl font-semibold text-primary-light tabular-nums">+{result.points}</p>
+                  <p className="text-sm text-muted-foreground">Care Score points</p>
+                </div>
+              </Card>
+            )}
+            <h2 className="pt-2 text-xl font-semibold">{result?.fixes.length ?? 0} {result?.fixes.length === 1 ? "fix applies" : "fixes apply"}</h2>
+            {result?.fixes.length === 0 && <Card className="text-muted-foreground">No fix applies. Fill in more of the profile.</Card>}
+            {result?.fixes.map((f) => {
+              const Icon = categoryIcon[f.category] ?? categoryIcon.roof;
+              return (
+                <Card key={f.risk_id}>
+                  <div className="flex items-start gap-4">
+                    <IconTile icon={Icon} />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xl font-semibold">{f.title}</h3>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {f.rule_id ? (
+                          <Pill tone={f.rule_context ? "accent" : "secondary"}>{f.rule_context ? `${f.rule_label}: ${describe(f.rule_context).join(", ")}` : "Default rule"}</Pill>
+                        ) : (
+                          <Pill tone="warning">No active rule · base points, no premium cut</Pill>
+                        )}
+                        {f.half_life_years && <Pill>Halves every {f.half_life_years} years</Pill>}
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="font-display text-3xl font-semibold text-primary-light tabular-nums">+{f.points}</p>
+                      <p className="text-sm font-semibold text-success">−{eur(f.premium_reduction_eur)} / year</p>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

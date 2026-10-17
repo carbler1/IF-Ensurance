@@ -58,7 +58,7 @@ All backend parts run on pc-btw.
 |---|---|
 | Customer app | Lovable (React, TypeScript, Tailwind) web app in Chrome on the Pixel. No Supabase. |
 | Backend | Python 3.13, FastAPI, uvicorn, python-multipart |
-| Database | Postgres 17 in docker compose, through SQLAlchemy 2.0 (models in `backend/models.py`). `DATABASE_URL` picks it; without it, a SQLite file `var/ilp.sqlite` (local runs, tests). The staff dashboard reads it directly. |
+| Database | Postgres 17 in docker compose, through SQLAlchemy 2.0 (models in `backend/models.py`). `DATABASE_URL` picks it; without it, a SQLite file `var/ilp.sqlite` (local runs, tests). Only the backend connects to it; the staff dashboard uses `/v1/admin`. |
 | Jobs | A `jobs` table. One worker process polls it. No queue server. |
 | PDF text | pypdfium2 |
 | LLM | Ollama on pc-btw, `qwen3.5:9b`, called with httpx |
@@ -70,7 +70,7 @@ All backend parts run on pc-btw.
 ## 5. Database
 
 Postgres (SQLite without `DATABASE_URL`). One demo customer and one home (`home_01`).
-Added 2026-10-17 for the staff dashboard: `fix_rules` (what a fix is worth in which context: points, half-life, yearly premium cut), `insurance_settings` (score start, base premium, cap on premium cuts) and `reference_data` (copies of `data/catalogue.json` and `data/home-profile.schema.json`, refreshed on each start). All numbers are mock data.
+Added 2026-10-17 for the staff dashboard and the five insurance classes: `customers` and `insured_objects` (the demo customer owns a house, a summer cottage, a boat, a car and a dog; a house keeps its profile in `profiles`, the others in `insured_objects.profile`), `insurance_classes` (base premium and cap per class), `fix_rules` (what a fix is worth in which context: points, half-life, yearly premium cut) and `insurance_settings` (the starting Care Score). The house risks come from `data/catalogue.json`; the other classes from the mock `data/insurance-classes.json`, two risks each (`backend/insurance.py`). All numbers are mock data.
 
 | Table | Columns | Written by |
 |---|---|---|

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Droplets, Flame, Home, Wind, Wrench, Zap, type LucideIcon } from "lucide-react";
+import { Car, CircleGauge, Cog, Dog, Droplets, Flame, HeartPulse, Home, Sailboat, Snowflake, TreePine, Warehouse, Wind, Wrench, Zap, type LucideIcon } from "lucide-react";
 
 // Building blocks in the customer app's style (mobile-app/src/components/ui.tsx).
 
@@ -10,6 +10,19 @@ export const categoryIcon: Record<string, LucideIcon> = {
   roof: Home,
   heating: Flame,
   ventilation: Wind,
+  engine: Cog,
+  storage: Warehouse,
+  tyres: Snowflake,
+  service: CircleGauge,
+  health: HeartPulse,
+};
+
+export const classIcon: Record<string, LucideIcon> = {
+  house: Home,
+  cottage: TreePine,
+  boat: Sailboat,
+  car: Car,
+  dog: Dog,
 };
 
 export const tierColor = ["bg-tier-bronze", "bg-tier-silver", "bg-tier-gold", "bg-tier-platinum"];
