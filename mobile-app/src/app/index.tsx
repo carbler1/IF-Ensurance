@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { ChevronRight, Snowflake } from "lucide-react-native";
+import { ChevronRight, Snowflake } from "@/lib/icons";
 import { Arrive, Card, CountUp, LinkBlock, RingOverlay, ScoreRing, Screen, Text, Wordmark, areaIcon, insuranceIcon, ringLandMs, tierSegmentsOf } from "@/components/ui";
 import { fmt } from "@/lib/i18n";
 import { useStore } from "@/lib/store";

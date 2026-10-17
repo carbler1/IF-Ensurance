@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
-import { Bath, Camera, Check, Droplets, FileText, House, MapPin, X, Zap } from "lucide-react-native";
+import { Bath, Camera, Check, Droplets, FileText, House, MapPin, X, Zap } from "@/lib/icons";
 import { questions } from "@/data/mock";
 import { useStore } from "@/lib/store";
 import { colors, radius, shadows } from "@/lib/theme";

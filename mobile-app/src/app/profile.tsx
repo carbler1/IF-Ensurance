@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pressable, View } from "react-native";
-import { ChevronRight, Clock, ShieldCheck, UserPlus } from "lucide-react-native";
+import { ChevronRight, Clock, ShieldCheck, UserPlus } from "@/lib/icons";
 import { Button, Card, Heading, Input, LinkBlock, PopIn, Screen, SwitchRow, Text } from "@/components/ui";
 import type { Lang } from "@/lib/i18n";
 import { useStore } from "@/lib/store";

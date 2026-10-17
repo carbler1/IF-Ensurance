@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Animated, Easing, Pressable, View } from "react-native";
 import { router, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CalendarCheck, Home, ShieldAlert, User } from "lucide-react-native";
+import { CalendarCheck, Home, ShieldAlert, User } from "@/lib/icons";
 import { useStore } from "@/lib/store";
 import { colors } from "@/lib/theme";
 import { Text, useReducedMotion } from "./ui";

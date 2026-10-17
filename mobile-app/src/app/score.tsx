@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { Check, TrendingDown, TrendingUp } from "lucide-react-native";
+import { Check, TrendingDown, TrendingUp } from "@/lib/icons";
 import { Card, Heading, Screen, Text, insuranceIcon, softColors } from "@/components/ui";
 import { fmt } from "@/lib/i18n";
 import { useStore } from "@/lib/store";

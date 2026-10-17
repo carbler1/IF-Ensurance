@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { CheckCircle2 } from "lucide-react-native";
+import { CheckCircle2 } from "@/lib/icons";
 import { Card, Heading, LinkBlock, Screen, Text, areaIcon, insuranceIcon } from "@/components/ui";
 import { fmt } from "@/lib/i18n";
 import { useStore } from "@/lib/store";

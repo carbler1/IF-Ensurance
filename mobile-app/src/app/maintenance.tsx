@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { Leaf, Snowflake, Sprout, Sun } from "lucide-react-native";
+import { Leaf, Snowflake, Sprout, Sun } from "@/lib/icons";
 import { Card, Heading, Screen, SwitchRow, Text } from "@/components/ui";
 import { useStore } from "@/lib/store";
 import { colors, radius, seasonColors } from "@/lib/theme";

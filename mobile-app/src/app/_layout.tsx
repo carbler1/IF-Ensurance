@@ -9,8 +9,6 @@ import { Figtree_400Regular } from "@expo-google-fonts/figtree/400Regular";
 import { Figtree_500Medium } from "@expo-google-fonts/figtree/500Medium";
 import { Figtree_600SemiBold } from "@expo-google-fonts/figtree/600SemiBold";
 import { Figtree_700Bold } from "@expo-google-fonts/figtree/700Bold";
-import { Fraunces_400Regular } from "@expo-google-fonts/fraunces/400Regular";
-import { Fraunces_400Regular_Italic } from "@expo-google-fonts/fraunces/400Regular_Italic";
 import { Fraunces_600SemiBold } from "@expo-google-fonts/fraunces/600SemiBold";
 import { Onboarding } from "@/components/Onboarding";
 import { TabBar } from "@/components/TabBar";
@@ -25,7 +23,7 @@ SplashScreen.preventAutoHideAsync();
 const tabPage = { animation: "none" } as const;
 
 export default function RootLayout() {
-  const [loaded, fontError] = useFonts({ Figtree_400Regular, Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Fraunces_400Regular, Fraunces_400Regular_Italic, Fraunces_600SemiBold });
+  const [loaded, fontError] = useFonts({ Figtree_400Regular, Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Fraunces_600SemiBold });
 
   useEffect(() => {
     if (loaded || fontError) SplashScreen.hideAsync();

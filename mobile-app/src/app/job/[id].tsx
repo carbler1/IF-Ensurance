@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import { Link, router, useLocalSearchParams } from "expo-router";
-import { BadgeCheck, Check, ShieldCheck } from "lucide-react-native";
+import { BadgeCheck, Check, ShieldCheck } from "@/lib/icons";
 import { Button, Card, PopIn, Screen, Text } from "@/components/ui";
 import { fmt } from "@/lib/i18n";
 import { useStore } from "@/lib/store";

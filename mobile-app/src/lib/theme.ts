@@ -82,8 +82,8 @@ const sans: Record<Weight, string> = {
   700: "Figtree_700Bold",
 };
 
-export function fontFamily(display: boolean, weight: Weight, italic = false) {
-  if (!display) return sans[weight];
-  if (italic) return "Fraunces_400Regular_Italic";
-  return weight >= 600 ? "Fraunces_600SemiBold" : "Fraunces_400Regular";
+// The display face loads one weight only: every heading and big number is SemiBold, and the italic serif now
+// lives in the logo image. Fewer font files means a shorter splash screen.
+export function fontFamily(display: boolean, weight: Weight) {
+  return display ? "Fraunces_600SemiBold" : sans[weight];
 }

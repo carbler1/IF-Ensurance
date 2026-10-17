@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { CalendarDays, CheckCircle2, HardHat, Search, Star } from "lucide-react-native";
+import { CalendarDays, CheckCircle2, HardHat, Search, Star } from "@/lib/icons";
 import { NotFound } from "@/components/NotFound";
 import { RiskScorePreview } from "@/components/RiskScorePreview";
 import { Button, Card, Heading, PopIn, Screen, Text, areaIcon } from "@/components/ui";
