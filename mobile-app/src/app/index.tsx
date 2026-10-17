@@ -2,7 +2,7 @@ import { ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronRight, Snowflake } from "lucide-react-native";
-import { Button, Card, Heading, LinkBlock, RingOverlay, ScoreRing, Text, Wordmark, areaIcon, insuranceIcon, tierSegmentsOf } from "@/components/ui";
+import { Button, Card, CountUp, Heading, LinkBlock, RingOverlay, ScoreRing, Text, Wordmark, areaIcon, insuranceIcon, tierSegmentsOf } from "@/components/ui";
 import { fmt } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
 import { colors, radius, tierColors } from "@/lib/theme";
@@ -16,11 +16,11 @@ export default function Dashboard() {
   const rows = [insurances.slice(0, 2), insurances.slice(2, 4), insurances.slice(4)];
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 + insets.top, paddingBottom: 48, gap: 16 }}>
+    <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 + insets.top, paddingBottom: 48, gap: 16 }}>
       {/* The web wordmark is an inline link, so the list spacing never applied below it. */}
-      <View>
+      <View style={{ alignItems: "center" }}>
         <Wordmark />
-        <Text color="mutedForeground">{t("home.hello")}, {customer.name}</Text>
+        <Text color="mutedForeground" center>{t("home.hello")}, {customer.name}</Text>
       </View>
 
       <LinkBlock href="/score">
@@ -28,7 +28,7 @@ export default function Dashboard() {
           <View style={{ maxWidth: "100%" }}>
             <ScoreRing score={score} showThresholds segments={tierSegmentsOf(tiers)} />
             <RingOverlay>
-              <Text size="5xl" display weight={600}>{score}</Text>
+              <CountUp size="5xl" display weight={600} value={score} />
               <Text size="sm" color="mutedForeground">/ 1000</Text>
             </RingOverlay>
           </View>
@@ -45,19 +45,20 @@ export default function Dashboard() {
       {/* One small card per insurance: its own score and the discount that score earns. */}
       <View style={{ gap: 12 }}>
         {rows.map((row, i) => (
-          <View key={i} style={{ flexDirection: "row", gap: 12 }}>
+          <View key={i} style={{ flexDirection: "row", gap: row.length === 1 ? 6 : 12 }}>
+            {row.length === 1 && <View style={{ flex: 1 }} />}
             {row.map(({ id }) => {
               const Icon = insuranceIcon[id];
               const pct = getBand(scores[id]);
               return (
-                <LinkBlock key={id} href="/score" style={{ flex: 1 }}>
-                  <Card style={{ padding: 16 }}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                <LinkBlock key={id} href="/score" style={{ flex: row.length === 1 ? 2 : 1 }}>
+                  <Card style={{ flex: 1, padding: 16, alignItems: "center" }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, maxWidth: "100%" }}>
                       <Icon size={16} color={colors.mutedForeground} />
-                      <Text size="sm" color="mutedForeground">{t(`ins.${id}`)}</Text>
+                      <Text size="sm" color="mutedForeground" numberOfLines={1} style={{ flexShrink: 1 }}>{t(`ins.${id}`)}</Text>
                     </View>
                     <Text size="3xl" display weight={600} tabular>{scores[id]}</Text>
-                    <Text size="sm" weight={pct ? 600 : 400} color={pct ? "success" : "mutedForeground"}>
+                    <Text size="sm" weight={pct ? 600 : 400} color={pct ? "success" : "mutedForeground"} center>
                       {pct ? fmt(t("band.off"), { pct }) : t("band.none")}
                     </Text>
                   </Card>
@@ -80,7 +81,7 @@ export default function Dashboard() {
                 <Heading size="xl">{nextRisk.title}</Heading>
               </View>
               <View style={{ alignItems: "center" }}>
-                <Text size="3xl" display weight={600} color="primaryLight" tabular>+{nextRisk.points}</Text>
+                <Text size="3xl" weight={700} color="primary" tabular>+{nextRisk.points}</Text>
                 <Text size="sm" color="mutedForeground">{t("pts")}</Text>
               </View>
             </View>
@@ -89,15 +90,17 @@ export default function Dashboard() {
         );
       })()}
 
-      <Card flat style={{ flexDirection: "row", gap: 12, backgroundColor: colors.warningSoft }}>
-        <Snowflake size={24} color={colors.foreground} />
+      <Card flat style={{ flexDirection: "row", gap: 12, backgroundColor: colors.accent }}>
+        <View style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: radius.full, backgroundColor: colors.card }}>
+          <Snowflake size={22} color={colors.primary} />
+        </View>
         <View style={{ flex: 1 }}>
-          <Text weight={600}>{t("home.alert")}</Text>
-          <Text color="mutedForeground">{t("home.alertText")}</Text>
+          <Text weight={600} color="accentForeground">{t("home.alert")}</Text>
+          <Text color="foreground">{t("home.alertText")}</Text>
         </View>
       </Card>
 
-      <LinkBlock href="/score" style={{ height: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: radius["2xl"], paddingHorizontal: 8 }}>
+      <LinkBlock href="/score" style={{ minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, borderRadius: radius["2xl"], paddingHorizontal: 8 }}>
         <Text weight={500} color="primary">{t("home.seeScore")}</Text>
         <ChevronRight size={20} color={colors.primary} />
       </LinkBlock>

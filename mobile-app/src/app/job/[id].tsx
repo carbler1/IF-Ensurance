@@ -51,7 +51,7 @@ export default function JobStatus() {
         <PopIn>
           <Card style={{ alignItems: "center" }}>
             <Text color="mutedForeground" center>{t("job.up")}</Text>
-            <Text size="6xl" display weight={600} color="primaryLight" center>+{risk.points}</Text>
+            <Text size="6xl" weight={700} color="primary" center>+{risk.points}</Text>
             <Text size="lg" center style={{ marginTop: 4 }}>
               {t(`ins.${risk.insurance}`)} {scores[risk.insurance]} / 1000 · {getBand(scores[risk.insurance]) ? fmt(t("band.off"), { pct: getBand(scores[risk.insurance]) }) : t("band.none")}
             </Text>

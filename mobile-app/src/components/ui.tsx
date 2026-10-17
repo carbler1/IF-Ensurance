@@ -8,6 +8,7 @@ import {
   Text as RNText,
   TextInput,
   View,
+  type PressableProps,
   type StyleProp,
   type TextInputProps,
   type TextProps,
@@ -107,7 +108,7 @@ export function Screen({ title, sub, back, children }: { title?: string; sub?: s
   const { t } = useStore();
   const insets = useSafeAreaInsets();
   return (
-    <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 + insets.top, paddingBottom: 48 }}>
+    <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 + insets.top, paddingBottom: 48 }}>
       {back && (
         <Pressable
           accessibilityRole="button"
@@ -118,8 +119,8 @@ export function Screen({ title, sub, back, children }: { title?: string; sub?: s
           <Text size="base" weight={500} color="primary">{t("back")}</Text>
         </Pressable>
       )}
-      {title && <Heading>{title}</Heading>}
-      {sub && <Text color="mutedForeground" style={{ marginTop: 8 }}>{sub}</Text>}
+      {title && <Heading center>{title}</Heading>}
+      {sub && <Text color="mutedForeground" center style={{ marginTop: 8 }}>{sub}</Text>}
       <View style={[title ? { marginTop: 24 } : null, { gap: 16 }]}>{children}</View>
     </ScrollView>
   );
@@ -132,7 +133,7 @@ export function Card({ style, flat, children }: { style?: StyleProp<ViewStyle>; 
 export function Wordmark() {
   return (
     <Link href="/" asChild>
-      <Pressable accessibilityRole="link" style={{ alignSelf: "flex-start" }}>
+      <Pressable accessibilityRole="link" style={{ alignSelf: "center" }}>
         <Text size="xl" display weight={600} color="primary">
           If <Text size="xl" display italic color="primary">Life Partner</Text>
         </Text>
@@ -141,11 +142,32 @@ export function Wordmark() {
   );
 }
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+// A tappable card: it sinks and takes a blue tint while held, then springs back on release.
+export function PressCard({ style, children, ...props }: PressableProps & { style?: StyleProp<ViewStyle>; children: ReactNode }) {
+  const held = useRef(new Animated.Value(0)).current;
+  const reducedMotion = useReducedMotion();
+  const pressIn = () => Animated.timing(held, { toValue: 1, duration: reducedMotion ? 0 : 140, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  const pressOut = () => (reducedMotion ? Animated.timing(held, { toValue: 0, duration: 0, useNativeDriver: true }) : Animated.spring(held, { toValue: 0, speed: 14, bounciness: 10, useNativeDriver: true })).start();
+  return (
+    <AnimatedPressable
+      {...props}
+      onPressIn={(e) => { pressIn(); props.onPressIn?.(e); }}
+      onPressOut={(e) => { pressOut(); props.onPressOut?.(e); }}
+      style={[style, { transform: [{ scale: held.interpolate({ inputRange: [0, 1], outputRange: [1, 0.96] }) }] }]}
+    >
+      {children}
+      <Animated.View pointerEvents="none" style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, borderRadius: radius["2xl"], borderWidth: 2, borderColor: colors.primary, backgroundColor: "rgba(0, 84, 240, 0.06)", opacity: held }} />
+    </AnimatedPressable>
+  );
+}
+
 // A tappable block that navigates, like a web <Link className="block">.
 export function LinkBlock({ href, style, children }: { href: Href; style?: StyleProp<ViewStyle>; children: ReactNode }) {
   return (
     <Link href={href} asChild>
-      <Pressable accessibilityRole="link" style={style}>{children}</Pressable>
+      <PressCard accessibilityRole="link" style={style}>{children}</PressCard>
     </Link>
   );
 }
@@ -255,15 +277,15 @@ export function ScoreRing({ score, max = 1000, size = 200, projectedScore = scor
   const center = outerSize / 2;
   const reducedMotion = useReducedMotion();
 
-  // The main arc eases to a new score over one second, like the web CSS transition.
-  const [offset, setOffset] = useState(c * (1 - pct));
-  const anim = useRef(new Animated.Value(offset)).current;
+  // The arc fills from empty on mount, then eases to each new score.
+  const [offset, setOffset] = useState(c);
+  const anim = useRef(new Animated.Value(c)).current;
   useEffect(() => {
     const id = anim.addListener(({ value }) => setOffset(value));
     return () => anim.removeListener(id);
   }, [anim]);
   useEffect(() => {
-    Animated.timing(anim, { toValue: c * (1 - pct), duration: reducedMotion ? 0 : 1000, easing: Easing.bezier(0.4, 0, 0.2, 1), useNativeDriver: false }).start();
+    Animated.timing(anim, { toValue: c * (1 - pct), duration: reducedMotion ? 0 : 900, easing: Easing.bezier(0.16, 1, 0.3, 1), useNativeDriver: false }).start();
   }, [c, pct, anim, reducedMotion]);
 
   return (
@@ -308,6 +330,21 @@ export function ScoreRing({ score, max = 1000, size = 200, projectedScore = scor
       </Svg>
     </View>
   );
+}
+
+// A number that counts up to its value with the same timing as the ScoreRing arc.
+export function CountUp({ value, ...props }: TextProps & TextOwnProps & { value: number }) {
+  const reducedMotion = useReducedMotion();
+  const [shown, setShown] = useState(0);
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const id = anim.addListener(({ value: v }) => setShown(Math.round(v)));
+    return () => anim.removeListener(id);
+  }, [anim]);
+  useEffect(() => {
+    Animated.timing(anim, { toValue: value, duration: reducedMotion ? 0 : 900, easing: Easing.bezier(0.16, 1, 0.3, 1), useNativeDriver: false }).start();
+  }, [value, anim, reducedMotion]);
+  return <Text accessibilityLabel={String(value)} tabular {...props}>{shown}</Text>;
 }
 
 // Centres its children over a ScoreRing, like the web "absolute inset-0" overlay.

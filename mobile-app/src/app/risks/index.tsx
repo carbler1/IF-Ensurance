@@ -42,7 +42,7 @@ export default function RiskList() {
                         )}
                       </View>
                       <View style={{ alignItems: "center" }}>
-                        <Text size="3xl" display weight={600} color="primaryLight" tabular>+{r.points}</Text>
+                        <Text size="3xl" weight={700} color="primary" tabular>+{r.points}</Text>
                         <Text size="sm" color="mutedForeground">{t("pts")}</Text>
                       </View>
                     </View>

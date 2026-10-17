@@ -47,7 +47,7 @@ export function RiskScorePreview({ score, addedPoints, label }: { score: number;
 
   return (
     <View accessibilityLabel={label} style={{ alignItems: "center", paddingVertical: 8 }}>
-      <Heading size="lg" style={{ alignSelf: "flex-start" }}>{label}</Heading>
+      <Heading size="lg" center>{label}</Heading>
       <View style={{ maxWidth: "100%" }}>
         <ScoreRing score={score} projectedScore={previewScore} thresholdScore={score} showThresholds segments={bandSegmentsOf(bands)} />
         <RingOverlay>
@@ -57,7 +57,7 @@ export function RiskScorePreview({ score, addedPoints, label }: { score: number;
               fontSize: bigSize,
               lineHeight: bigLine,
               fontVariant: ["tabular-nums"],
-              color: tint.interpolate({ inputRange: [0, 1], outputRange: [colors.foreground, colors.primaryLight] }),
+              color: tint.interpolate({ inputRange: [0, 1], outputRange: [colors.foreground, colors.primary] }),
             }}
           >
             {previewScore}
@@ -65,11 +65,11 @@ export function RiskScorePreview({ score, addedPoints, label }: { score: number;
           {addedPoints > 0 && (
             <Animated.Text
               style={{
-                fontFamily: fontFamily(true, 600),
+                fontFamily: fontFamily(false, 700),
                 fontSize: plusSize,
                 lineHeight: plusLine,
                 fontVariant: ["tabular-nums"],
-                color: colors.primaryLight,
+                color: colors.primary,
                 opacity: reveal,
                 transform: [{ scale: reveal.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] }) }],
               }}

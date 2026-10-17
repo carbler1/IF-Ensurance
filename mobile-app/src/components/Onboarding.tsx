@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Animated,
+  Easing,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -8,13 +9,31 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Camera, Check, FileText, MapPin } from "lucide-react-native";
+import { Bath, Camera, Check, CircleHelp, Droplets, FileText, House, MapPin, X, Zap } from "lucide-react-native";
 import { questions } from "@/data/mock";
 import { useStore } from "@/lib/store";
-import { colors, radius } from "@/lib/theme";
-import { Button, Card, Heading, Input, Spinner, Text, Wordmark } from "./ui";
+import { colors, radius, shadows } from "@/lib/theme";
+import { Button, Card, Heading, Input, PressCard, Spinner, Text, Wordmark, useReducedMotion } from "./ui";
 
 const bigBottom = { marginTop: "auto" } as const;
+
+// What each question is about, and how each answer looks.
+const questionIcon = { q1: Bath, q2: Zap, q3: Droplets, q4: House } as const;
+const answerLook = {
+  yes: { Icon: Check, solid: colors.success, soft: colors.successSoft },
+  no: { Icon: X, solid: colors.destructive, soft: colors.dangerSoft },
+  unsure: { Icon: CircleHelp, solid: colors.mutedForeground, soft: colors.secondary },
+} as const;
+
+// Each new question slides in from the right.
+function SlideIn({ children }: { children: ReactNode }) {
+  const v = useRef(new Animated.Value(0)).current;
+  const reduced = useReducedMotion();
+  useEffect(() => {
+    Animated.timing(v, { toValue: 1, duration: reduced ? 0 : 320, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [v, reduced]);
+  return <Animated.View style={{ opacity: v, transform: [{ translateX: v.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }] }}>{children}</Animated.View>;
+}
 
 export function Onboarding() {
   const { t, finishOnboarding, home } = useStore();
@@ -50,6 +69,7 @@ export function Onboarding() {
     >
       {/* Scrolls when a step is taller than the screen; flexGrow keeps the buttons pinned to the bottom otherwise. */}
       <ScrollView
+        showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           flexGrow: 1,
@@ -62,8 +82,8 @@ export function Onboarding() {
         <View style={{ marginTop: 40, flex: 1 }}>
           {step === "address" && (
             <>
-              <Heading>{t("ob.welcome")}</Heading>
-              <Text color="mutedForeground" style={{ marginTop: 12 }}>
+              <Heading center>{t("ob.welcome")}</Heading>
+              <Text color="mutedForeground" center style={{ marginTop: 12 }}>
                 {t("ob.welcomeSub")}
               </Text>
               <Text weight={500} style={{ marginTop: 32, marginBottom: 8 }}>
@@ -82,7 +102,7 @@ export function Onboarding() {
           )}
           {step === "found" && (
             <>
-              <Heading>{t("ob.found")}</Heading>
+              <Heading center>{t("ob.found")}</Heading>
               <Card style={{ marginTop: 24, gap: 12 }}>
                 <View
                   style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
@@ -134,7 +154,7 @@ export function Onboarding() {
           )}
           {step === "q" && (
             <>
-              <Text weight={500} color="mutedForeground">
+              <Text weight={500} color="mutedForeground" center>
                 {t("ob.question")} {qi + 1} {t("ob.of")} {questions.length}
               </Text>
               <View
@@ -157,32 +177,57 @@ export function Onboarding() {
                   }}
                 />
               </View>
-              <Heading size="2xl" style={{ marginTop: 32 }}>
-                {t(`ob.${questions[qi]!.id}` as "ob.q1")}
-              </Heading>
-              <View style={{ marginTop: "auto", gap: 12 }}>
-                {questions[qi]!.options.map((o) => (
-                  <Button
-                    key={o}
-                    big
-                    variant="outline"
-                    style={{ backgroundColor: colors.card }}
-                    onPress={() =>
-                      qi < questions.length - 1
-                        ? setQi(qi + 1)
-                        : setStep("photos")
-                    }
-                  >
-                    {t(`ob.${o}`)}
-                  </Button>
-                ))}
+              <SlideIn key={qi}>
+                {(() => {
+                  const QIcon = questionIcon[questions[qi]!.id];
+                  return (
+                    <View style={{ marginTop: 32, alignSelf: "center", height: 64, width: 64, alignItems: "center", justifyContent: "center", borderRadius: radius["2xl"], backgroundColor: colors.accent }}>
+                      <QIcon size={32} color={colors.primary} />
+                    </View>
+                  );
+                })()}
+                <Heading size="2xl" center style={{ marginTop: 20 }}>
+                  {t(`ob.${questions[qi]!.id}` as "ob.q1")}
+                </Heading>
+              </SlideIn>
+              <View style={{ marginTop: "auto", paddingTop: 24, gap: 12 }}>
+                {questions[qi]!.options.map((o) => {
+                  const { Icon, solid, soft } = answerLook[o];
+                  return (
+                    <PressCard
+                      key={`${qi}-${o}`}
+                      accessibilityRole="button"
+                      onPress={() =>
+                        qi < questions.length - 1
+                          ? setQi(qi + 1)
+                          : setStep("photos")
+                      }
+                      style={{
+                        minHeight: 64,
+                        paddingVertical: 12,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 14,
+                        borderRadius: radius["2xl"],
+                        backgroundColor: colors.card,
+                        paddingHorizontal: 12,
+                        boxShadow: shadows.soft,
+                      }}
+                    >
+                      <View style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: radius.full, backgroundColor: soft }}>
+                        <Icon size={20} color={solid} />
+                      </View>
+                      <Text size="lg" weight={500}>{t(`ob.${o}`)}</Text>
+                    </PressCard>
+                  );
+                })}
               </View>
             </>
           )}
           {step === "photos" && (
             <>
-              <Heading>{t("ob.photos")}</Heading>
-              <Text color="mutedForeground" style={{ marginTop: 12 }}>
+              <Heading center>{t("ob.photos")}</Heading>
+              <Text color="mutedForeground" center style={{ marginTop: 12 }}>
                 {t("ob.photosSub")}
               </Text>
               <View style={{ marginTop: 24, gap: 12 }}>

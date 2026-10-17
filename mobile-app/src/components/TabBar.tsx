@@ -1,10 +1,27 @@
-import { Pressable, View } from "react-native";
+import { useEffect, useRef } from "react";
+import { Animated, Easing, Pressable, View } from "react-native";
 import { router, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalendarCheck, Home, ShieldAlert, User } from "lucide-react-native";
 import { useStore } from "@/lib/store";
 import { colors } from "@/lib/theme";
-import { Text } from "./ui";
+import { Text, useReducedMotion } from "./ui";
+
+// The icon gives a short pop when its tab becomes active.
+function TabIcon({ Icon, active, color }: { Icon: (typeof tabs)[number]["Icon"]; active: boolean; color: string }) {
+  const pop = useRef(new Animated.Value(0)).current;
+  const reducedMotion = useReducedMotion();
+  useEffect(() => {
+    if (!active || reducedMotion) return;
+    pop.setValue(0);
+    Animated.timing(pop, { toValue: 1, duration: 320, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [active, pop, reducedMotion]);
+  return (
+    <Animated.View style={{ transform: [{ scale: pop.interpolate({ inputRange: [0, 0.4, 1], outputRange: [1, 1.18, 1] }) }] }}>
+      <Icon size={24} color={color} />
+    </Animated.View>
+  );
+}
 
 const tabs = [
   { to: "/", key: "tab.home", Icon: Home },
@@ -31,7 +48,7 @@ export function TabBar() {
             onPress={() => router.navigate(to)}
             style={{ flex: 1, minHeight: 64, paddingVertical: 8, alignItems: "center", justifyContent: "center", gap: 4 }}
           >
-            <Icon size={24} color={color} />
+            <TabIcon Icon={Icon} active={active} color={color} />
             <Text size="sm" weight={active ? 600 : 400} color={active ? "primary" : "mutedForeground"}>{t(key)}</Text>
           </Pressable>
         );
