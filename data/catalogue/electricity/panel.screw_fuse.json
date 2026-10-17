@@ -1,0 +1,40 @@
+{
+  "title": "Old screw-fuse panel",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "lt", "field": "building_year", "value": 1985},
+      {"op": "in", "field": "panel_type", "value": ["screw_fuse", "unknown"]}
+    ]
+  },
+  "severity": 4,
+  "probability": 3,
+  "service_life_years": 40,
+  "check_interval_years": 15,
+  "half_life_years": 15,
+  "mitigation": {
+    "action": "Electrician inspects the main panel and replaces it with automatic fuses and a residual-current device",
+    "partner_category": "electrician"
+  },
+  "points": 120,
+  "known_quirks": [
+    "Loose screw-fuse holders overheat and char the panel base",
+    "Panels from before 1985 usually have no residual-current device"
+  ],
+  "why_hint": "DRAFT: The house is from before 1985 and the panel still has screw fuses, or nobody has confirmed the panel type. Panels of this age overheat at loose fuse holders.",
+  "benefit_hint": "DRAFT: An electrician's check removes the most common cause of electrical fires in houses of this age.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "panel_type", "value": "automatic_fuses"},
+  "tests": {
+    "match": [
+      {"building_year": 1972, "panel_type": "screw_fuse"},
+      {"building_year": 1978, "panel_type": "unknown"},
+      {"building_year": 1978}
+    ],
+    "reject": [
+      {"building_year": 1992, "panel_type": "screw_fuse"},
+      {"building_year": 1972, "panel_type": "automatic_fuses"},
+      {"panel_type": "screw_fuse"}
+    ]
+  }
+}

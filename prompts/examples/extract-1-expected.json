@@ -1,0 +1,102 @@
+{
+  "fields": [
+    {
+      "field": "foundation_type",
+      "value": "basement",
+      "confidence": 0.9,
+      "quote": "Maanvarainen betonilaatta, kellarin kohdalla kellarin laatta",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "roof_material",
+      "value": "bitumen_felt",
+      "confidence": 0.95,
+      "quote": "Loiva pulpettikatto, kaltevuus noin 1:16. Bitumikermikate uusittu 2004",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "last_roof_renovation",
+      "value": 2004,
+      "confidence": 0.95,
+      "quote": "Bitumikermikate uusittu 2004",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "bathroom_waterproofing_year",
+      "value": 1994,
+      "confidence": 0.95,
+      "quote": "Seinät kiviaineiset, laatoitus, kosteussulkumaali (remontti 1994), ei vedeneristettä",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "heating",
+      "value": "oil",
+      "confidence": 0.95,
+      "quote": "Öljylämmitys. Kattila uusittu 1998 (Jäspi-tyyppinen teräskattila), poltin samalta ajalta",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "oil_tank_year",
+      "value": 1975,
+      "confidence": 0.8,
+      "quote": "Teräksinen 3 000 l säiliö kellarin säiliöhuoneessa, alkuperäinen 1975. Suoja-allas on. Tarkastuspöytäkirjaa ei ole",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "pipe_material",
+      "value": "copper",
+      "confidence": 0.95,
+      "quote": "Kupariputket, alkuperäiset 1975. Kylmävesijohto kellarin katossa näkyvissä",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "last_pipe_renovation",
+      "value": "unknown",
+      "confidence": 0,
+      "quote": "Kupariputket, alkuperäiset 1975",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "water_heater_year",
+      "value": "unknown",
+      "confidence": 0,
+      "quote": "Lämmin käyttövesi | Kattilan yhteydessä, mittauksessa 57 °C",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "ventilation",
+      "value": "natural",
+      "confidence": 0.95,
+      "quote": "Painovoimainen. Poistoventtiilit keittiössä, pesuhuoneessa ja WC:ssä. Liesituuletin hormiin",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "last_ventilation_service",
+      "value": "unknown",
+      "confidence": 0,
+      "quote": "Painovoimainen",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "panel_type",
+      "value": "screw_fuse",
+      "confidence": 0.95,
+      "quote": "Pääkeskus kellarissa, alkuperäinen 1975, tulppasulakkeet (25 A pääsulakkeet). Ei vikavirtasuojaa",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "last_chimney_sweep",
+      "value": "2024-11-03",
+      "confidence": 0.75,
+      "quote": "Takka olohuoneessa, tiilihormi. Nuohottu 3.11.2024 (omistaja)",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    },
+    {
+      "field": "floor_drain_type",
+      "value": "cast_iron",
+      "confidence": 0.9,
+      "quote": "Pesuhuoneen lattiakaivo valurautainen, alkuperäinen",
+      "section": "5. Rakennusteknisiä tietoja kohteesta"
+    }
+  ]
+}

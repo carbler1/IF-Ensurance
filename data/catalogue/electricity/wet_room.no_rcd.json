@@ -1,0 +1,45 @@
+{
+  "title": "Wet-room sockets without a residual-current device",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "lt", "field": "building_year", "value": 1997},
+      {"op": "not", "args": [{"op": "gt", "field": "bathroom_waterproofing_year", "value": 1996}]},
+      {"op": "not", "args": [{"op": "exists", "field": "last_electrical_check"}]}
+    ]
+  },
+  "severity": 4,
+  "probability": 2,
+  "service_life_years": 30,
+  "check_interval_years": 15,
+  "half_life_years": 15,
+  "mitigation": {
+    "action": "Electrician installs a residual-current device for the wet-room, sauna and outdoor socket circuits and tests it",
+    "partner_category": "electrician"
+  },
+  "points": 60,
+  "known_quirks": [
+    "Houses from before 1997 usually have no residual-current device on the bathroom and outdoor sockets unless the panel was renewed",
+    "A residual-current device trips at 30 milliamperes, below the current that stops the heart",
+    "Test the residual-current device with its test button every summer (Kunnon Koti summer to-do)",
+    "Ungrounded two-pin sockets in houses from before 1970 give no earth path at all; the device still protects the user"
+  ],
+  "why_hint": "DRAFT: The house is from before 1997, the bathroom has not been renovated since, and no electrician has checked the installation. Wet-room sockets of this age usually have no residual-current device.",
+  "benefit_hint": "DRAFT: One small panel job protects the family from an electric shock in the bathroom, the sauna and the garden.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "last_electrical_check", "value": "confirmation_date"},
+  "tests": {
+    "match": [
+      {"building_year": 1968},
+      {"building_year": 1988, "bathroom_waterproofing_year": 1988},
+      {"building_year": 1988, "bathroom_waterproofing_year": "unknown", "last_electrical_check": "unknown"}
+    ],
+    "reject": [
+      {"building_year": 2003},
+      {"building_year": 1988, "bathroom_waterproofing_year": 2010},
+      {"building_year": 1988, "last_electrical_check": "2008-04-14"},
+      {"building_year": "unknown"},
+      {}
+    ]
+  }
+}

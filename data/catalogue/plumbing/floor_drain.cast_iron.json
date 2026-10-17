@@ -1,0 +1,38 @@
+{
+  "title": "Cast-iron floor drain in the wet room",
+  "applies_when": {
+    "op": "in",
+    "field": "floor_drain_type",
+    "value": ["cast_iron"]
+  },
+  "severity": 3,
+  "probability": 4,
+  "service_life_years": 40,
+  "check_interval_years": 5,
+  "half_life_years": 10,
+  "mitigation": {
+    "action": "Plumber replaces the cast-iron floor drain with a plastic drain and seals it to the waterproofing",
+    "partner_category": "plumber"
+  },
+  "points": 70,
+  "known_quirks": [
+    "Cast-iron drains rust through at the flange where the waterproofing should seal",
+    "The seal between the drain and the membrane fails before the drain itself",
+    "Clean the drain and the traps every winter (Kunnon Koti winter to-do)"
+  ],
+  "why_hint": "DRAFT: The wet room has a cast-iron floor drain. Drains cause about one in five leak claims in Finland, and old cast-iron drains cannot be sealed to a modern membrane.",
+  "benefit_hint": "DRAFT: A new drain sealed to the waterproofing stops water from reaching the floor structure.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "floor_drain_type", "value": "plastic"},
+  "tests": {
+    "match": [
+      {"floor_drain_type": "cast_iron"},
+      {"floor_drain_type": "cast_iron", "bathroom_waterproofing_year": 2015}
+    ],
+    "reject": [
+      {"floor_drain_type": "plastic"},
+      {"floor_drain_type": "unknown"},
+      {"building_year": 1970}
+    ]
+  }
+}

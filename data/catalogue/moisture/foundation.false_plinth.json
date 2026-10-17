@@ -1,0 +1,50 @@
+{
+  "title": "False plinth risk structure not inspected",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "not", "args": [{"op": "in", "field": "house_type", "value": ["flat"]}]},
+      {"op": "in", "field": "foundation_type", "value": ["slab_on_ground", "unknown"]},
+      {"op": "gt", "field": "building_year", "value": 1959},
+      {"op": "lt", "field": "building_year", "value": 1990},
+      {"op": "not", "args": [{"op": "gt", "field": "last_moisture_inspection", "value": "2021-10-17"}]}
+    ]
+  },
+  "severity": 5,
+  "probability": 3,
+  "service_life_years": 50,
+  "check_interval_years": 5,
+  "half_life_years": 5,
+  "mitigation": {
+    "action": "Moisture inspector opens an inspection hole in the external wall bottom plate, measures the wood and the plinth and writes a report",
+    "partner_category": "moisture_inspector"
+  },
+  "points": 100,
+  "known_quirks": [
+    "A false plinth (valesokkeli) is a slab-on-ground structure of the 1960s to 1980s where the wooden external wall stands below the outside ground level behind a concrete plinth",
+    "The bottom plate of the wall rots from soil moisture, and the damage shows nowhere inside",
+    "KH 90-00394 lists the false plinth among the risk structures a condition inspection must name",
+    "Signs: a plinth that reaches above the floor level inside, a musty smell at the skirting, insulation wool that is dark at the bottom",
+    "Repair means lifting the wall frame onto a new foundation beam (kengitys), which costs far more than the inspection"
+  ],
+  "why_hint": "DRAFT: The house is a 1960s to 1980s house on a ground slab, the type that often has a false plinth, and there is no moisture inspection on record from the last 5 years. The wall bottom plate can rot unseen.",
+  "benefit_hint": "DRAFT: One inspection hole tells whether the wall frame is dry, years before the damage becomes a mould problem and a six-figure repair.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "last_moisture_inspection", "value": "confirmation_date"},
+  "tests": {
+    "match": [
+      {"house_type": "detached", "foundation_type": "slab_on_ground", "building_year": 1975},
+      {"house_type": "row_house", "foundation_type": "unknown", "building_year": 1983},
+      {"house_type": "detached", "foundation_type": "slab_on_ground", "building_year": 1975, "last_moisture_inspection": "2018-06-01"},
+      {"foundation_type": "slab_on_ground", "building_year": 1975}
+    ],
+    "reject": [
+      {"house_type": "flat", "foundation_type": "slab_on_ground", "building_year": 1975},
+      {"house_type": "detached", "foundation_type": "crawl_space", "building_year": 1975},
+      {"house_type": "detached", "foundation_type": "slab_on_ground", "building_year": 1955},
+      {"house_type": "detached", "foundation_type": "slab_on_ground", "building_year": 1996},
+      {"house_type": "detached", "foundation_type": "slab_on_ground", "building_year": 1975, "last_moisture_inspection": "2025-04-10"},
+      {"house_type": "detached", "foundation_type": "slab_on_ground", "building_year": "unknown"}
+    ]
+  }
+}

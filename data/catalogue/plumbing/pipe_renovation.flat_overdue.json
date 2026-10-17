@@ -1,0 +1,47 @@
+{
+  "title": "Pipe renovation overdue in a 1960s to 1980s flat",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "in", "field": "house_type", "value": ["flat", "row_house"]},
+      {"op": "gt", "field": "building_year", "value": 1959},
+      {"op": "lt", "field": "building_year", "value": 1990},
+      {"op": "not", "args": [{"op": "gt", "field": "last_pipe_renovation", "value": 1995}]}
+    ]
+  },
+  "severity": 4,
+  "probability": 4,
+  "service_life_years": 50,
+  "check_interval_years": 10,
+  "half_life_years": 25,
+  "mitigation": {
+    "action": "Plumber surveys the home's tap-water and sewer pipes and renews them as part of the housing company's pipe renovation",
+    "partner_category": "plumber"
+  },
+  "points": 150,
+  "known_quirks": [
+    "Cast-iron sewer pipes in flats from the 1960s and 1970s corrode at the bottom and crack at the joints",
+    "The housing company decides the pipe renovation; the resident's own survey tells how urgent it is",
+    "A pipe condition survey (putkiston kuntotutkimus) with a camera and wall-thickness readings is the normal first step",
+    "Leaks from the riser above cause the most costly damage to a flat, and the resident below often finds it first"
+  ],
+  "why_hint": "DRAFT: The flat is in a building from the 1960s to 1980s, and there is no pipe renovation on record since 1995. Pipes of this age are at the end of their 40 to 50 year service life.",
+  "benefit_hint": "DRAFT: A pipe survey and a timely renovation prevent a sewer or riser leak into the flat below, and keep the home's resale value.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "last_pipe_renovation", "value": "confirmation_year"},
+  "tests": {
+    "match": [
+      {"house_type": "flat", "building_year": 1972},
+      {"house_type": "row_house", "building_year": 1985, "last_pipe_renovation": 1990},
+      {"house_type": "flat", "building_year": 1965, "last_pipe_renovation": "unknown"}
+    ],
+    "reject": [
+      {"house_type": "detached", "building_year": 1972},
+      {"house_type": "flat", "building_year": 1955},
+      {"house_type": "flat", "building_year": 1998},
+      {"house_type": "flat", "building_year": 1972, "last_pipe_renovation": 2012},
+      {"house_type": "unknown", "building_year": 1972},
+      {"house_type": "flat", "building_year": "unknown"}
+    ]
+  }
+}

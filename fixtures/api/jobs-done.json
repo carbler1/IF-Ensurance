@@ -1,0 +1,8 @@
+{
+  "job_id": "job_01",
+  "status": "done",
+  "stage": null,
+  "started_at": "2026-10-17T10:00:02Z",
+  "finished_at": "2026-10-17T10:00:40Z",
+  "error": null
+}

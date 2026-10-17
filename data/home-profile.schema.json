@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://iflifepartner.example/schemas/home-profile.json",
+  "title": "Home profile",
+  "description": "The per-customer home profile (spec section 3.2). This file is the single source of the profile field list. Every field exists in every profile. A field that nothing filled has value 'unknown', confidence 0, source 'none', evidence null, doubt false. Field choice follows the KH 90-00394 section list (foundations and base floor, drains, roof, wet rooms, ventilation, heating, electrics, water and sewer, fireplaces and flues) and the Kunnon Koti seasonal to-do list.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "house_type",
+    "building_year",
+    "heating",
+    "panel_type",
+    "pipe_material",
+    "roof_material",
+    "last_pipe_renovation",
+    "last_electrical_check",
+    "ventilation",
+    "sauna",
+    "bathroom_waterproofing_year",
+    "floor_drain_type",
+    "water_heater_year",
+    "foundation_type",
+    "subsoil_drains",
+    "last_roof_renovation",
+    "oil_tank_year",
+    "last_chimney_sweep",
+    "last_moisture_inspection",
+    "last_ventilation_service"
+  ],
+  "properties": {
+    "house_type": {
+      "description": "Building type. Decides which catalogue entries apply at all (KH 90-00394 scope: detached and row houses).",
+      "$ref": "#/$defs/field",
+      "properties": {
+        "value": {"enum": ["detached", "semi_detached", "row_house", "flat", "unknown"]}
+      }
+    },
+    "building_year": {
+      "description": "Year of completion. The main age proxy for every building part that has no renovation year.",
+      "$ref": "#/$defs/field",
+      "properties": {"value": {"$ref": "#/$defs/year"}}
+    },
+    "heating": {
+      "description": "Main heating system (KH section: Lammitys). Oil implies a tank and a flue; wood and pellet imply a flue.",
+      "$ref": "#/$defs/field",
+      "properties": {
+        "value": {"enum": ["oil", "electric", "district", "ground_heat", "air_heat_pump", "wood", "pellet", "gas", "unknown"]}
+      }
+    },
+    "panel_type": {
+      "description": "Main electrical panel fuse type (KH section: Sahkoistys). Screw fuses mark an original installation.",
+      "$ref": "#/$defs/field",
+      "properties": {
+        "value": {"enum": ["screw_fuse", "automatic_fuses", "unknown"]}
+      }
+    },
+    "pipe_material": {
+      "description": "Tap-water pipe material (KH section: Vesi- ja viemarilaitteet). Galvanized steel and old copper drive leak risk.",
+      "$ref": "#/$defs/field",
+      "properties": {
+        "value": {"enum": ["galvanized_steel", "copper", "plastic", "pex", "unknown"]}
+      }
+    },
+    "roof_material": {
+      "description": "Roof covering (KH section: Ylapohja, ullakko ja vesikatto). Service life differs by material.",
+      "$ref": "#/$defs/field",
+      "properties": {
+        "value": {"enum": ["sheet_metal", "tile", "bitumen_felt", "fibre_cement", "unknown"]}
+      }
+    },
+    "last_pipe_renovation": {
+      "description": "Year of the last tap-water or sewer pipe renovation. 'unknown' means no record, which the catalogue treats as never.",
+      "$ref": "#/$defs/field",
+      "properties": {"value": {"$ref": "#/$defs/year"}}
+    },
+    "last_electrical_check": {
+      "description": "Date of the last electrical inspection by an electrician. A confirmed electrical work order writes the confirmation date here.",
+      "$ref": "#/$defs/field",
+      "properties": {"value": {"$ref": "#/$defs/date"}}
+    },
+    "ventilation": {
+      "description": "Ventilation system type (KH section: Ilmanvaihto). Mechanical units need filter changes and a service interval.",
+      "$ref": "#/$defs/field",
+      "properties": {
+        "value": {"enum": ["natural", "mechanical_exhaust", "mechanical_supply_exhaust", "unknown"]}
+      }
+    },
+    "sauna": {
+      "description": "Sauna stove type (KH section: Tulisijat ja hormit). Tukes counts sauna stoves among the top electrical fire causes. A wood stove implies a flue.",
+      "$ref": "#/$defs/field",
+      "properties": {
+        "value": {"enum": ["none", "electric_stove", "wood_stove", "unknown"]}
+      }
+    },
+    "bathroom_waterproofing_year": {
+      "description": "Year the wet-room waterproofing was installed (KH section: Markatilat ja kosteat tilat). Finnish building code required a waterproof membrane from 1998.",
+      "$ref": "#/$defs/field",
+      "properties": {"value": {"$ref": "#/$defs/year"}}
+    },
+    "floor_drain_type": {
+      "description": "Wet-room floor drain material (KH: vedeneristeen liitos lattiakaivoon). Finance Finland's 2013 leak study puts drains at 21 percent of leak claims.",
+      "$ref": "#/$defs/field",
+      "properties": {
+        "value": {"enum": ["cast_iron", "plastic", "unknown"]}
+      }
+    },
+    "water_heater_year": {
+      "description": "Year the hot-water tank was installed (KH section: Vesi- ja viemarilaitteet). Tanks corrode from the inside and leak at the end of their service life.",
+      "$ref": "#/$defs/field",
+      "properties": {"value": {"$ref": "#/$defs/year"}}
+    },
+    "foundation_type": {
+      "description": "Foundation and base floor type (KH section: Perustukset ja alapohjarakenteet). Crawl spaces and basements carry the known moisture risk structures.",
+      "$ref": "#/$defs/field",
+      "properties": {
+        "value": {"enum": ["slab_on_ground", "crawl_space", "basement", "unknown"]}
+      }
+    },
+    "subsoil_drains": {
+      "description": "Whether the house has a subsoil drain system (KH section: Rakennuksen vierusta, salaoja- ja sadevesijarjestelmat).",
+      "$ref": "#/$defs/field",
+      "properties": {
+        "value": {"enum": ["present", "absent", "unknown"]}
+      }
+    },
+    "last_roof_renovation": {
+      "description": "Year the roof covering was last replaced. 'unknown' means the covering is as old as the house.",
+      "$ref": "#/$defs/field",
+      "properties": {"value": {"$ref": "#/$defs/year"}}
+    },
+    "oil_tank_year": {
+      "description": "Year the oil tank was installed (KH section: Lammitys, oljysailion vuodot). Only meaningful when heating is oil.",
+      "$ref": "#/$defs/field",
+      "properties": {"value": {"$ref": "#/$defs/year"}}
+    },
+    "last_chimney_sweep": {
+      "description": "Date of the last chimney sweep (Kunnon Koti autumn to-do: sweep the flue once a year).",
+      "$ref": "#/$defs/field",
+      "properties": {"value": {"$ref": "#/$defs/date"}}
+    },
+    "last_moisture_inspection": {
+      "description": "Date of the last moisture inspection of the foundation, base floor and drains (KH 90-00394 sections Perustukset ja alapohjarakenteet, Salaojat). A confirmed moisture inspection writes the confirmation date here.",
+      "$ref": "#/$defs/field",
+      "properties": {"value": {"$ref": "#/$defs/date"}}
+    },
+    "last_ventilation_service": {
+      "description": "Date of the last service of the mechanical ventilation unit by a ventilation technician (KH section: Ilmanvaihto; Kunnon Koti spring and autumn to-do: change the filters and check the unit). A confirmed ventilation work order writes the confirmation date here.",
+      "$ref": "#/$defs/field",
+      "properties": {"value": {"$ref": "#/$defs/date"}}
+    }
+  },
+  "$defs": {
+    "year": {
+      "anyOf": [
+        {"type": "integer", "minimum": 1800, "maximum": 2100},
+        {"const": "unknown"}
+      ]
+    },
+    "date": {
+      "anyOf": [
+        {"type": "string", "format": "date", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+        {"const": "unknown"}
+      ]
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "confidence", "source", "evidence", "doubt"],
+      "properties": {
+        "value": true,
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0 to 1. 0 when the value is 'unknown'."
+        },
+        "source": {
+          "enum": ["partner", "document", "register", "customer", "none"],
+          "description": "Trust rank for the merge: partner > document > register > customer. 'none' when nothing filled the field."
+        },
+        "evidence": {
+          "description": "Where the value came from, or null.",
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "document_id": {"type": "string"},
+                "page": {"type": "integer", "minimum": 1},
+                "quote": {"type": "string"},
+                "work_order_id": {"type": "string"},
+                "register": {"type": "string"}
+              }
+            }
+          ]
+        },
+        "doubt": {
+          "type": "boolean",
+          "description": "True when the winning value has confidence below 0.5 (decision 36). Later work; phase 1 always sets false."
+        }
+      }
+    }
+  }
+}

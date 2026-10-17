@@ -1,0 +1,70 @@
+{
+  "generated_at": "2026-10-17T10:00:40Z",
+  "risks": [
+    {
+      "risk_id": "moist.bathroom.waterproofing_missing",
+      "category": "moisture",
+      "title": "Wet room without modern waterproofing",
+      "severity": 4,
+      "probability": 4,
+      "why": "Your bathroom was last renovated in 1994. Finnish building code required a waterproof membrane only from 1998, so wet rooms of this age usually have only a moisture barrier paint or nothing at all. Tile grout is not waterproof; shower water reaches the structure through it.",
+      "benefit": "A new membrane and drain seals stop shower water from soaking the floor and wall structures, the most expensive moisture damage in a house. It raises your care score by up to 140 points.",
+      "points_available": 140,
+      "partner_category": "bathroom_renovation",
+      "llm_proposed": false,
+      "status": "open"
+    },
+    {
+      "risk_id": "heat.oil_tank.age",
+      "category": "heating",
+      "title": "Steel oil tank over 30 years old",
+      "severity": 5,
+      "probability": 3,
+      "why": "Your house from 1975 heats with oil, and the inspection report dates the steel tank to 1975. That is over 30 years past its install. Steel tanks corrode from the bottom where condensation water collects.",
+      "benefit": "A tank inspection or a new double-walled tank prevents an oil leak into the soil, one of the most expensive damages a house can have. It raises your care score by up to 110 points.",
+      "points_available": 110,
+      "partner_category": "heating_technician",
+      "llm_proposed": false,
+      "status": "open"
+    },
+    {
+      "risk_id": "plumb.pipes.copper_age",
+      "category": "plumbing",
+      "title": "Copper water pipes over 40 years old",
+      "severity": 4,
+      "probability": 3,
+      "why": "The inspection report says the tap-water pipes are the original copper pipes from 1975, and there is no pipe renovation on record. Thin-walled copper pipes from the 1970s pit from the inside and pinhole without warning, and pipes cast into the floor leak unseen.",
+      "benefit": "New tap-water pipes remove a hidden leak source. Tap-water pipes are the second largest leak source in Finnish leak claims. It raises your care score by up to 140 points.",
+      "points_available": 140,
+      "partner_category": "plumber",
+      "llm_proposed": false,
+      "status": "open"
+    },
+    {
+      "risk_id": "elec.panel.screw_fuse",
+      "category": "electricity",
+      "title": "Old screw-fuse panel",
+      "severity": 4,
+      "probability": 3,
+      "why": "Your house is from 1975 and the inspection report notes the original screw-fuse panel. Loose screw-fuse holders overheat and char the panel base, and panels from before 1985 usually have no residual-current device.",
+      "benefit": "An electrician's check removes the most common cause of electrical fires in houses of this age. It raises your care score by up to 120 points.",
+      "points_available": 120,
+      "partner_category": "electrician",
+      "llm_proposed": false,
+      "status": "open"
+    },
+    {
+      "risk_id": "moist.subsoil_drains.missing",
+      "category": "moisture",
+      "title": "No subsoil drains around the house",
+      "severity": 4,
+      "probability": 3,
+      "why": "Your house is from 1975 and nobody has confirmed whether it has subsoil drains. Houses from before 1980 often have no drains, or clay-pipe drains that have silted up. Without drains, ground water soaks the foundation and the crawl space.",
+      "benefit": "Working drains keep the foundation and the base floor dry, and prevent the mould damage that follows a damp basement. It raises your care score by up to 120 points.",
+      "points_available": 120,
+      "partner_category": "moisture_inspector",
+      "llm_proposed": false,
+      "status": "open"
+    }
+  ]
+}

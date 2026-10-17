@@ -1,0 +1,54 @@
+{
+  "title": "Bitumen felt roof over 25 years old",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "in", "field": "roof_material", "value": ["bitumen_felt"]},
+      {
+        "op": "or",
+        "args": [
+          {"op": "lt", "field": "last_roof_renovation", "value": 2001},
+          {
+            "op": "and",
+            "args": [
+              {"op": "not", "args": [{"op": "exists", "field": "last_roof_renovation"}]},
+              {"op": "lt", "field": "building_year", "value": 2001}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "severity": 4,
+  "probability": 4,
+  "service_life_years": 25,
+  "check_interval_years": 5,
+  "half_life_years": 12,
+  "mitigation": {
+    "action": "Roofer inspects the felt, the seams and the penetrations and replaces the covering when it has cracked",
+    "partner_category": "roofer"
+  },
+  "points": 130,
+  "known_quirks": [
+    "Felt cracks at the seams and around chimney and vent penetrations first",
+    "Low-pitch felt roofs pond water and leak into the attic insulation without visible marks inside",
+    "Check gutters and roof safety products every spring and autumn (Kunnon Koti to-do)"
+  ],
+  "why_hint": "DRAFT: The roof is bitumen felt and over 25 years old. Felt reaches the end of its service life at 20 to 30 years and leaks first at the seams.",
+  "benefit_hint": "DRAFT: A roof check or a new covering keeps rain out of the attic insulation and the ceiling structure.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "last_roof_renovation", "value": "confirmation_year"},
+  "tests": {
+    "match": [
+      {"roof_material": "bitumen_felt", "building_year": 1979},
+      {"roof_material": "bitumen_felt", "building_year": 1979, "last_roof_renovation": 1995},
+      {"roof_material": "bitumen_felt", "last_roof_renovation": 1998}
+    ],
+    "reject": [
+      {"roof_material": "sheet_metal", "building_year": 1979},
+      {"roof_material": "bitumen_felt", "building_year": 1979, "last_roof_renovation": 2015},
+      {"roof_material": "bitumen_felt", "building_year": 2010},
+      {"roof_material": "unknown", "building_year": 1979}
+    ]
+  }
+}

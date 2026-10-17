@@ -1,0 +1,40 @@
+{
+  "title": "Galvanized steel water pipes",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "in", "field": "pipe_material", "value": ["galvanized_steel"]},
+      {"op": "not", "args": [{"op": "gt", "field": "last_pipe_renovation", "value": 1990}]}
+    ]
+  },
+  "severity": 4,
+  "probability": 4,
+  "service_life_years": 40,
+  "check_interval_years": 10,
+  "half_life_years": 20,
+  "mitigation": {
+    "action": "Plumber replaces the galvanized steel tap-water pipes with PEX or copper",
+    "partner_category": "plumber"
+  },
+  "points": 150,
+  "known_quirks": [
+    "Galvanized pipes corrode from the inside and pinhole at threaded joints",
+    "Reduced flow and brown water are early signs"
+  ],
+  "why_hint": "DRAFT: The tap-water pipes are galvanized steel and have not been renewed since 1990. Pipes of this type reach the end of their service life at about 40 years.",
+  "benefit_hint": "DRAFT: New pipes remove the single largest leak source in the house. Leak claims cost Finnish insurers about 160 million euros a year.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "pipe_material", "value": "pex"},
+  "tests": {
+    "match": [
+      {"pipe_material": "galvanized_steel", "building_year": 1968},
+      {"pipe_material": "galvanized_steel", "last_pipe_renovation": 1985},
+      {"pipe_material": "galvanized_steel", "last_pipe_renovation": "unknown"}
+    ],
+    "reject": [
+      {"pipe_material": "copper", "building_year": 1968},
+      {"pipe_material": "galvanized_steel", "last_pipe_renovation": 2015},
+      {"pipe_material": "unknown", "building_year": 1968}
+    ]
+  }
+}

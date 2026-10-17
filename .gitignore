@@ -1,0 +1,12 @@
+.claude/settings.local.json
+docs/pc.md
+.direnv/
+.claude/worktrees/
+.claude/skills/
+.agents/skills/
+.env
+.env.*
+!.env.example
+__pycache__/
+docs/video/
+var/

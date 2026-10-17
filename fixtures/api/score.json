@@ -1,0 +1,13 @@
+{
+  "score": 1120,
+  "tier": {"index": 0, "name": "TBD-0", "min_score": 1000},
+  "next_tier": {"index": 1, "name": "TBD-1", "min_score": 1200, "points_needed": 80},
+  "benefit": {"deductible_reduction_eur": 0, "free_checkups": []},
+  "breakdown": [
+    {"risk_id": "elec.panel.screw_fuse", "title": "Old screw-fuse panel", "points": 120, "completed_at": "2026-10-17T12:00:00Z", "decayed_points": 120}
+  ],
+  "history": [
+    {"event_id": "ev_01", "at": "2026-10-17T10:00:40Z", "delta": 0,   "score_after": 1000, "reason": "Home profile created"},
+    {"event_id": "ev_02", "at": "2026-10-17T12:00:00Z", "delta": 120, "score_after": 1120, "reason": "Old screw-fuse panel: replaced by Sähköasennus Aurasilta Oy"}
+  ]
+}

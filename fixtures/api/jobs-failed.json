@@ -1,0 +1,8 @@
+{
+  "job_id": "job_01",
+  "status": "failed",
+  "stage": null,
+  "started_at": "2026-10-17T10:00:02Z",
+  "finished_at": "2026-10-17T10:03:02Z",
+  "error": {"code": "timeout", "message": "The pipeline did not finish within 180 seconds. Upload the document again."}
+}

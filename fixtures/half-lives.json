@@ -1,0 +1,34 @@
+{
+  "_note": "Points decay half-lives in years (decision 8). The catalogue entry's own half_life_years wins. 'defaults' apply to a category when an entry has none. 'entries' lists every seed entry as of 2026-10-17 (20 entries) so the two files can be diffed. Every number is a placeholder.",
+  "unit": "years",
+  "defaults": {
+    "electricity": 10,
+    "plumbing": 10,
+    "moisture": 5,
+    "roof": 15,
+    "heating": 10,
+    "ventilation": 5
+  },
+  "entries": {
+    "elec.check.overdue": 10,
+    "elec.panel.screw_fuse": 15,
+    "elec.sauna.electric_stove_wiring": 10,
+    "elec.wet_room.no_rcd": 15,
+    "heat.chimney.sweep_overdue": 1,
+    "heat.oil_tank.age": 15,
+    "moist.bathroom.waterproofing_missing": 15,
+    "moist.foundation.false_plinth": 5,
+    "moist.foundation.inspection_overdue": 5,
+    "moist.subsoil_drains.missing": 20,
+    "plumb.floor_drain.cast_iron": 10,
+    "plumb.pipe_renovation.flat_overdue": 25,
+    "plumb.pipes.copper_age": 20,
+    "plumb.pipes.galvanized_steel": 20,
+    "plumb.water_heater.age": 10,
+    "roof.bitumen_felt.age": 12,
+    "roof.sheet_metal.seams_age": 15,
+    "roof.tile.underlay_age": 15,
+    "vent.mechanical.service_overdue": 2,
+    "vent.natural.old_house": 10
+  }
+}

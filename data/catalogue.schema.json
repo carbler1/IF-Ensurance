@@ -1,0 +1,261 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://iflifepartner.example/schemas/catalogue-entry.json",
+  "title": "Risk catalogue entry",
+  "description": "One file under data/catalogue/<category>/<name>.json. The id and the category come from the file path. The file carries neither. The validator (scripts/catalogue/validate.py) checks the cross-field rule half_life_years <= service_life_years, the partner_category list against data/partner-categories.json, and runs tests.match / tests.reject through the reference matcher.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title",
+    "applies_when",
+    "severity",
+    "probability",
+    "service_life_years",
+    "check_interval_years",
+    "half_life_years",
+    "mitigation",
+    "points",
+    "known_quirks",
+    "why_hint",
+    "benefit_hint",
+    "source",
+    "on_done",
+    "tests"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80,
+      "description": "Short English name shown in the app risk list."
+    },
+    "applies_when": {
+      "$ref": "#/$defs/condition",
+      "description": "Condition over the home profile. The entry matches when the condition is true. Semantics per decision 37."
+    },
+    "severity": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Damage size if the risk realises. 1 = small, 5 = loss of the house or life."
+    },
+    "probability": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Chance of the risk realising within the service life. 1 = rare, 5 = expected."
+    },
+    "service_life_years": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Technical service life of the building part in years (RT 18-10922 style)."
+    },
+    "check_interval_years": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Years between checks. Drives the maintenance list and the points cooldown."
+    },
+    "half_life_years": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Points decay: decay = 0.5 ^ (years_since / half_life_years). Must be <= service_life_years (checked by the validator)."
+    },
+    "mitigation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "partner_category"],
+      "properties": {
+        "action": {
+          "type": "string",
+          "minLength": 3,
+          "description": "What the partner does, one sentence."
+        },
+        "partner_category": {
+          "type": "string",
+          "enum": [
+            "electrician",
+            "plumber",
+            "roofer",
+            "moisture_inspector",
+            "bathroom_renovation",
+            "heating_technician",
+            "chimney_sweep",
+            "ventilation_technician"
+          ],
+          "description": "Must equal the list in data/partner-categories.json. The validator checks both lists match."
+        }
+      }
+    },
+    "points": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Care score points for a confirmed mitigation, before decay."
+    },
+    "known_quirks": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 3},
+      "description": "The only place a model may take appliance- or structure-specific claims from (decision 6)."
+    },
+    "why_hint": {
+      "type": "string",
+      "minLength": 3,
+      "description": "Draft text the writer model uses for the 'why' sentence."
+    },
+    "benefit_hint": {
+      "type": "string",
+      "minLength": 3,
+      "description": "Draft text the writer model uses for the 'benefit' sentence."
+    },
+    "source": {
+      "type": "string",
+      "minLength": 3,
+      "description": "Where the numbers and claims come from."
+    },
+    "on_done": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "value"],
+      "description": "The profile fact a confirmed work order writes with source 'partner'.",
+      "properties": {
+        "field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "A home profile field name. The validator checks it exists in data/home-profile.schema.json."
+        },
+        "value": {
+          "description": "A literal for the field, or a sentinel: 'confirmation_date' (ISO date of the confirmation) or 'confirmation_year' (its year).",
+          "anyOf": [
+            {"type": "string", "minLength": 1},
+            {"type": "integer"},
+            {"type": "boolean"}
+          ]
+        }
+      }
+    },
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["match", "reject"],
+      "properties": {
+        "match": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/test_profile"},
+          "description": "Profiles the entry must match."
+        },
+        "reject": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/test_profile"},
+          "description": "Profiles the entry must not match."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "field_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "scalar": {
+      "anyOf": [
+        {"type": "string"},
+        {"type": "integer"},
+        {"type": "number"},
+        {"type": "boolean"}
+      ]
+    },
+    "test_profile": {
+      "type": "object",
+      "description": "A profile-like object: field name to plain value, or to {value: ...}. Missing fields count as 'unknown'.",
+      "propertyNames": {"$ref": "#/$defs/field_name"},
+      "additionalProperties": {
+        "anyOf": [
+          {"$ref": "#/$defs/scalar"},
+          {
+            "type": "object",
+            "required": ["value"],
+            "properties": {"value": {"$ref": "#/$defs/scalar"}}
+          }
+        ]
+      }
+    },
+    "condition": {
+      "oneOf": [
+        {"$ref": "#/$defs/compare"},
+        {"$ref": "#/$defs/in"},
+        {"$ref": "#/$defs/exists"},
+        {"$ref": "#/$defs/and_or"},
+        {"$ref": "#/$defs/not"}
+      ]
+    },
+    "compare": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "field", "value"],
+      "properties": {
+        "op": {"enum": ["lt", "gt", "eq"]},
+        "field": {"$ref": "#/$defs/field_name"},
+        "value": {
+          "allOf": [
+            {"$ref": "#/$defs/scalar"},
+            {"not": {"const": "unknown"}}
+          ]
+        }
+      },
+      "description": "lt and gt compare numbers with numbers, or ISO date strings with ISO date strings. Any test against 'unknown' is false, so the literal 'unknown' is not allowed as the value: such a leaf could never match."
+    },
+    "in": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "field", "value"],
+      "properties": {
+        "op": {"const": "in"},
+        "field": {"$ref": "#/$defs/field_name"},
+        "value": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/scalar"}
+        }
+      },
+      "description": "True when the profile value is in the list. 'unknown' matches only when the list contains 'unknown'."
+    },
+    "exists": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "field"],
+      "properties": {
+        "op": {"const": "exists"},
+        "field": {"$ref": "#/$defs/field_name"}
+      },
+      "description": "True when the profile value is not 'unknown'."
+    },
+    "and_or": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "args"],
+      "properties": {
+        "op": {"enum": ["and", "or"]},
+        "args": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/condition"}
+        }
+      }
+    },
+    "not": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "args"],
+      "properties": {
+        "op": {"const": "not"},
+        "args": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {"$ref": "#/$defs/condition"}
+        }
+      }
+    }
+  }
+}

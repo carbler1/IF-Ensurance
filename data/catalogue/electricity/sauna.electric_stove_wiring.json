@@ -1,0 +1,45 @@
+{
+  "title": "Electric sauna stove wiring not checked in 10 years",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "in", "field": "sauna", "value": ["electric_stove"]},
+      {"op": "lt", "field": "building_year", "value": 2006},
+      {"op": "not", "args": [{"op": "gt", "field": "last_electrical_check", "value": "2016-10-17"}]}
+    ]
+  },
+  "severity": 4,
+  "probability": 3,
+  "service_life_years": 20,
+  "check_interval_years": 10,
+  "half_life_years": 10,
+  "mitigation": {
+    "action": "Electrician checks the sauna stove's supply cable, terminal box, thermostat and overheat limiter and replaces heat-damaged parts",
+    "partner_category": "electrician"
+  },
+  "points": 70,
+  "known_quirks": [
+    "Sauna stoves caused 109 of the about 2,200 electrical fires in Finland in 2020 (Tukes)",
+    "The silicone-insulated stove cable turns brittle in the heat above the stove and shorts at the terminal box",
+    "Towels or a bench left on the stove, and a stuck thermostat, are the usual fire starts",
+    "Stoves over 20 years old have corroded heating elements that trip the fuses or the residual-current device"
+  ],
+  "why_hint": "DRAFT: The home has an electric sauna stove in a house from before 2006, and no electrician has checked the installation in the last 10 years. Tukes counts sauna stoves among the top three causes of electrical fires.",
+  "benefit_hint": "DRAFT: A stove wiring check finds a brittle cable or a stuck thermostat before it starts a sauna fire.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "last_electrical_check", "value": "confirmation_date"},
+  "tests": {
+    "match": [
+      {"sauna": "electric_stove", "building_year": 1985},
+      {"sauna": "electric_stove", "building_year": 1985, "last_electrical_check": "2012-05-20"},
+      {"sauna": "electric_stove", "building_year": 1999, "last_electrical_check": "unknown"}
+    ],
+    "reject": [
+      {"sauna": "wood_stove", "building_year": 1985},
+      {"sauna": "unknown", "building_year": 1985},
+      {"sauna": "electric_stove", "building_year": 2015},
+      {"sauna": "electric_stove", "building_year": 1985, "last_electrical_check": "2022-03-01"},
+      {"sauna": "electric_stove"}
+    ]
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "home_id": "home_01",
+  "address": {"street": "Esimerkkikatu 3", "postal_code": "20100", "city": "Turku"},
+  "profile": {
+    "house_type": {
+      "value": "detached",
+      "confidence": 0.95,
+      "source": "register",
+      "evidence": {"register": "Ryhti building register, permanent building id 100012345A"},
+      "doubt": false
+    },
+    "building_year": {
+      "value": 1975,
+      "confidence": 0.95,
+      "source": "register",
+      "evidence": {"register": "Ryhti building register, permanent building id 100012345A"},
+      "doubt": false
+    },
+    "heating": {
+      "value": "oil",
+      "confidence": 0.9,
+      "source": "document",
+      "evidence": {"document_id": "doc_01", "page": 14, "quote": "Lämmitysmuoto: öljylämmitys, kattila vuodelta 1998."},
+      "doubt": false
+    },
+    "panel_type": {
+      "value": "screw_fuse",
+      "confidence": 0.85,
+      "source": "document",
+      "evidence": {"document_id": "doc_01", "page": 16, "quote": "Sähkökeskus on alkuperäinen tulppasulakekeskus."},
+      "doubt": false
+    },
+    "pipe_material": {
+      "value": "copper",
+      "confidence": 0.8,
+      "source": "document",
+      "evidence": {"document_id": "doc_01", "page": 15, "quote": "Käyttövesiputket ovat alkuperäisiä kupariputkia."},
+      "doubt": false
+    },
+    "roof_material": {
+      "value": "bitumen_felt",
+      "confidence": 0.9,
+      "source": "document",
+      "evidence": {"document_id": "doc_01", "page": 9, "quote": "Vesikatteena on bitumikermi, uusittu vuonna 2004."},
+      "doubt": false
+    },
+    "last_pipe_renovation": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "none",
+      "evidence": null,
+      "doubt": false
+    },
+    "last_electrical_check": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "none",
+      "evidence": null,
+      "doubt": false
+    },
+    "ventilation": {
+      "value": "natural",
+      "confidence": 0.9,
+      "source": "document",
+      "evidence": {"document_id": "doc_01", "page": 13, "quote": "Ilmanvaihto on painovoimainen."},
+      "doubt": false
+    },
+    "sauna": {
+      "value": "electric_stove",
+      "confidence": 0.7,
+      "source": "customer",
+      "evidence": null,
+      "doubt": false
+    },
+    "bathroom_waterproofing_year": {
+      "value": 1994,
+      "confidence": 0.9,
+      "source": "document",
+      "evidence": {"document_id": "doc_01", "page": 3, "quote": "kosteussulkumaali (remontti 1994), ei vedeneristettä"},
+      "doubt": false
+    },
+    "floor_drain_type": {
+      "value": "cast_iron",
+      "confidence": 0.9,
+      "source": "document",
+      "evidence": {"document_id": "doc_01", "page": 6, "quote": "Pesuhuoneen lattiakaivo on valurautainen"},
+      "doubt": false
+    },
+    "water_heater_year": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "none",
+      "evidence": null,
+      "doubt": false
+    },
+    "foundation_type": {
+      "value": "basement",
+      "confidence": 0.9,
+      "source": "document",
+      "evidence": {"document_id": "doc_01", "page": 2, "quote": "1 kerros ja osittainen kellari"},
+      "doubt": false
+    },
+    "subsoil_drains": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "none",
+      "evidence": null,
+      "doubt": false
+    },
+    "last_roof_renovation": {
+      "value": 2004,
+      "confidence": 0.85,
+      "source": "document",
+      "evidence": {"document_id": "doc_01", "page": 9, "quote": "Vesikatteena on bitumikermi, uusittu vuonna 2004."},
+      "doubt": false
+    },
+    "oil_tank_year": {
+      "value": 1975,
+      "confidence": 0.9,
+      "source": "document",
+      "evidence": {"document_id": "doc_01", "page": 7, "quote": "teräksinen 3 000 litran öljysäiliö vuodelta 1975"},
+      "doubt": false
+    },
+    "last_chimney_sweep": {
+      "value": "2024-11-03",
+      "confidence": 0.75,
+      "source": "document",
+      "evidence": {"document_id": "doc_01", "page": 3, "quote": "Nuohottu 3.11.2024 (omistaja)"},
+      "doubt": false
+    },
+    "last_moisture_inspection": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "none",
+      "evidence": null,
+      "doubt": false
+    },
+    "last_ventilation_service": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "none",
+      "evidence": null,
+      "doubt": false
+    }
+  },
+  "expected_risk_ids": [
+    "elec.check.overdue",
+    "elec.panel.screw_fuse",
+    "elec.sauna.electric_stove_wiring",
+    "elec.wet_room.no_rcd",
+    "heat.chimney.sweep_overdue",
+    "heat.oil_tank.age",
+    "moist.bathroom.waterproofing_missing",
+    "moist.foundation.inspection_overdue",
+    "moist.subsoil_drains.missing",
+    "plumb.floor_drain.cast_iron",
+    "plumb.pipes.copper_age",
+    "plumb.water_heater.age",
+    "vent.natural.old_house"
+  ]
+}

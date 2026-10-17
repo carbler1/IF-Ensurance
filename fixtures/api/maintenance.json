@@ -1,0 +1,9 @@
+{
+  "items": [
+    {"item_id": "mt_01", "risk_id": "moist.bathroom.waterproofing_missing", "title": "Renew bathroom waterproofing", "due_at": "2026-10-17", "interval_years": 10, "status": "upcoming", "partner_category": "bathroom_renovation"},
+    {"item_id": "mt_02", "risk_id": "heat.oil_tank.age", "title": "Inspect oil tank and lines", "due_at": "2026-10-17", "interval_years": 10, "status": "upcoming", "partner_category": "heating_technician"},
+    {"item_id": "mt_03", "risk_id": "plumb.pipes.copper_age", "title": "Inspect copper water pipes", "due_at": "2026-10-17", "interval_years": 10, "status": "upcoming", "partner_category": "plumber"},
+    {"item_id": "mt_05", "risk_id": "moist.subsoil_drains.missing", "title": "Survey subsoil drains and rainwater routing", "due_at": "2026-10-17", "interval_years": 5, "status": "upcoming", "partner_category": "moisture_inspector"},
+    {"item_id": "mt_04", "risk_id": "elec.panel.screw_fuse", "title": "Electrical inspection", "due_at": "2041-10-17", "interval_years": 15, "status": "scheduled", "partner_category": "electrician"}
+  ]
+}

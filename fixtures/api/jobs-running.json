@@ -1,0 +1,8 @@
+{
+  "job_id": "job_01",
+  "status": "running",
+  "stage": "matching",
+  "started_at": "2026-10-17T10:00:02Z",
+  "finished_at": null,
+  "error": null
+}

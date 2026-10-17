@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://iflifepartner.example/schemas/write-output.json",
+  "title": "Write, add, flag output (pipeline write step)",
+  "description": "Structured output of the write call. Flat on purpose: no $ref and no recursion. Ids are plain strings. The backend validates them against the catalogue: 'items' must hold exactly the matched ids, 'proposed_additions' ids must come from the unmatched list, and any other id is dropped and logged (decision 23). The backend copies severity, probability and points from the catalogue; the model never returns them (decision 6).",
+  "$comment": "This file is the base schema. The backend builds the schema it sends to Ollama per call: it sets 'enum' on items.items.properties.id to the matched ids, 'enum' on proposed_additions.items.properties.id to the unmatched ids, and 'minItems' and 'maxItems' on 'items' to the matched count. It adds no other field. Severity, points and quirks never enter this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "proposed_additions"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "description": "Exactly one object per matched entry, in the input order.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "why", "benefit", "doubt", "doubt_reason"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "A matched catalogue entry id, copied from the input."
+          },
+          "why": {
+            "type": "string",
+            "description": "Two sentences. Why this entry applies to this home, from the triggering facts."
+          },
+          "benefit": {
+            "type": "string",
+            "description": "Two sentences. What the mitigation gives the customer. May mention the points available."
+          },
+          "doubt": {
+            "type": "boolean",
+            "description": "True when the match may be wrong. Flags never change the score (decision 14)."
+          },
+          "doubt_reason": {
+            "type": "string",
+            "description": "One sentence that names the profile field in doubt. Empty string when doubt is false."
+          }
+        }
+      }
+    },
+    "proposed_additions": {
+      "type": "array",
+      "description": "Unmatched entries the model thinks apply. Empty when none.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "reason"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "An id from the unmatched list."
+          },
+          "reason": {
+            "type": "string",
+            "description": "One sentence with the profile fact that makes the entry fit."
+          }
+        }
+      }
+    }
+  }
+}

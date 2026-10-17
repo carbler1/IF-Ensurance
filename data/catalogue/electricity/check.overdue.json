@@ -1,0 +1,47 @@
+{
+  "title": "Electrical installation not checked in 15 years",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "lt", "field": "building_year", "value": 1996},
+      {
+        "op": "or",
+        "args": [
+          {"op": "not", "args": [{"op": "exists", "field": "last_electrical_check"}]},
+          {"op": "lt", "field": "last_electrical_check", "value": "2011-01-01"}
+        ]
+      }
+    ]
+  },
+  "severity": 3,
+  "probability": 3,
+  "service_life_years": 50,
+  "check_interval_years": 15,
+  "half_life_years": 10,
+  "mitigation": {
+    "action": "Electrician inspects the fixed installation, the sockets and the earthing and writes a report",
+    "partner_category": "electrician"
+  },
+  "points": 80,
+  "known_quirks": [
+    "Brittle rubber-insulated cables in houses from before 1970",
+    "Missing earthing in bathroom and outdoor sockets",
+    "Home-made extensions behind panels and in attics"
+  ],
+  "why_hint": "DRAFT: The house is over 30 years old and there is no record of an electrical inspection in the last 15 years. Tukes recommends a check of old installations every 15 to 30 years.",
+  "benefit_hint": "DRAFT: One inspection finds brittle cables and missing earthing before they start a fire or give a shock.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "last_electrical_check", "value": "confirmation_date"},
+  "tests": {
+    "match": [
+      {"building_year": 1965},
+      {"building_year": 1980, "last_electrical_check": "2005-06-01"},
+      {"building_year": 1980, "last_electrical_check": "unknown"}
+    ],
+    "reject": [
+      {"building_year": 2005},
+      {"building_year": 1980, "last_electrical_check": "2019-03-12"},
+      {"last_electrical_check": "2005-06-01"}
+    ]
+  }
+}

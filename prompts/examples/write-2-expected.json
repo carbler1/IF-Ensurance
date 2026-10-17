@@ -1,0 +1,26 @@
+{
+  "items": [
+    {
+      "id": "elec.check.overdue",
+      "why": "Your flat is in a building from 1992, 34 years old, and the report has no record of an electrical inspection by an electrician. Missing earthing in bathroom sockets and home-made extensions behind the panel stay hidden without a check.",
+      "benefit": "An electrician inspects the fixed installation, the sockets and the earthing and writes a report. You get a written record of the state of the wiring in your flat and earn up to 80 care points.",
+      "doubt": true,
+      "doubt_reason": "last_electrical_check is unknown, but the panel evidence says the group panel and the kitchen and bathroom wiring were renewed in 2019 (\"Huoneiston ryhmäkeskus uusittu 2019\"), so most of the installation is 7 years old."
+    },
+    {
+      "id": "plumb.water_heater.age",
+      "why": "Your flat is in a building from 1992, and the report gives no installation year for a hot-water tank. Steel tanks corrode from the inside and leak without warning at 20 to 25 years, and a tank in a cupboard without a drip tray causes the largest damage.",
+      "benefit": "A plumber inspects the hot-water tank and the safety valve and replaces the tank when it is over 20 years old. A slow leak is stopped before it soaks the floor structure, and you earn up to 60 care points.",
+      "doubt": true,
+      "doubt_reason": "water_heater_year is unknown because the report says hot water comes from the housing company's district heating (\"Yhtiön kaukolämpö\"), so the flat has no hot-water tank of its own."
+    },
+    {
+      "id": "vent.mechanical.service_overdue",
+      "why": "Your flat has mechanical exhaust ventilation with fans on the roof (\"huippuimurit katolla\"), and there is no service on record from the last 2 years. A clogged filter cuts the airflow below what your flat needs, and only a service tells whether the fan bearings still have life left.",
+      "benefit": "A ventilation technician replaces the filters, cleans the fans and checks the airflows and the condensate drain. The air in your flat stays fresh, and you earn up to 40 care points.",
+      "doubt": true,
+      "doubt_reason": "last_ventilation_service is unknown, and the ventilation evidence says the exhaust fans are on the roof (\"Koneellinen poisto, huippuimurit katolla\"), so they are part of the building and not a unit inside the flat."
+    }
+  ],
+  "proposed_additions": []
+}

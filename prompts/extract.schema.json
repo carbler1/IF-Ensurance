@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://iflifepartner.example/schemas/extract-output.json",
+  "title": "Extraction output (pipeline extract step)",
+  "description": "Structured output of one extraction call. Flat on purpose: no $ref and no recursion, because Ollama turns this schema into a grammar. The 'field' enum is derived from the property list of data/home-profile.schema.json (the single source); regenerate it when that list changes. This schema fixes only the shape. The backend validates each value against the field's own type in the profile schema after the call. The model does not return 'document_id' or 'page'; the backend adds both to each candidate's evidence after the call. 'page' is the first PDF page whose text holds the quote.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fields"],
+  "properties": {
+    "fields": {
+      "type": "array",
+      "description": "One candidate per profile field that this section gives evidence for. Empty when the section gives none.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "value", "confidence", "quote", "section"],
+        "properties": {
+          "field": {
+            "description": "A home profile field name.",
+            "enum": [
+              "house_type",
+              "building_year",
+              "heating",
+              "panel_type",
+              "pipe_material",
+              "roof_material",
+              "last_pipe_renovation",
+              "last_electrical_check",
+              "ventilation",
+              "sauna",
+              "bathroom_waterproofing_year",
+              "floor_drain_type",
+              "water_heater_year",
+              "foundation_type",
+              "subsoil_drains",
+              "last_roof_renovation",
+              "oil_tank_year",
+              "last_chimney_sweep",
+              "last_moisture_inspection",
+              "last_ventilation_service"
+            ]
+          },
+          "value": {
+            "description": "An enum value, an ISO date string (YYYY-MM-DD) or the string 'unknown'; a year as an integer.",
+            "type": ["string", "integer"]
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "0 to 1 per the rubric in prompts/extract.md. 0 when the value is 'unknown'."
+          },
+          "quote": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Verbatim words from the section that support the value. At most 200 characters."
+          },
+          "section": {
+            "type": "string",
+            "description": "The section heading as given in the input."
+          }
+        }
+      }
+    }
+  }
+}
