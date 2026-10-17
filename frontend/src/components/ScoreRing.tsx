@@ -1,7 +1,9 @@
 // The customer app's score ring (mobile-app/src/components/ui.tsx) as plain SVG:
 // soft tier bands, the current score in blue, the projected gain in light blue.
 
-const tierSoft = ["#f4ddd2", "#e6e1de", "#f9e8c4", "#dbe4fb"];
+import { bandSoft } from "./Bands";
+
+const tierSoft = bandSoft.slice(0, 4);
 
 export function ScoreRing({ score, projected, max, tierMins, size = 220 }: { score: number; projected: number; max: number; tierMins: number[]; size?: number }) {
   const r = size / 2 - 12;

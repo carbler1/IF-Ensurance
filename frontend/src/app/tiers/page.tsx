@@ -28,7 +28,7 @@ async function Ladder() {
               <Label text="Partner discount %"><input name="partner_discount_percent" type="number" min={0} max={100} required defaultValue={t.partner_discount_percent} className={inputClass} /></Label>
               <Label text="Bonuses" hint="One per line. The app shows them in the tier ladder; they change no price." className="md:col-span-3">
                 <textarea name="bonuses" rows={Math.max(3, t.bonuses.length + 1)} defaultValue={t.bonuses.join("\n")}
-                  className="w-full rounded-2xl border border-input bg-card px-3 py-3 text-lg text-foreground shadow-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                  className="w-full rounded-2xl border border-input bg-card px-3 py-3 text-lg text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary" />
               </Label>
             </div>
           </SaveForm>

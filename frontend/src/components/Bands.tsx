@@ -6,8 +6,8 @@ import { saveBands } from "@/app/actions";
 import type { Band } from "@/lib/types";
 import { Button, SaveForm, smallInputClass } from "./form";
 
-// The same soft colours as the score ring's segments, lowest first.
-export const bandSoft = ["#f4ddd2", "#e6e1de", "#f9e8c4", "#dbe4fb", "#e0f0db"];
+// Soft segment colours, lowest first; the score ring uses them too.
+export const bandSoft = ["var(--band-1)", "var(--band-2)", "var(--band-3)", "var(--band-4)", "var(--band-5)"];
 
 /** A 0–max bar split at each band, with the percent written in each segment. */
 export function BandBar({ bands, max, score }: { bands: Band[]; max: number; score?: number }) {

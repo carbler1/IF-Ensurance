@@ -6,9 +6,9 @@ import type { SaveState } from "@/app/actions";
 // Form controls in the customer app's style: 56 px inputs and buttons, the small blue switch.
 
 export const inputClass =
-  "h-14 w-full rounded-2xl border border-input bg-card px-3 text-lg tabular-nums text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary";
+  "h-14 w-full rounded-2xl border border-input bg-card px-3 text-lg tabular-nums text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary";
 export const smallInputClass =
-  "h-11 w-full rounded-xl border border-input bg-card px-3 text-base tabular-nums text-foreground shadow-sm focus:outline-none focus:ring-1 focus:ring-primary";
+  "h-11 w-full rounded-xl border border-input bg-card px-3 text-base tabular-nums text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary";
 
 export function Label({ text, hint, children, className = "" }: { text: string; hint?: string; children: ReactNode; className?: string }) {
   return (
@@ -20,11 +20,12 @@ export function Label({ text, hint, children, className = "" }: { text: string; 
   );
 }
 
-/** The app's switch (36 × 20, blue when on). Posts "on" through a hidden input when checked. */
-export function Switch({ name, defaultChecked, label, onChange }: { name?: string; defaultChecked?: boolean; label: string; onChange?: (v: boolean) => void }) {
+/** The app's switch (36 × 20, blue when on). Posts "on" through a hidden input when checked.
+ * `label` is the accessible name; `children` is the visible text, which also toggles the switch. */
+export function Switch({ name, defaultChecked, label, onChange, children }: { name?: string; defaultChecked?: boolean; label: string; onChange?: (v: boolean) => void; children?: ReactNode }) {
   const [on, setOn] = useState(!!defaultChecked);
   return (
-    <>
+    <label className="inline-flex min-h-11 cursor-pointer items-center gap-3">
       {name && on && <input type="hidden" name={name} value="on" />}
       <button
         type="button"
@@ -40,7 +41,24 @@ export function Switch({ name, defaultChecked, label, onChange }: { name?: strin
       >
         <span className={`block h-4 w-4 rounded-full bg-background shadow-lg transition-transform ${on ? "translate-x-4" : "translate-x-0"}`} />
       </button>
-    </>
+      {children && <span className="font-medium">{children}</span>}
+    </label>
+  );
+}
+
+/** A submit button that asks once more before it submits: the first click arms it, leaving it disarms it. */
+export function ConfirmSubmit({ children, confirm, label, className, armedClassName }: { children: ReactNode; confirm: string; label?: string; className: string; armedClassName: string }) {
+  const [armed, setArmed] = useState(false);
+  return (
+    <button
+      type={armed ? "submit" : "button"}
+      aria-label={armed ? confirm : label}
+      onClick={() => setArmed(true)}
+      onBlur={() => setArmed(false)}
+      className={armed ? armedClassName : className}
+    >
+      {armed ? confirm : children}
+    </button>
   );
 }
 

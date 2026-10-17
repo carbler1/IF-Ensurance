@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Check } from "lucide-react";
 import { resetDemo } from "@/app/actions";
 import { Data } from "@/components/Data";
+import { ConfirmSubmit } from "@/components/form";
 import { Card, PageHeader, classIcon, eur, formatDate, tierColor } from "@/components/ui";
 import { getCustomers } from "@/lib/api";
 
@@ -88,9 +89,11 @@ export default function CustomersPage() {
     <>
       <PageHeader title="Customers" sub="Every customer with their insurance scores, discounts and Care Score, and what they could still gain. The demo customer is the person in the mobile app; bookings made in the app show up here.">
         <form action={resetDemo}>
-          <button type="submit" className="h-11 rounded-xl border border-input bg-card px-4 font-medium shadow-sm hover:bg-accent hover:text-accent-foreground">
+          <ConfirmSubmit confirm="Reset all demo data"
+            className="h-11 rounded-xl border border-input bg-card px-4 font-medium shadow-sm hover:bg-accent hover:text-accent-foreground"
+            armedClassName="h-11 rounded-xl bg-destructive px-4 font-semibold text-primary-foreground">
             Reset demo
-          </button>
+          </ConfirmSubmit>
         </form>
       </PageHeader>
       <Data load={() => List()} />

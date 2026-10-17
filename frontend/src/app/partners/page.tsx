@@ -42,8 +42,7 @@ async function List() {
               </Label>
             </div>
             <div className="mt-3 flex items-center gap-3">
-              <Switch name="if_vetted" defaultChecked={p.if_vetted} label={`${p.name} is If vetted`} />
-              <span className="font-medium">Show to customers (If vetted)</span>
+              <Switch name="if_vetted" defaultChecked={p.if_vetted} label={`${p.name} is If vetted`}>Show to customers (If vetted)</Switch>
             </div>
           </SaveForm>
         </Card>

@@ -58,16 +58,6 @@ export function IconTile({ icon: Icon, size = "md" }: { icon: LucideIcon; size?:
   );
 }
 
-/** The app's "+45 points" block. */
-export function Points({ value, label = "points" }: { value: number; label?: string }) {
-  return (
-    <div className="shrink-0 text-center text-primary-light">
-      <span className="block font-display text-3xl font-semibold tabular-nums">+{value}</span>
-      <span className="block text-sm text-muted-foreground">{label}</span>
-    </div>
-  );
-}
-
 export function Pill({ children, tone = "secondary" }: { children: ReactNode; tone?: "secondary" | "accent" | "success" | "warning" }) {
   const tones = {
     secondary: "bg-secondary text-foreground",

@@ -5,7 +5,7 @@ import { Plus, Trash2, X } from "lucide-react";
 import { addRule, deleteRule, saveClass, saveRule } from "@/app/actions";
 import { describe, fieldLabel, rowsToCondition, type FieldInfo, type Row } from "@/lib/context";
 import type { InsuranceClass, Risk, Rule } from "@/lib/types";
-import { Button, Label, SaveForm, Switch, smallInputClass } from "./form";
+import { Button, ConfirmSubmit, Label, SaveForm, Switch, smallInputClass } from "./form";
 import { IconTile, Pill, categoryIcon, classIcon, humanize } from "./ui";
 
 function RuleEditor({ rule }: { rule: Rule }) {
@@ -21,9 +21,11 @@ function RuleEditor({ rule }: { rule: Rule }) {
         {!rule.is_default && (
           <form action={deleteRule}>
             <input type="hidden" name="rule_id" value={rule.rule_id} />
-            <button type="submit" aria-label={`Delete ${rule.label}`} className="grid h-11 w-11 place-items-center rounded-xl text-muted-foreground hover:bg-danger-soft hover:text-destructive">
-              <Trash2 className="h-5 w-5" />
-            </button>
+            <ConfirmSubmit label={`Delete ${rule.label}`} confirm="Delete for good"
+              className="grid h-11 w-11 place-items-center rounded-xl text-muted-foreground hover:bg-danger-soft hover:text-destructive"
+              armedClassName="h-11 rounded-xl bg-destructive px-3 font-semibold whitespace-nowrap text-primary-foreground">
+              <Trash2 className="h-5 w-5" aria-hidden />
+            </ConfirmSubmit>
           </form>
         )}
       </div>
@@ -48,8 +50,7 @@ function RuleEditor({ rule }: { rule: Rule }) {
           )}
         </div>
         <div className="mt-3 flex items-center gap-3">
-          <Switch name="active" defaultChecked={rule.active} label={`${rule.label} active`} />
-          <span className="font-medium">Active</span>
+          <Switch name="active" defaultChecked={rule.active} label={`${rule.label} active`}>Active</Switch>
         </div>
       </SaveForm>
     </div>
@@ -202,12 +203,12 @@ export function FixRules({ classes, rules }: { classes: InsuranceClass[]; rules:
 
   return (
     <>
-      <div role="tablist" aria-label="Insurance class" className="mb-4 flex flex-wrap gap-2">
+      <div role="group" aria-label="Insurance class" className="mb-4 flex flex-wrap gap-2">
         {classes.map((c) => {
           const Icon = classIcon[c.class_id] ?? classIcon.house;
           const on = c.class_id === cls.class_id;
           return (
-            <button key={c.class_id} role="tab" aria-selected={on} type="button" onClick={() => { setClassId(c.class_id); setCategory("all"); setQuery(""); }}
+            <button key={c.class_id} aria-pressed={on} type="button" onClick={() => { setClassId(c.class_id); setCategory("all"); setQuery(""); }}
               className={`flex h-14 items-center gap-2 rounded-2xl px-5 text-lg font-semibold ${on ? "bg-primary text-primary-foreground" : "bg-card shadow-soft"}`}>
               <Icon className="h-6 w-6" aria-hidden />{c.name}
               <span className={`text-sm font-medium ${on ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{c.risks.length}</span>

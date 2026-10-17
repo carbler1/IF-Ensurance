@@ -53,12 +53,15 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const first = useRef(true);
+  const latest = useRef(0);
 
   // Ask the backend again a moment after the last change.
   useEffect(() => {
     if (first.current) { first.current = false; return; }
     const id = setTimeout(() => startTransition(async () => {
+      const n = ++latest.current;
       const r = await runSimulation(inputs);
+      if (n !== latest.current) return; // a newer request is on its way
       if (r.ok) { setSim(r.result); setError(null); } else setError(r.message);
     }), 250);
     return () => clearTimeout(id);
@@ -79,46 +82,49 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
   const max = sim?.model.max_score ?? 1000;
 
   return (
-    <div className="space-y-4">
-      <Card className="flex flex-col items-center gap-6 text-center md:flex-row md:text-left">
-        {sim && agg && <ScoreRing score={agg.now} projected={agg.after} max={max} tierMins={sim.model.tiers.map((t) => t.min_score)} />}
-        <div className="grid w-full flex-1 gap-4 sm:grid-cols-3">
-          <label className="block sm:col-span-3">
-            <span className="mb-1 block font-medium">Customer</span>
-            <select value={customerId} onChange={(e) => pickCustomer(e.target.value)} className={smallInputClass}>
-              {customers.map((c) => <option key={c.customer_id} value={c.customer_id}>{c.name}</option>)}
-            </select>
-          </label>
-          <div>
-            <p className="text-sm text-muted-foreground">Tier · now {agg?.tier_now?.name ?? "—"}</p>
-            <p className="mt-1 flex items-center justify-center gap-2 text-xl font-semibold md:justify-start">
-              {agg?.tier_after && <span className={`h-3 w-3 rounded-full ${tierColor[agg.tier_after.index] ?? "bg-primary"}`} />}
-              {agg?.tier_after?.name ?? "—"} <span className="text-sm font-normal text-muted-foreground">after every fix</span>
-            </p>
-            <ul className="mt-1 space-y-0.5 text-sm text-muted-foreground">
-              {agg?.tier_after?.bonuses.map((b) => <li key={b} className="flex justify-center gap-1 md:justify-start"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />{b}</li>)}
-            </ul>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">All premiums per year</p>
-            <p className="mt-1 font-display text-3xl font-semibold tabular-nums">{eur(sim?.premium.after ?? 0)}</p>
-            <p className="text-sm text-muted-foreground">
-              Base {eur(sim?.premium.base ?? 0)} · now {eur(sim?.premium.now ?? 0)}
-            </p>
-          </div>
-          <div aria-live="polite" className="text-sm text-muted-foreground">
-            {pending ? "Calculating…" : error ? <span className="font-semibold text-destructive">{error}</span> : "The Care Score is the average of the five insurance scores. Numbers come from the backend; nothing is saved."}
+    // Container queries: the layout follows the content width, which the side nav narrows from md up.
+    <div className="@container space-y-4">
+      <Card className="flex flex-col gap-6 @3xl:flex-row @3xl:items-center">
+        {sim && agg && <div className="self-center"><ScoreRing score={agg.now} projected={agg.after} max={max} tierMins={sim.model.tiers.map((t) => t.min_score)} /></div>}
+        <div className="@container min-w-0 flex-1">
+          <div className="grid gap-4 @md:grid-cols-2 @2xl:grid-cols-3">
+            <label className="col-span-full block">
+              <span className="mb-1 block font-medium">Customer</span>
+              <select value={customerId} onChange={(e) => pickCustomer(e.target.value)} className={smallInputClass}>
+                {customers.map((c) => <option key={c.customer_id} value={c.customer_id}>{c.name}</option>)}
+              </select>
+            </label>
+            <div>
+              <p className="text-sm text-muted-foreground">Tier · now {agg?.tier_now?.name ?? "—"}</p>
+              <p className="mt-1 flex items-center gap-2 text-xl font-semibold">
+                {agg?.tier_after && <span className={`h-3 w-3 rounded-full ${tierColor[agg.tier_after.index] ?? "bg-primary"}`} />}
+                {agg?.tier_after?.name ?? "—"} <span className="text-sm font-normal text-muted-foreground">after every fix</span>
+              </p>
+              <ul className="mt-1 space-y-0.5 text-sm text-muted-foreground">
+                {agg?.tier_after?.bonuses.map((b) => <li key={b} className="flex gap-1"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />{b}</li>)}
+              </ul>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">All premiums per year</p>
+              <p className="mt-1 font-display text-3xl font-semibold tabular-nums">{eur(sim?.premium.after ?? 0)}</p>
+              <p className="text-sm text-muted-foreground">
+                Base {eur(sim?.premium.base ?? 0)} · now {eur(sim?.premium.now ?? 0)}
+              </p>
+            </div>
+            <div aria-live="polite" className="text-sm text-muted-foreground">
+              {pending ? "Calculating…" : error ? <span className="font-semibold text-destructive">{error}</span> : "The Care Score is the average of the five insurance scores. Numbers come from the backend; nothing is saved."}
+            </div>
           </div>
         </div>
       </Card>
 
-      <div role="tablist" aria-label="Insurance" className="grid gap-3 sm:grid-cols-5">
+      <div role="group" aria-label="Insurance" className="grid grid-cols-2 gap-3 @xl:grid-cols-3 @4xl:grid-cols-5">
         {inputs.map((o, i) => {
           const Icon = classIcon[o.class_id] ?? classIcon.house;
           const r = sim?.objects[i];
           const on = i === active;
           return (
-            <button key={o.object_id ?? i} role="tab" aria-selected={on} type="button" onClick={() => setActive(i)}
+            <button key={o.object_id ?? i} aria-pressed={on} type="button" onClick={() => setActive(i)}
               className={`rounded-2xl border-2 bg-card p-4 text-left ${on ? "border-primary bg-accent" : "border-transparent shadow-soft"}`}>
               <span className="flex items-center gap-2 font-semibold"><Icon className="h-5 w-5 text-primary" aria-hidden />{r?.class_name ?? o.class_id}</span>
               <span className="mt-1 block truncate text-sm text-muted-foreground">{o.name}</span>
@@ -134,7 +140,7 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
       </div>
 
       {obj && cls && result && sim && (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+        <div className="grid gap-4 @4xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <Card className="h-fit">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-xl font-semibold">{cls.name}</h2>
