@@ -1,6 +1,8 @@
 # Postgres, the backend (FastAPI + worker), the If staff dashboard (Next.js) and the web demo
 # of the customer app (Expo). Only the backend talks to Postgres; the dashboard calls the
-# backend's /v1/admin API. Postgres has no host port, so nothing else can reach it.
+# backend's /v1/admin API. Postgres is on the private "db" network with the backend only and has
+# no host port, so the dashboard (on the "app" network) cannot reach it at all.
+# The backend runs the Alembic migrations (backend/migrations/) on start.
 # Setup: cp .env.example .env and set POSTGRES_PASSWORD, ADMIN_TOKEN and the tokens.
 # Then: docker compose up --build
 # Dashboard: http://localhost:3000   App demo: http://localhost:8082   API: http://localhost:8000
@@ -13,6 +15,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-ilp}
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    networks:
+      - db
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 3s
@@ -37,6 +41,9 @@ services:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - backend-var:/app/var # uploaded PDFs
+    networks:
+      - db
+      - app
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,6 +61,8 @@ services:
       ADMIN_TOKEN: ${ADMIN_TOKEN:?Set ADMIN_TOKEN in .env}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
+    networks:
+      - app
     depends_on:
       backend:
         condition: service_healthy
@@ -62,6 +71,11 @@ services:
     build: ./mobile-app
     ports:
       - "${MOBILE_PORT:-8082}:80"
+
+networks:
+  db:
+    internal: true # no route out of this network; only the backend and Postgres are on it
+  app:
 
 volumes:
   postgres-data:

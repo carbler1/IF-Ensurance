@@ -1,6 +1,7 @@
-"""The database tables as SQLAlchemy 2.0 models. DESIGN.md §5. db.py creates them with
-Base.metadata.create_all; there is no SQL schema file. The database is Postgres in docker
-compose (DATABASE_URL) and a SQLite file otherwise. To reset: drop the database and seed again.
+"""The database tables as SQLAlchemy 2.0 models. DESIGN.md §5. On Postgres (docker compose,
+DATABASE_URL) the Alembic migrations in backend/migrations/ build the schema; after a change here,
+add one: alembic -c backend/alembic.ini revision --autogenerate -m "...". A SQLite file (local
+runs, tests) is built straight from these models. To reset: drop the database and seed again.
 Only the backend touches the database; the staff dashboard goes through /v1/admin.
 
 Times are ISO 8601 UTC strings and JSON columns are text.

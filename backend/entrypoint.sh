@@ -5,6 +5,9 @@ set -eu
 cd /app
 mkdir -p /app/var/uploads
 
+# Migrate once, before both processes open the database.
+python -m backend.migrate
+
 python -m backend.worker &
 worker_pid=$!
 

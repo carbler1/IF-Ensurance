@@ -2,15 +2,16 @@
 The tables are the models in models.py.
 
 DATABASE_URL picks the database: Postgres in docker compose, for example
-postgresql+psycopg://user:password@postgres:5432/ilp. Without it, a SQLite file at DB_PATH
-(local runs and the tests)."""
+postgresql+psycopg://user:password@postgres:5432/ilp, with the schema from the Alembic migrations
+in backend/migrations/. Without it, a SQLite file at DB_PATH (local runs and the tests), built
+straight from the models."""
 
 import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from sqlalchemy import Engine, create_engine, event, select, text
+from sqlalchemy import Engine, create_engine, event, select
 from sqlalchemy.orm import Session
 
 from backend.models import (Base, Customer, DiscountBand, FixRule, Home, InsuranceClass, InsuranceSettings, InsuredObject,
@@ -43,13 +44,11 @@ def _engine() -> Engine:
                 cur.execute("PRAGMA busy_timeout=5000")
                 cur.execute("PRAGMA foreign_keys=ON")
                 cur.close()
+            # Local runs and the tests: build the tables straight from the models.
+            Base.metadata.create_all(engine)
         else:
+            # Postgres: Alembic owns the schema (backend/migrate.py runs before the API and the worker).
             engine = create_engine(url, pool_pre_ping=True)
-        with engine.begin() as conn:
-            if engine.dialect.name == "postgresql":
-                # The API and the worker start together; one creates the tables, the other waits.
-                conn.execute(text("SELECT pg_advisory_xact_lock(4242)"))
-            Base.metadata.create_all(conn)
         _engines[url] = engine
     return _engines[url]
 

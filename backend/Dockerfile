@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir \
     pypdfium2 \
     httpx \
     sqlalchemy \
+    alembic \
     "psycopg[binary]" \
     jsonschema
 

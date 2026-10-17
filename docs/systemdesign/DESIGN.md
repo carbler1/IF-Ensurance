@@ -58,7 +58,7 @@ All backend parts run on pc-btw.
 |---|---|
 | Customer app | Lovable (React, TypeScript, Tailwind) web app in Chrome on the Pixel. No Supabase. |
 | Backend | Python 3.13, FastAPI, uvicorn, python-multipart |
-| Database | Postgres 17 in docker compose, through SQLAlchemy 2.0 (models in `backend/models.py`). `DATABASE_URL` picks it; without it, a SQLite file `var/ilp.sqlite` (local runs, tests). Only the backend connects to it; the staff dashboard uses `/v1/admin`. |
+| Database | Postgres 17 in docker compose, through SQLAlchemy 2.0 (models in `backend/models.py`). `DATABASE_URL` picks it; without it, a SQLite file `var/ilp.sqlite` (local runs, tests). Only the backend connects to it (compose puts it on a private network with the backend); the staff dashboard uses `/v1/admin`. Schema changes go through Alembic migrations in `backend/migrations/`, run on container start. |
 | Jobs | A `jobs` table. One worker process polls it. No queue server. |
 | PDF text | pypdfium2 |
 | LLM | Ollama on pc-btw, `qwen3.5:9b`, called with httpx |
@@ -138,4 +138,4 @@ Auth: one bearer token for the demo customer and one partner token, both from `.
 These points are not specified. The developer decides them while coding. They do not block the demo.
 - A job with no matched risk: the worker may skip the write step. The app shows an empty list.
 - Maintenance base date: the developer picks a simple rule. Fixtures may differ from it.
-- Both processes open the database through `db.connect()`. On Postgres an advisory lock lets only one of them create the tables; on SQLite it sets WAL and a busy timeout.
+- Both processes open the database through `db.connect()`. On Postgres, `backend/migrate.py` runs the Alembic migrations once before they start; on SQLite the tables come straight from the models, with WAL and a busy timeout.
