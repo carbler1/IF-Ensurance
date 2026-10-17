@@ -3,6 +3,7 @@ import {
   AccessibilityInfo,
   Animated,
   Easing,
+  Image,
   Pressable,
   ScrollView,
   Text as RNText,
@@ -130,34 +131,20 @@ export function Card({ style, flat, children }: { style?: StyleProp<ViewStyle>; 
   return <View style={[{ borderRadius: radius["2xl"], backgroundColor: colors.card, padding: 20 }, !flat && { boxShadow: shadows.soft }, style]}>{children}</View>;
 }
 
-// The If Ensurance mark: the "If" inside the Care Score ring, a soft track and a lighter arc that starts just
-// after 12 o'clock, as on the Home ring. The app icon (assets/icon.png) sets the ring further in; at inline sizes the ring
-// sits near the tile edge and the letters grow, so "If" stays legible. Decorative: hidden from screen readers.
-export function Mark({ size = 36 }: { size?: number }) {
-  const c = size / 2;
-  const r = size * 0.335;
-  const w = size * 0.055;
-  const len = 2 * Math.PI * r;
-  return (
-    <View aria-hidden importantForAccessibility="no-hide-descendants" style={{ width: size, height: size, borderRadius: size * 0.225, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
-      <Svg width={size} height={size} style={{ position: "absolute" }}>
-        <Circle cx={c} cy={c} r={r} fill="none" strokeWidth={w} stroke="rgba(250, 249, 247, 0.16)" />
-        <Circle cx={c} cy={c} r={r} fill="none" strokeWidth={w} strokeLinecap="round" strokeDasharray={`${(len * 242) / 360} ${len}`} transform={`rotate(278 ${c} ${c})`} stroke={colors.markArc} />
-      </Svg>
-      <RNText style={{ fontFamily: fontFamily(true, 600), fontSize: size * 0.42, lineHeight: size * 0.5, color: colors.primaryForeground, marginTop: -size * 0.03 }} allowFontScaling={false}>If</RNText>
-    </View>
-  );
+// The If Ensurance mark, after If's own: a blue disc with a white italic "if", whose three dots climb a step
+// each, like a score going up. A rendered image (assets/mark.png, built with the app icons), so it matches them exactly.
+export function Mark({ size = 40 }: { size?: number }) {
+  return <Image source={require("../../assets/mark.png")} aria-hidden style={{ width: size, height: size }} />;
 }
 
+// The lockup reads "if… Ensurance": the italic serif lives in the disc, the name in the app's sans for contrast.
 export function Wordmark() {
   const { t } = useStore();
   return (
     <Link href="/" asChild>
       <Pressable accessibilityRole="link" accessibilityLabel={t("brand")} style={{ alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <Mark size={36} />
-        <Text size="xl" display weight={600} color="primary">
-          If <Text size="xl" display italic color="primary">Ensurance</Text>
-        </Text>
+        <Mark size={40} />
+        <Text size="xl" weight={600} style={{ letterSpacing: -0.4 }}>Ensurance</Text>
       </Pressable>
     </Link>
   );
