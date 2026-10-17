@@ -80,7 +80,13 @@
             "bathroom_renovation",
             "heating_technician",
             "chimney_sweep",
-            "ventilation_technician"
+            "ventilation_technician",
+            "locksmith_alarm",
+            "hazmat_surveyor",
+            "tree_pest",
+            "facade_windows",
+            "independent_inspector",
+            "home_maintenance"
           ],
           "description": "Must equal the list in data/partner-categories.json. The validator checks both lists match."
         }
