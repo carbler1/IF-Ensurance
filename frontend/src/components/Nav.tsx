@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Award, Calculator, FlaskConical, Home, Store, Users } from "lucide-react";
+import mark from "./mark.png";
 
 const links = [
   { href: "/", label: "Overview", Icon: Home },
@@ -20,10 +22,10 @@ export function Nav() {
     <nav className="border-b bg-card md:sticky md:top-0 md:h-screen md:w-[4.5rem] md:shrink-0 md:border-r md:border-b-0 lg:w-64">
       <div className="px-5 pt-5 pb-4 md:px-4 md:pt-6 md:pb-8 lg:px-5">
         <Link href="/" className="flex items-center gap-3">
-          {/* The monogram tile; src/app/favicon.ico and apple-icon.png are the same mark. */}
-          <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-[0.6rem] bg-primary pb-0.5 font-display text-xl font-semibold text-primary-foreground">If</span>
+          {/* The If disc mark, shared with the mobile app (mobile-app/assets/mark.png); favicon.ico and apple-icon.png are the same disc. */}
+          <Image src={mark} alt="If" width={40} height={40} priority className="h-10 w-10 shrink-0" />
           <span className="md:hidden lg:block">
-            <span className="block font-display text-xl leading-tight font-semibold text-primary">If <span className="font-normal italic">Ensurance</span></span>
+            <span className="block text-xl leading-tight font-semibold tracking-[-0.02em]">Ensurance</span>
             <span className="block text-sm text-muted-foreground">Staff dashboard</span>
           </span>
         </Link>
