@@ -7,7 +7,7 @@ import { Label, SaveForm, inputClass } from "@/components/form";
 import { Card, PageHeader } from "@/components/ui";
 import { getBands, getClasses, getRules, getSettings } from "@/lib/api";
 
-export const metadata: Metadata = { title: "Score & pricing · If Life Partner Staff" };
+export const metadata: Metadata = { title: "Score & pricing · If Ensurance Staff" };
 
 async function Model() {
   const [s, b] = await Promise.all([getSettings(), getBands()]);

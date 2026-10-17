@@ -1,6 +1,6 @@
-# If Life Partner: staff dashboard
+# If Ensurance: staff dashboard
 
-The If staff side of If Life Partner, built with Next.js 16 in the customer app's visual style. Staff use it to:
+The If staff side of If Ensurance, built with Next.js 16 in the customer app's visual style. Staff use it to:
 
 - set what each fix is worth for each of the five insurance classes (house, summer cottage, boat, car, dog): Care Score points, how fast the points decay and the yearly premium cut in euros, with different values per context (for example "houses built before 1970" or "large dogs");
 - set each class's base premium and cap, and the starting Care Score;

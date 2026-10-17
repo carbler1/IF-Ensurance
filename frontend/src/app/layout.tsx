@@ -7,7 +7,7 @@ const figtree = Figtree({ variable: "--font-figtree", subsets: ["latin"] });
 const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], style: ["normal", "italic"] });
 
 export const metadata: Metadata = {
-  title: "If Life Partner Staff",
+  title: "If Ensurance Staff",
   description: "If staff dashboard: Care Score and premium math, customers, partners and tier rewards.",
 };
 

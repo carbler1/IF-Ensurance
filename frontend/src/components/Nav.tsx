@@ -18,10 +18,14 @@ export function Nav() {
   return (
     <nav className="border-b bg-card md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0 md:border-r md:border-b-0">
       <div className="px-5 pt-6 pb-4 md:pb-8">
-        <Link href="/" className="font-display text-xl font-semibold text-primary">
-          If <span className="font-normal italic">Life Partner</span>
+        <Link href="/" className="flex items-center gap-3">
+          {/* The monogram tile; src/app/favicon.ico and apple-icon.png are the same mark. */}
+          <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-[0.6rem] bg-primary pb-0.5 font-display text-xl font-semibold text-primary-foreground">If</span>
+          <span>
+            <span className="block font-display text-xl leading-tight font-semibold text-primary">If <span className="font-normal italic">Ensurance</span></span>
+            <span className="block text-sm text-muted-foreground">Staff dashboard</span>
+          </span>
         </Link>
-        <p className="mt-1 text-sm text-muted-foreground">Staff dashboard</p>
       </div>
       <ul className="flex gap-1 overflow-x-auto px-3 pb-3 md:block md:space-y-1">
         {links.map(({ href, label, Icon }) => {

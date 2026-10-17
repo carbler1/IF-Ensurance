@@ -7,7 +7,7 @@ import { ConfirmSubmit } from "@/components/form";
 import { Card, PageHeader, classIcon, eur, formatDate, tierColor } from "@/components/ui";
 import { getCustomers } from "@/lib/api";
 
-export const metadata: Metadata = { title: "Customers · If Life Partner Staff" };
+export const metadata: Metadata = { title: "Customers · If Ensurance Staff" };
 
 const off = (pct: number) => (pct ? `${pct} % off` : "No discount yet");
 

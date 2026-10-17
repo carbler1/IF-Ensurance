@@ -5,7 +5,7 @@ import { Label, SaveForm, inputClass } from "@/components/form";
 import { Card, PageHeader, Pill, tierColor } from "@/components/ui";
 import { getTiers } from "@/lib/api";
 
-export const metadata: Metadata = { title: "Tiers & rewards · If Life Partner Staff" };
+export const metadata: Metadata = { title: "Tiers & rewards · If Ensurance Staff" };
 
 async function Ladder() {
   const tiers = await getTiers();

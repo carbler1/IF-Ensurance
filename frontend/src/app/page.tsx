@@ -39,7 +39,7 @@ const sections = [
 export default function OverviewPage() {
   return (
     <>
-      <PageHeader title="Overview" sub="Good to see you. This is what is happening across If Life Partner right now." />
+      <PageHeader title="Overview" sub="Good to see you. This is what is happening across If Ensurance right now." />
       <Data load={() => Tiles()} />
       <div className="mt-6 space-y-3">
         {sections.map((s) => (

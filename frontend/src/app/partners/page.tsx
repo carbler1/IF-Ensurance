@@ -6,7 +6,7 @@ import { Label, SaveForm, Switch, smallInputClass } from "@/components/form";
 import { Card, PageHeader, Pill, humanize } from "@/components/ui";
 import { getPartners } from "@/lib/api";
 
-export const metadata: Metadata = { title: "Partners · If Life Partner Staff" };
+export const metadata: Metadata = { title: "Partners · If Ensurance Staff" };
 
 async function List() {
   const partners = await getPartners();
