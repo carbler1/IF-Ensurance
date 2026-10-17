@@ -165,6 +165,138 @@
       "if_vetted": false,
       "tier_discount_percent": 0,
       "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_16",
+      "name": "Turun Lukko ja Hälytin Oy",
+      "categories": ["locksmith_alarm"],
+      "area": "Turku",
+      "price_range": {"min": 150, "max": 2500},
+      "rating": 4.6,
+      "if_vetted": true,
+      "tier_discount_percent": 10,
+      "listing_fee_tier": "plus"
+    },
+    {
+      "partner_id": "p_17",
+      "name": "Kaarinan Turvapalvelu Oy",
+      "categories": ["locksmith_alarm"],
+      "area": "Kaarina",
+      "price_range": {"min": 120, "max": 3000},
+      "rating": 4.1,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_18",
+      "name": "Haitta-ainekartoitus Varsinais-Suomi Oy",
+      "categories": ["hazmat_surveyor"],
+      "area": "Turku",
+      "price_range": {"min": 300, "max": 1500},
+      "rating": 4.7,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "plus"
+    },
+    {
+      "partner_id": "p_19",
+      "name": "Radonmittaus Lieto Oy",
+      "categories": ["hazmat_surveyor"],
+      "area": "Lieto",
+      "price_range": {"min": 80, "max": 600},
+      "rating": 4.2,
+      "if_vetted": true,
+      "tier_discount_percent": 0,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_20",
+      "name": "Puuhuolto Aura Oy",
+      "categories": ["tree_pest"],
+      "area": "Turku",
+      "price_range": {"min": 150, "max": 5000},
+      "rating": 4.4,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_21",
+      "name": "Tuholaistorjunta Pesäpuu Oy",
+      "categories": ["tree_pest"],
+      "area": "Raisio",
+      "price_range": {"min": 120, "max": 1500},
+      "rating": 4.0,
+      "if_vetted": false,
+      "tier_discount_percent": 0,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_22",
+      "name": "Ikkuna- ja Julkisivuhuolto Aura Oy",
+      "categories": ["facade_windows"],
+      "area": "Turku",
+      "price_range": {"min": 300, "max": 20000},
+      "rating": 4.5,
+      "if_vetted": true,
+      "tier_discount_percent": 10,
+      "listing_fee_tier": "plus"
+    },
+    {
+      "partner_id": "p_23",
+      "name": "Naantalin Maalausliike Merituuli Oy",
+      "categories": ["facade_windows"],
+      "area": "Naantali",
+      "price_range": {"min": 250, "max": 12000},
+      "rating": 4.2,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_24",
+      "name": "Kuntotarkastus Aurajoki Oy",
+      "categories": ["independent_inspector"],
+      "area": "Turku",
+      "price_range": {"min": 450, "max": 1200},
+      "rating": 4.8,
+      "if_vetted": true,
+      "tier_discount_percent": 10,
+      "listing_fee_tier": "plus"
+    },
+    {
+      "partner_id": "p_25",
+      "name": "Rakennustarkastus Varsinais-Suomi Oy",
+      "categories": ["independent_inspector", "moisture_inspector"],
+      "area": "Turku",
+      "price_range": {"min": 400, "max": 1500},
+      "rating": 4.4,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_26",
+      "name": "Kotihuolto Kaarina Oy",
+      "categories": ["home_maintenance"],
+      "area": "Kaarina",
+      "price_range": {"min": 60, "max": 2500},
+      "rating": 4.3,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_27",
+      "name": "Turun Talonmies Palvelut Oy",
+      "categories": ["home_maintenance"],
+      "area": "Turku",
+      "price_range": {"min": 50, "max": 3000},
+      "rating": 4.6,
+      "if_vetted": true,
+      "tier_discount_percent": 10,
+      "listing_fee_tier": "plus"
     }
   ]
 }
