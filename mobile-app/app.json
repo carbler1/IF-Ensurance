@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "If Life Partner",
+    "name": "If Ensurance",
     "slug": "if-life-partner",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,7 +11,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#f6f3f0",
+        "backgroundColor": "#0054f0",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -25,7 +25,14 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 120,
+          "backgroundColor": "#f6f3f0"
+        }
+      ],
       "expo-asset"
     ],
     "scheme": "iflifepartner",

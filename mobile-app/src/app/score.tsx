@@ -28,7 +28,7 @@ export default function ScoreBreakdown() {
 
   return (
     <Screen back title={t("score.title")} sub={`${aggregate} / ${model.maxScore}`}>
-      <Text color="mutedForeground" style={{ marginTop: -8 }}>{t("score.average")}</Text>
+      <Text color="mutedForeground" center style={{ marginTop: -8 }}>{t("score.average")}</Text>
 
       <Card>
         <Heading size="lg">{t("score.insurances")}</Heading>

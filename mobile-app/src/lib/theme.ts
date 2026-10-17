@@ -7,6 +7,8 @@ export const colors = {
   primaryForeground: "#faf9f7",
   primaryPressed: "#1241a2",
   primaryLight: "#3b82f6",
+  // The lighter arc in the brand mark, on primary.
+  markArc: "#a9c4ff",
   secondary: "#f1ece8",
   secondaryForeground: "#331e11",
   muted: "#f1ece8",

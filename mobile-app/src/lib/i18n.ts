@@ -1,7 +1,7 @@
 export type Lang = "en" | "fi" | "sv";
 
 const en = {
-  brand: "If Life Partner",
+  brand: "If Ensurance",
   "tab.home": "Home",
   "tab.risks": "Risks",
   "tab.maintenance": "Maintenance",

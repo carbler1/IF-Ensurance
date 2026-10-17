@@ -73,13 +73,13 @@ function AppFrame() {
         ) : onboarded ? (
           <>
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
-              <Stack.Screen name="index" options={{ ...tabPage, title: "Home — If Life Partner" }} />
-              <Stack.Screen name="risks/index" options={{ ...tabPage, title: "Risks — If Life Partner" }} />
-              <Stack.Screen name="maintenance" options={{ ...tabPage, title: "Maintenance — If Life Partner" }} />
-              <Stack.Screen name="profile" options={{ ...tabPage, title: "Profile — If Life Partner" }} />
-              <Stack.Screen name="risks/[id]" options={{ title: "Risk — If Life Partner" }} />
-              <Stack.Screen name="job/[id]" options={{ title: "Job status — If Life Partner" }} />
-              <Stack.Screen name="score" options={{ title: "Care Score — If Life Partner" }} />
+              <Stack.Screen name="index" options={{ ...tabPage, title: "Home — If Ensurance" }} />
+              <Stack.Screen name="risks/index" options={{ ...tabPage, title: "Risks — If Ensurance" }} />
+              <Stack.Screen name="maintenance" options={{ ...tabPage, title: "Maintenance — If Ensurance" }} />
+              <Stack.Screen name="profile" options={{ ...tabPage, title: "Profile — If Ensurance" }} />
+              <Stack.Screen name="risks/[id]" options={{ title: "Risk — If Ensurance" }} />
+              <Stack.Screen name="job/[id]" options={{ title: "Job status — If Ensurance" }} />
+              <Stack.Screen name="score" options={{ title: "Care Score — If Ensurance" }} />
             </Stack>
             <TabBar />
           </>
