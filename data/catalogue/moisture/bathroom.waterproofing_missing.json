@@ -1,0 +1,47 @@
+{
+  "title": "Wet room without modern waterproofing",
+  "applies_when": {
+    "op": "or",
+    "args": [
+      {"op": "lt", "field": "bathroom_waterproofing_year", "value": 1999},
+      {
+        "op": "and",
+        "args": [
+          {"op": "not", "args": [{"op": "exists", "field": "bathroom_waterproofing_year"}]},
+          {"op": "lt", "field": "building_year", "value": 1999}
+        ]
+      }
+    ]
+  },
+  "severity": 4,
+  "probability": 4,
+  "service_life_years": 30,
+  "check_interval_years": 10,
+  "half_life_years": 15,
+  "mitigation": {
+    "action": "Bathroom renovation partner installs a waterproof membrane and new floor drain seals",
+    "partner_category": "bathroom_renovation"
+  },
+  "points": 140,
+  "known_quirks": [
+    "Wet rooms built before 1998 usually have only a moisture barrier paint or nothing at all",
+    "Tile grout is not waterproof; water reaches the structure through it",
+    "Signs: dark grout lines, loose tiles, musty smell, dark marks on the ceiling below"
+  ],
+  "why_hint": "DRAFT: The wet room was built before 1999 and has no record of a waterproofing renovation. Finnish building code required a waterproof membrane only from 1998.",
+  "benefit_hint": "DRAFT: Waterproofing stops shower water from soaking the floor and wall structures, the most expensive moisture damage in a house.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "bathroom_waterproofing_year", "value": "confirmation_year"},
+  "tests": {
+    "match": [
+      {"bathroom_waterproofing_year": 1990},
+      {"building_year": 1975},
+      {"building_year": 1975, "bathroom_waterproofing_year": "unknown"}
+    ],
+    "reject": [
+      {"bathroom_waterproofing_year": 2008},
+      {"building_year": 2005},
+      {"building_year": 1975, "bathroom_waterproofing_year": 2012}
+    ]
+  }
+}

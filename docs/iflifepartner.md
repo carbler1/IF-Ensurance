@@ -1,6 +1,6 @@
 # If Life Partner: service spec
 
-Status: service concept agreed in interview, 2026-10-16. The technical design comes later.
+Status: service concept agreed in interview, 2026-10-16. System design: `docs/systemdesign/DESIGN.md`.
 Scope: this document describes the service. It does not describe the pitch.
 
 ## 1. Summary
@@ -49,7 +49,7 @@ If staff use a dedicated interface for the analysed data:
 
 | User | Gets |
 |---|---|
-| Anyone, without an If plan | A general risk list. It is not tailored to their home. |
+| Anyone, without an If plan | A general risk list. It is not tailored to their home. Phase 1 builds no access levels: every customer gets the tailored list. |
 | If good enough care score | Discounted offers for If insurance packages |
 | If plan holder | A tailored risk list, checkups, discounts and score benefits. |
 
@@ -90,7 +90,7 @@ RISKS
 3. ...
 ```
 
-- An AI model produces the list for the most part. The technical design comes later.
+- Code matches the home's facts against a risk catalogue and orders the list. An AI model reads the documents and writes the texts. It may propose catalogue risks by id. The technical design is in `docs/systemdesign/DESIGN.md`.
 
 ## 8. Mitigation score
 
@@ -126,25 +126,25 @@ All rewards improve as the score rises:
 1. The partner who did the job confirms it to If.
 2. If the job is done by the customer themselves, it can be proved by a verified partner's inspection. 
 
-## 11. Partners
+## 10. Partners
 
-### 11.1 Selection
+### 10.1 Selection
 - If vets partners and lists only qualified ones.
 - If decides which partners to prioritise.
 - For each job, listed partners bid against each other (kilpailutus). The customer chooses.
 
-### 11.2 Money flows
+### 10.2 Money flows
 | Flow | Purpose |
 |---|---|
 | Partner pays If a fee | To get onto the list. |
 | If pays partly for checkups of high score customers. | Prevention cost. |
 | If provides discounts for maintenance work done by partners for high score individuals. | Customer reward. |
 
-### 11.3 Partner benefit
+### 10.3 Partner benefit
 - Only pre vetted and trusted partners can offer their services on the platform. Customers read this as a sign of trust.
 - Partners get jobs from If customers.
 
-## 12. Retention: why the customer returns
+## 11. Retention: why the customer returns
 
 The customer can customise each of these:
 - Seasonal reminders, for example before winter.
@@ -152,23 +152,23 @@ The customer can customise each of these:
 - Score progress and the next reward level.
 - New life events, for example adding a car.
 
-### 12.1 Maintenance list auto-update
+### 11.1 Maintenance list auto-update
 The maintenance list stays current. These sources update it:
 - Age of parts. Each item has a service life, for example a water heater or a roof.
 - Partner reports. A finished job resets its item and schedules the next check.
 - Weather and season.
 - Changes in laws or policy terms. Example: a new law requires fire alarms in all apartments.
 
-### 12.2 Gamification
+### 11.2 Gamification
 - Completing maintenance is gamified through the scoring system. 
 
-## 13. Data sharing
+## 12. Data sharing
 
-- The service shares no data outside If.
-- If may later decide to share data with partners (only what a job needs) or with banks (for example, a high score can help get better loan terms). This is If's decision. It is not part of the service the team builds.
+- Outside If, the service shares only what a booked job needs, and only with the partner the customer booked.
+- If may later decide to share data with banks (for example, a high score can help get better loan terms). This is If's decision. It is not part of the service the team builds.
 - Any sharing requires the customer's consent.
 
-## 14. Value for If
+## 13. Value for If
 
 - Fewer claims, because mitigated risks cause fewer accidents.
 - Verified risk data for pricing.
@@ -178,14 +178,14 @@ The maintenance list stays current. These sources update it:
 - A wider customer base. Most people rarely think about their insurer. This service puts If into daily life in a positive light.
 - Lower staffing needs, or new tasks for staff. This point is internal. It is not part of the pitch.
 
-## 15. Priorities
+## 14. Priorities
 
 1. The customer is not overwhelmed. The interface is simple enough for older users.
 2. If receives valuable data and analysis.
 3. The gamification makes partaking in maintenance and using the app enjoyable. 
 4. The customer get's trustworthy instructions on how to take care of their home, car etc.
 
-## 16. Open questions
+## 15. Open questions
 
 - When does the service verify ownership of the home?
 - What trust level does an uploaded document, such as a kuntotarkastus, have?
@@ -194,11 +194,10 @@ The maintenance list stays current. These sources update it:
 - How fast does a mitigation age in the score?
 - How much does spending on If products raise the score, compared with risk reduction?
 - Are premium and deductible changes legal and actuarially sound under Finnish insurance rules? (Unknown. Not researched.)
-- Technical design: the AI model, data sources and app stack.
 
-## 17. Out of scope
+## 16. Out of scope
 
 - The pitch.
 - Data sharing with banks or other outside parties.
 - Bans and other actions against rule breakers.
-- Technical implementation (next phase).
+- Technical design and implementation. They are in `docs/systemdesign/DESIGN.md`.

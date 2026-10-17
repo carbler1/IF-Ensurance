@@ -1,0 +1,5 @@
+{
+  "work_orders": [
+    {"work_order_id": "wo_01", "risk_id": "elec.panel.screw_fuse", "partner_id": "p_03", "status": "booked", "created_at": "2026-10-17T10:05:00Z", "confirmed_at": null}
+  ]
+}

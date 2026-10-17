@@ -1,0 +1,56 @@
+{
+  "title": "Copper water pipes over 40 years old",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "in", "field": "pipe_material", "value": ["copper"]},
+      {
+        "op": "or",
+        "args": [
+          {"op": "lt", "field": "last_pipe_renovation", "value": 1986},
+          {
+            "op": "and",
+            "args": [
+              {"op": "not", "args": [{"op": "exists", "field": "last_pipe_renovation"}]},
+              {"op": "lt", "field": "building_year", "value": 1986}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "severity": 4,
+  "probability": 3,
+  "service_life_years": 40,
+  "check_interval_years": 10,
+  "half_life_years": 20,
+  "mitigation": {
+    "action": "Plumber inspects the copper pipes and joints for pitting and green deposits and renews the tap-water pipes",
+    "partner_category": "plumber"
+  },
+  "points": 140,
+  "known_quirks": [
+    "Thin-walled copper pipes from the 1970s pit from the inside and pinhole without warning",
+    "Pipes cast into the concrete floor of a 1970s house leak unseen under the floor until the water bill rises",
+    "Green or white deposits at a joint are a leak that has already started",
+    "Soft-soldered joints from before the 1980s fail before the pipe itself"
+  ],
+  "why_hint": "DRAFT: The tap-water pipes are copper and over 40 years old. Copper pipes of this age pit from the inside, and pipes cast into the floor leak unseen.",
+  "benefit_hint": "DRAFT: New pipes remove a hidden leak source. Tap-water pipes are the second largest leak source in Finance Finland's leak study.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "last_pipe_renovation", "value": "confirmation_year"},
+  "tests": {
+    "match": [
+      {"pipe_material": "copper", "building_year": 1974},
+      {"pipe_material": "copper", "last_pipe_renovation": 1979},
+      {"pipe_material": "copper", "building_year": 1974, "last_pipe_renovation": "unknown"}
+    ],
+    "reject": [
+      {"pipe_material": "pex", "building_year": 1974},
+      {"pipe_material": "copper", "building_year": 1974, "last_pipe_renovation": 2004},
+      {"pipe_material": "copper", "building_year": 1995},
+      {"pipe_material": "unknown", "building_year": 1974},
+      {"pipe_material": "copper"}
+    ]
+  }
+}

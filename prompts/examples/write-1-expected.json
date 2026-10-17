@@ -1,0 +1,101 @@
+{
+  "items": [
+    {
+      "id": "elec.check.overdue",
+      "why": "Your house was built in 1975, 51 years ago, and the inspection report found no documents on the electrical installation (\"Sähköasennuksista ei ollut asiakirjoja\"). In a house of this age, missing earthing in the bathroom and outdoor sockets and home-made extensions behind the panel or in the attic stay hidden until someone looks.",
+      "benefit": "An electrician inspects the fixed installation, the sockets and the earthing and writes a report. You get a written record of the state of your wiring and earn up to 80 care points.",
+      "doubt": false,
+      "doubt_reason": ""
+    },
+    {
+      "id": "elec.panel.screw_fuse",
+      "why": "The main panel in the basement of your house is the original one from 1975, it still has screw fuses, and it has no residual-current device (RCD), a switch that cuts the power at a fault. Loose screw-fuse holders in a panel of this age overheat and char the panel base.",
+      "benefit": "An electrician inspects the main panel and replaces it with automatic fuses and an RCD. This removes an overheating fuse panel from your house and earns up to 120 care points.",
+      "doubt": false,
+      "doubt_reason": ""
+    },
+    {
+      "id": "elec.sauna.electric_stove_wiring",
+      "why": "Your house has an electric sauna stove from 2001, 25 years old, and there is no record of an electrician checking the installation. The stove cable turns brittle in the heat above the stove and can short at the terminal box, and a stove over 20 years old has corroded heating elements that trip the fuses.",
+      "benefit": "An electrician checks the stove's supply cable, terminal box, thermostat and overheat limiter and replaces heat-damaged parts. A brittle cable or a stuck thermostat is found before it starts a sauna fire, and you earn up to 70 care points.",
+      "doubt": false,
+      "doubt_reason": ""
+    },
+    {
+      "id": "elec.wet_room.no_rcd",
+      "why": "Your house is from 1975, the bathroom was last renovated in 1994, and the main panel has no residual-current device (\"Ei vikavirtasuojaa\"). Houses from before 1997 usually have no residual-current device on the bathroom and outdoor sockets, so a fault in a wet room is not cut off.",
+      "benefit": "An electrician adds a residual-current device for the wet-room and outdoor sockets, which trips at 30 milliamperes, below the current that stops the heart. One small panel job protects the family from an electric shock in the bathroom, the sauna and the garden, and earns up to 60 care points.",
+      "doubt": false,
+      "doubt_reason": ""
+    },
+    {
+      "id": "heat.chimney.sweep_overdue",
+      "why": "Your house heats with oil and has a fireplace with a brick flue, and the last chimney sweep on record is from 3 November 2024, given by the owner. Finnish law requires a sweep once a year for a flue in regular use, and soot in an unswept flue can catch fire, crack the masonry and ignite the roof structure next to it.",
+      "benefit": "A chimney sweep cleans the flue and checks the fireplace and the flue for cracks. A yearly sweep prevents a soot fire and earns up to 30 care points.",
+      "doubt": false,
+      "doubt_reason": ""
+    },
+    {
+      "id": "heat.oil_tank.age",
+      "why": "Your house heats with oil from a 3,000-litre steel tank in the basement tank room, the original tank from 1975, now 51 years old, and the report says there is no inspection record for it. Steel tanks of this age corrode from the bottom, where condensation water collects.",
+      "benefit": "A heating technician inspects the tank and the oil lines and replaces a corroded tank with a double-walled one. This prevents a leak from a corroded tank, one of the most costly damages a house can have, and earns up to 110 care points.",
+      "doubt": false,
+      "doubt_reason": ""
+    },
+    {
+      "id": "moist.bathroom.waterproofing_missing",
+      "why": "Your bathroom was last renovated in 1994 with moisture-barrier paint only and no waterproof membrane (\"kosteussulkumaali (remontti 1994), ei vedeneristettä\"). Finnish building code required a membrane only from 1998, and tile grout is not waterproof, so shower water reaches the structure through it.",
+      "benefit": "A bathroom renovation company renews the wet room with a waterproof membrane and sealed drain joints, which stops shower water from soaking the floor and wall structures. This prevents the most expensive moisture damage in a house and earns up to 140 care points.",
+      "doubt": false,
+      "doubt_reason": ""
+    },
+    {
+      "id": "moist.foundation.inspection_overdue",
+      "why": "Your house from 1975 stands on a ground slab with a basement under part of it, and there is no moisture inspection on record. Houses from before 1990 with a basement often have no subsoil drains or blocked ones, and a basement wall insulated on the inside against the soil is a known risk structure.",
+      "benefit": "A moisture inspector measures the base floor and the lower walls, checks the subsoil drain wells and writes a report. Moisture in the base floor is found before it turns into mould damage, and you earn up to 90 care points.",
+      "doubt": false,
+      "doubt_reason": ""
+    },
+    {
+      "id": "moist.subsoil_drains.missing",
+      "why": "The inspector found no subsoil drain inspection wells at your 1975 house and could not confirm that drains exist or work (\"Salaojien olemassaoloa ja toimintaa ei voitu todeta\"). Houses from before 1980 often have no subsoil drains, or clay-pipe drains that have silted up, and ground sloping towards the house keeps the foundation wet.",
+      "benefit": "A moisture inspector surveys the plot drainage, the rainwater routing and the drain wells, and arranges a new subsoil drain and rainwater system where none exists. Working drains keep the foundation and the basement dry, and you earn up to 120 care points.",
+      "doubt": false,
+      "doubt_reason": ""
+    },
+    {
+      "id": "plumb.floor_drain.cast_iron",
+      "why": "The bathroom floor drain in your house is the original cast-iron drain from 1975 (\"Pesuhuoneen lattiakaivo on valurautainen, alkuperäinen 1975\"). Cast-iron drains rust through at the flange where the waterproofing should seal, and drains cause about one in five leak claims in Finland.",
+      "benefit": "A plumber replaces the cast-iron drain with a new drain sealed to the waterproofing, so the joint no longer leaks into the floor structure. Water stays out of the floor, and you earn up to 70 care points.",
+      "doubt": false,
+      "doubt_reason": ""
+    },
+    {
+      "id": "plumb.pipes.copper_age",
+      "why": "The tap-water pipes in your house are the original copper pipes from 1975, now 51 years old, and they have never been renewed. Thin-walled copper pipes from the 1970s pit from the inside and pinhole without warning, and soft-soldered joints from before the 1980s fail before the pipe itself.",
+      "benefit": "A plumber inspects the copper pipes and joints for pitting and green deposits and renews the tap-water pipes. This removes a hidden leak source from your house and earns up to 140 care points.",
+      "doubt": false,
+      "doubt_reason": ""
+    },
+    {
+      "id": "plumb.water_heater.age",
+      "why": "Your house is from 1975, and the report gives no installation year for a hot-water tank. Steel tanks corrode from the inside and leak without warning at 20 to 25 years, and a tank in a cupboard without a drip tray causes the largest damage.",
+      "benefit": "A plumber inspects the hot-water tank and the safety valve and replaces the tank when it is over 20 years old. A slow leak is stopped before it soaks the floor structure, and you earn up to 60 care points.",
+      "doubt": true,
+      "doubt_reason": "water_heater_year is unknown because the report says hot water comes from the boiler (\"Lämmin käyttövesi | Kattilan yhteydessä\"), so the house may have no separate hot-water tank."
+    },
+    {
+      "id": "vent.natural.old_house",
+      "why": "Your house from 1975 relies on natural ventilation, with exhaust vents in the kitchen, the shower room and the toilet and a cooker hood into the flue. Natural ventilation runs on the temperature difference between inside and outside and almost stops in summer, so the shower room can stay wet for hours and black mould can follow in the ceiling corners.",
+      "benefit": "A ventilation technician measures the airflows and installs a mechanical exhaust fan for the wet rooms and the kitchen. The fan dries the shower room after each shower, and you earn up to 80 care points.",
+      "doubt": false,
+      "doubt_reason": ""
+    }
+  ],
+  "proposed_additions": [
+    {
+      "id": "moist.foundation.false_plinth",
+      "reason": "The foundation evidence names a ground slab outside the basement part (\"Maanvarainen betonilaatta, kellarin kohdalla kellarin laatta\") in a house from 1975 with no moisture inspection on record, which fits a false plinth structure of the 1960s to 1980s."
+    }
+  ]
+}

@@ -5,11 +5,11 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     jmo-skills = { url = "github:23jmo/jmo-skills"; flake = false; };
     impeccable = { url = "github:pbakaus/impeccable"; flake = false; };
-    the-architect = { url = "github:Hainrixz/the-architect"; flake = false; };
     ponytail = { url = "github:DietrichGebert/ponytail"; flake = false; };
+    mermaid-skill = { url = "github:WH-2099/mermaid-skill"; flake = false; };
   };
 
-  outputs = { nixpkgs, jmo-skills, impeccable, the-architect, ponytail, ... }:
+  outputs = { nixpkgs, jmo-skills, impeccable, ponytail, mermaid-skill, ... }:
     let
       systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
       forAll = f: nixpkgs.lib.genAttrs systems (s: f nixpkgs.legacyPackages.${s});
@@ -22,7 +22,7 @@
             # The extra dirs are the standard install places (npm global, native installer), for shells whose PATH misses them.
             real="$(PATH="$(printf %s "$PATH" | tr : '\n' | grep -vxF "$self" | paste -sd: -):$HOME/.npm-global/bin:$HOME/.local/bin:$HOME/.claude/local" command -v claude)" \
               || { echo "claude: not installed. Install Claude Code first: https://claude.com/claude-code" >&2; exit 1; }
-            exec "$real" --plugin-dir ${the-architect} --plugin-dir ${ponytail} "$@"
+            exec "$real" --plugin-dir ${ponytail} "$@"
           '';
         in {
           default = pkgs.mkShell {
@@ -38,9 +38,17 @@
                   mkdir -p $d
                   ln -sfn ${jmo-skills}/skills/interview $d/interview
                   ln -sfn ${impeccable}/.claude/skills/impeccable $d/impeccable
+                  ln -sfn ${mermaid-skill}/.claude/skills/mermaid $d/mermaid
                 done
               )
             '';
+          };
+          # Backend, DESIGN.md §4. Run: nix develop .#backend
+          backend = pkgs.mkShell {
+            packages = [
+              (pkgs.python313.withPackages (p: with p; [ fastapi uvicorn python-multipart pypdfium2 httpx jsonschema ]))
+              pkgs.cloudflared
+            ];
           };
         });
     };

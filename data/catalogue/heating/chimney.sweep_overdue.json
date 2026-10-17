@@ -1,0 +1,54 @@
+{
+  "title": "Chimney not swept in the last year",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {
+        "op": "or",
+        "args": [
+          {"op": "in", "field": "sauna", "value": ["wood_stove"]},
+          {"op": "in", "field": "heating", "value": ["wood", "pellet", "oil"]}
+        ]
+      },
+      {
+        "op": "or",
+        "args": [
+          {"op": "not", "args": [{"op": "exists", "field": "last_chimney_sweep"}]},
+          {"op": "lt", "field": "last_chimney_sweep", "value": "2025-10-17"}
+        ]
+      }
+    ]
+  },
+  "severity": 4,
+  "probability": 3,
+  "service_life_years": 50,
+  "check_interval_years": 1,
+  "half_life_years": 1,
+  "mitigation": {
+    "action": "Chimney sweep cleans the flue and checks the fireplace and the flue for cracks",
+    "partner_category": "chimney_sweep"
+  },
+  "points": 30,
+  "known_quirks": [
+    "Finnish law requires a sweep once a year for a flue in regular use",
+    "Soot fires crack masonry flues and ignite the roof structure next to them",
+    "Burn only dry wood and a suitable amount (Kunnon Koti autumn to-do)"
+  ],
+  "why_hint": "DRAFT: The house has a wood sauna stove or wood, pellet or oil heating, and there is no chimney sweep on record from the last year. The law requires a yearly sweep.",
+  "benefit_hint": "DRAFT: A yearly sweep prevents soot fires, the common cause of chimney and roof fires in heated homes.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "last_chimney_sweep", "value": "confirmation_date"},
+  "tests": {
+    "match": [
+      {"sauna": "wood_stove"},
+      {"heating": "wood", "last_chimney_sweep": "2024-09-01"},
+      {"heating": "oil", "last_chimney_sweep": "unknown"}
+    ],
+    "reject": [
+      {"sauna": "electric_stove", "heating": "district"},
+      {"heating": "wood", "last_chimney_sweep": "2026-08-15"},
+      {"heating": "unknown", "sauna": "unknown"},
+      {}
+    ]
+  }
+}

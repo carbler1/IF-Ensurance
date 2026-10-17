@@ -1,0 +1,25 @@
+{
+  "fields": [
+    {
+      "field": "panel_type",
+      "value": "automatic_fuses",
+      "confidence": 0.95,
+      "quote": "Keskuksessa on automaattisulakkeet (johdonsuojakatkaisijat) ja vikavirtasuojat kaikissa pistorasia- ja valaistusryhmissä",
+      "section": "7.14 Sähköistys"
+    },
+    {
+      "field": "sauna",
+      "value": "electric_stove",
+      "confidence": 0.95,
+      "quote": "Saunan kiuas on sähkökiuas 2010",
+      "section": "7.14 Sähköistys"
+    },
+    {
+      "field": "last_electrical_check",
+      "value": "2010-01-01",
+      "confidence": 0.6,
+      "quote": "Keskuksen kannessa on sähköurakoitsijan käyttöönottotarkastuksen merkintä 2010",
+      "section": "7.14 Sähköistys"
+    }
+  ]
+}

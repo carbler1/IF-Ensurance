@@ -1,0 +1,1870 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "elec.check.overdue",
+      "category": "electricity",
+      "title": "Electrical installation not checked in 15 years",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "lt",
+            "field": "building_year",
+            "value": 1996
+          },
+          {
+            "op": "or",
+            "args": [
+              {
+                "op": "not",
+                "args": [
+                  {
+                    "op": "exists",
+                    "field": "last_electrical_check"
+                  }
+                ]
+              },
+              {
+                "op": "lt",
+                "field": "last_electrical_check",
+                "value": "2011-01-01"
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 3,
+      "probability": 3,
+      "service_life_years": 50,
+      "check_interval_years": 15,
+      "half_life_years": 10,
+      "mitigation": {
+        "action": "Electrician inspects the fixed installation, the sockets and the earthing and writes a report",
+        "partner_category": "electrician"
+      },
+      "points": 80,
+      "known_quirks": [
+        "Brittle rubber-insulated cables in houses from before 1970",
+        "Missing earthing in bathroom and outdoor sockets",
+        "Home-made extensions behind panels and in attics"
+      ],
+      "why_hint": "DRAFT: The house is over 30 years old and there is no record of an electrical inspection in the last 15 years. Tukes recommends a check of old installations every 15 to 30 years.",
+      "benefit_hint": "DRAFT: One inspection finds brittle cables and missing earthing before they start a fire or give a shock.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "last_electrical_check",
+        "value": "confirmation_date"
+      },
+      "tests": {
+        "match": [
+          {
+            "building_year": 1965
+          },
+          {
+            "building_year": 1980,
+            "last_electrical_check": "2005-06-01"
+          },
+          {
+            "building_year": 1980,
+            "last_electrical_check": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "building_year": 2005
+          },
+          {
+            "building_year": 1980,
+            "last_electrical_check": "2019-03-12"
+          },
+          {
+            "last_electrical_check": "2005-06-01"
+          }
+        ]
+      }
+    },
+    {
+      "id": "elec.panel.screw_fuse",
+      "category": "electricity",
+      "title": "Old screw-fuse panel",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "lt",
+            "field": "building_year",
+            "value": 1985
+          },
+          {
+            "op": "in",
+            "field": "panel_type",
+            "value": [
+              "screw_fuse",
+              "unknown"
+            ]
+          }
+        ]
+      },
+      "severity": 4,
+      "probability": 3,
+      "service_life_years": 40,
+      "check_interval_years": 15,
+      "half_life_years": 15,
+      "mitigation": {
+        "action": "Electrician inspects the main panel and replaces it with automatic fuses and a residual-current device",
+        "partner_category": "electrician"
+      },
+      "points": 120,
+      "known_quirks": [
+        "Loose screw-fuse holders overheat and char the panel base",
+        "Panels from before 1985 usually have no residual-current device"
+      ],
+      "why_hint": "DRAFT: The house is from before 1985 and the panel still has screw fuses, or nobody has confirmed the panel type. Panels of this age overheat at loose fuse holders.",
+      "benefit_hint": "DRAFT: An electrician's check removes the most common cause of electrical fires in houses of this age.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "panel_type",
+        "value": "automatic_fuses"
+      },
+      "tests": {
+        "match": [
+          {
+            "building_year": 1972,
+            "panel_type": "screw_fuse"
+          },
+          {
+            "building_year": 1978,
+            "panel_type": "unknown"
+          },
+          {
+            "building_year": 1978
+          }
+        ],
+        "reject": [
+          {
+            "building_year": 1992,
+            "panel_type": "screw_fuse"
+          },
+          {
+            "building_year": 1972,
+            "panel_type": "automatic_fuses"
+          },
+          {
+            "panel_type": "screw_fuse"
+          }
+        ]
+      }
+    },
+    {
+      "id": "elec.sauna.electric_stove_wiring",
+      "category": "electricity",
+      "title": "Electric sauna stove wiring not checked in 10 years",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "in",
+            "field": "sauna",
+            "value": [
+              "electric_stove"
+            ]
+          },
+          {
+            "op": "lt",
+            "field": "building_year",
+            "value": 2006
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "gt",
+                "field": "last_electrical_check",
+                "value": "2016-10-17"
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 4,
+      "probability": 3,
+      "service_life_years": 20,
+      "check_interval_years": 10,
+      "half_life_years": 10,
+      "mitigation": {
+        "action": "Electrician checks the sauna stove's supply cable, terminal box, thermostat and overheat limiter and replaces heat-damaged parts",
+        "partner_category": "electrician"
+      },
+      "points": 70,
+      "known_quirks": [
+        "Sauna stoves caused 109 of the about 2,200 electrical fires in Finland in 2020 (Tukes)",
+        "The silicone-insulated stove cable turns brittle in the heat above the stove and shorts at the terminal box",
+        "Towels or a bench left on the stove, and a stuck thermostat, are the usual fire starts",
+        "Stoves over 20 years old have corroded heating elements that trip the fuses or the residual-current device"
+      ],
+      "why_hint": "DRAFT: The home has an electric sauna stove in a house from before 2006, and no electrician has checked the installation in the last 10 years. Tukes counts sauna stoves among the top three causes of electrical fires.",
+      "benefit_hint": "DRAFT: A stove wiring check finds a brittle cable or a stuck thermostat before it starts a sauna fire.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "last_electrical_check",
+        "value": "confirmation_date"
+      },
+      "tests": {
+        "match": [
+          {
+            "sauna": "electric_stove",
+            "building_year": 1985
+          },
+          {
+            "sauna": "electric_stove",
+            "building_year": 1985,
+            "last_electrical_check": "2012-05-20"
+          },
+          {
+            "sauna": "electric_stove",
+            "building_year": 1999,
+            "last_electrical_check": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "sauna": "wood_stove",
+            "building_year": 1985
+          },
+          {
+            "sauna": "unknown",
+            "building_year": 1985
+          },
+          {
+            "sauna": "electric_stove",
+            "building_year": 2015
+          },
+          {
+            "sauna": "electric_stove",
+            "building_year": 1985,
+            "last_electrical_check": "2022-03-01"
+          },
+          {
+            "sauna": "electric_stove"
+          }
+        ]
+      }
+    },
+    {
+      "id": "elec.wet_room.no_rcd",
+      "category": "electricity",
+      "title": "Wet-room sockets without a residual-current device",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "lt",
+            "field": "building_year",
+            "value": 1997
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "gt",
+                "field": "bathroom_waterproofing_year",
+                "value": 1996
+              }
+            ]
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "exists",
+                "field": "last_electrical_check"
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 4,
+      "probability": 2,
+      "service_life_years": 30,
+      "check_interval_years": 15,
+      "half_life_years": 15,
+      "mitigation": {
+        "action": "Electrician installs a residual-current device for the wet-room, sauna and outdoor socket circuits and tests it",
+        "partner_category": "electrician"
+      },
+      "points": 60,
+      "known_quirks": [
+        "Houses from before 1997 usually have no residual-current device on the bathroom and outdoor sockets unless the panel was renewed",
+        "A residual-current device trips at 30 milliamperes, below the current that stops the heart",
+        "Test the residual-current device with its test button every summer (Kunnon Koti summer to-do)",
+        "Ungrounded two-pin sockets in houses from before 1970 give no earth path at all; the device still protects the user"
+      ],
+      "why_hint": "DRAFT: The house is from before 1997, the bathroom has not been renovated since, and no electrician has checked the installation. Wet-room sockets of this age usually have no residual-current device.",
+      "benefit_hint": "DRAFT: One small panel job protects the family from an electric shock in the bathroom, the sauna and the garden.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "last_electrical_check",
+        "value": "confirmation_date"
+      },
+      "tests": {
+        "match": [
+          {
+            "building_year": 1968
+          },
+          {
+            "building_year": 1988,
+            "bathroom_waterproofing_year": 1988
+          },
+          {
+            "building_year": 1988,
+            "bathroom_waterproofing_year": "unknown",
+            "last_electrical_check": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "building_year": 2003
+          },
+          {
+            "building_year": 1988,
+            "bathroom_waterproofing_year": 2010
+          },
+          {
+            "building_year": 1988,
+            "last_electrical_check": "2008-04-14"
+          },
+          {
+            "building_year": "unknown"
+          },
+          {}
+        ]
+      }
+    },
+    {
+      "id": "heat.chimney.sweep_overdue",
+      "category": "heating",
+      "title": "Chimney not swept in the last year",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "or",
+            "args": [
+              {
+                "op": "in",
+                "field": "sauna",
+                "value": [
+                  "wood_stove"
+                ]
+              },
+              {
+                "op": "in",
+                "field": "heating",
+                "value": [
+                  "wood",
+                  "pellet",
+                  "oil"
+                ]
+              }
+            ]
+          },
+          {
+            "op": "or",
+            "args": [
+              {
+                "op": "not",
+                "args": [
+                  {
+                    "op": "exists",
+                    "field": "last_chimney_sweep"
+                  }
+                ]
+              },
+              {
+                "op": "lt",
+                "field": "last_chimney_sweep",
+                "value": "2025-10-17"
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 4,
+      "probability": 3,
+      "service_life_years": 50,
+      "check_interval_years": 1,
+      "half_life_years": 1,
+      "mitigation": {
+        "action": "Chimney sweep cleans the flue and checks the fireplace and the flue for cracks",
+        "partner_category": "chimney_sweep"
+      },
+      "points": 30,
+      "known_quirks": [
+        "Finnish law requires a sweep once a year for a flue in regular use",
+        "Soot fires crack masonry flues and ignite the roof structure next to them",
+        "Burn only dry wood and a suitable amount (Kunnon Koti autumn to-do)"
+      ],
+      "why_hint": "DRAFT: The house has a wood sauna stove or wood, pellet or oil heating, and there is no chimney sweep on record from the last year. The law requires a yearly sweep.",
+      "benefit_hint": "DRAFT: A yearly sweep prevents soot fires, the common cause of chimney and roof fires in heated homes.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "last_chimney_sweep",
+        "value": "confirmation_date"
+      },
+      "tests": {
+        "match": [
+          {
+            "sauna": "wood_stove"
+          },
+          {
+            "heating": "wood",
+            "last_chimney_sweep": "2024-09-01"
+          },
+          {
+            "heating": "oil",
+            "last_chimney_sweep": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "sauna": "electric_stove",
+            "heating": "district"
+          },
+          {
+            "heating": "wood",
+            "last_chimney_sweep": "2026-08-15"
+          },
+          {
+            "heating": "unknown",
+            "sauna": "unknown"
+          },
+          {}
+        ]
+      }
+    },
+    {
+      "id": "heat.oil_tank.age",
+      "category": "heating",
+      "title": "Steel oil tank over 30 years old",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "in",
+            "field": "heating",
+            "value": [
+              "oil"
+            ]
+          },
+          {
+            "op": "or",
+            "args": [
+              {
+                "op": "lt",
+                "field": "oil_tank_year",
+                "value": 1996
+              },
+              {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "not",
+                    "args": [
+                      {
+                        "op": "exists",
+                        "field": "oil_tank_year"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "lt",
+                    "field": "building_year",
+                    "value": 1996
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 5,
+      "probability": 3,
+      "service_life_years": 30,
+      "check_interval_years": 10,
+      "half_life_years": 15,
+      "mitigation": {
+        "action": "Heating technician inspects the oil tank and the lines and replaces a corroded tank with a double-walled one",
+        "partner_category": "heating_technician"
+      },
+      "points": 110,
+      "known_quirks": [
+        "Steel tanks corrode from the bottom where condensation water collects",
+        "An underground tank leak contaminates the soil; clean-up costs far exceed the tank",
+        "Tanks in groundwater areas must be inspected every 10 years by law"
+      ],
+      "why_hint": "DRAFT: The house heats with oil and the tank is over 30 years old, or its age is unknown in a house from before 1996. Steel tanks corrode from the bottom.",
+      "benefit_hint": "DRAFT: A tank inspection or a new tank prevents an oil leak into the soil, one of the most expensive damages a house can have.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "oil_tank_year",
+        "value": "confirmation_year"
+      },
+      "tests": {
+        "match": [
+          {
+            "heating": "oil",
+            "oil_tank_year": 1985
+          },
+          {
+            "heating": "oil",
+            "building_year": 1978
+          },
+          {
+            "heating": "oil",
+            "building_year": 1978,
+            "oil_tank_year": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "heating": "district",
+            "building_year": 1978
+          },
+          {
+            "heating": "oil",
+            "oil_tank_year": 2010
+          },
+          {
+            "heating": "oil",
+            "building_year": 2004
+          },
+          {
+            "heating": "unknown",
+            "building_year": 1978
+          }
+        ]
+      }
+    },
+    {
+      "id": "moist.bathroom.waterproofing_missing",
+      "category": "moisture",
+      "title": "Wet room without modern waterproofing",
+      "applies_when": {
+        "op": "or",
+        "args": [
+          {
+            "op": "lt",
+            "field": "bathroom_waterproofing_year",
+            "value": 1999
+          },
+          {
+            "op": "and",
+            "args": [
+              {
+                "op": "not",
+                "args": [
+                  {
+                    "op": "exists",
+                    "field": "bathroom_waterproofing_year"
+                  }
+                ]
+              },
+              {
+                "op": "lt",
+                "field": "building_year",
+                "value": 1999
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 4,
+      "probability": 4,
+      "service_life_years": 30,
+      "check_interval_years": 10,
+      "half_life_years": 15,
+      "mitigation": {
+        "action": "Bathroom renovation partner installs a waterproof membrane and new floor drain seals",
+        "partner_category": "bathroom_renovation"
+      },
+      "points": 140,
+      "known_quirks": [
+        "Wet rooms built before 1998 usually have only a moisture barrier paint or nothing at all",
+        "Tile grout is not waterproof; water reaches the structure through it",
+        "Signs: dark grout lines, loose tiles, musty smell, dark marks on the ceiling below"
+      ],
+      "why_hint": "DRAFT: The wet room was built before 1999 and has no record of a waterproofing renovation. Finnish building code required a waterproof membrane only from 1998.",
+      "benefit_hint": "DRAFT: Waterproofing stops shower water from soaking the floor and wall structures, the most expensive moisture damage in a house.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "bathroom_waterproofing_year",
+        "value": "confirmation_year"
+      },
+      "tests": {
+        "match": [
+          {
+            "bathroom_waterproofing_year": 1990
+          },
+          {
+            "building_year": 1975
+          },
+          {
+            "building_year": 1975,
+            "bathroom_waterproofing_year": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "bathroom_waterproofing_year": 2008
+          },
+          {
+            "building_year": 2005
+          },
+          {
+            "building_year": 1975,
+            "bathroom_waterproofing_year": 2012
+          }
+        ]
+      }
+    },
+    {
+      "id": "moist.foundation.false_plinth",
+      "category": "moisture",
+      "title": "False plinth risk structure not inspected",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "in",
+                "field": "house_type",
+                "value": [
+                  "flat"
+                ]
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "field": "foundation_type",
+            "value": [
+              "slab_on_ground",
+              "unknown"
+            ]
+          },
+          {
+            "op": "gt",
+            "field": "building_year",
+            "value": 1959
+          },
+          {
+            "op": "lt",
+            "field": "building_year",
+            "value": 1990
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "gt",
+                "field": "last_moisture_inspection",
+                "value": "2021-10-17"
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 5,
+      "probability": 3,
+      "service_life_years": 50,
+      "check_interval_years": 5,
+      "half_life_years": 5,
+      "mitigation": {
+        "action": "Moisture inspector opens an inspection hole in the external wall bottom plate, measures the wood and the plinth and writes a report",
+        "partner_category": "moisture_inspector"
+      },
+      "points": 100,
+      "known_quirks": [
+        "A false plinth (valesokkeli) is a slab-on-ground structure of the 1960s to 1980s where the wooden external wall stands below the outside ground level behind a concrete plinth",
+        "The bottom plate of the wall rots from soil moisture, and the damage shows nowhere inside",
+        "KH 90-00394 lists the false plinth among the risk structures a condition inspection must name",
+        "Signs: a plinth that reaches above the floor level inside, a musty smell at the skirting, insulation wool that is dark at the bottom",
+        "Repair means lifting the wall frame onto a new foundation beam (kengitys), which costs far more than the inspection"
+      ],
+      "why_hint": "DRAFT: The house is a 1960s to 1980s house on a ground slab, the type that often has a false plinth, and there is no moisture inspection on record from the last 5 years. The wall bottom plate can rot unseen.",
+      "benefit_hint": "DRAFT: One inspection hole tells whether the wall frame is dry, years before the damage becomes a mould problem and a six-figure repair.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "last_moisture_inspection",
+        "value": "confirmation_date"
+      },
+      "tests": {
+        "match": [
+          {
+            "house_type": "detached",
+            "foundation_type": "slab_on_ground",
+            "building_year": 1975
+          },
+          {
+            "house_type": "row_house",
+            "foundation_type": "unknown",
+            "building_year": 1983
+          },
+          {
+            "house_type": "detached",
+            "foundation_type": "slab_on_ground",
+            "building_year": 1975,
+            "last_moisture_inspection": "2018-06-01"
+          },
+          {
+            "foundation_type": "slab_on_ground",
+            "building_year": 1975
+          }
+        ],
+        "reject": [
+          {
+            "house_type": "flat",
+            "foundation_type": "slab_on_ground",
+            "building_year": 1975
+          },
+          {
+            "house_type": "detached",
+            "foundation_type": "crawl_space",
+            "building_year": 1975
+          },
+          {
+            "house_type": "detached",
+            "foundation_type": "slab_on_ground",
+            "building_year": 1955
+          },
+          {
+            "house_type": "detached",
+            "foundation_type": "slab_on_ground",
+            "building_year": 1996
+          },
+          {
+            "house_type": "detached",
+            "foundation_type": "slab_on_ground",
+            "building_year": 1975,
+            "last_moisture_inspection": "2025-04-10"
+          },
+          {
+            "house_type": "detached",
+            "foundation_type": "slab_on_ground",
+            "building_year": "unknown"
+          }
+        ]
+      }
+    },
+    {
+      "id": "moist.foundation.inspection_overdue",
+      "category": "moisture",
+      "title": "Crawl space or basement not inspected for moisture",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "in",
+            "field": "foundation_type",
+            "value": [
+              "crawl_space",
+              "basement"
+            ]
+          },
+          {
+            "op": "lt",
+            "field": "building_year",
+            "value": 1990
+          },
+          {
+            "op": "or",
+            "args": [
+              {
+                "op": "not",
+                "args": [
+                  {
+                    "op": "exists",
+                    "field": "last_moisture_inspection"
+                  }
+                ]
+              },
+              {
+                "op": "lt",
+                "field": "last_moisture_inspection",
+                "value": "2021-01-01"
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 4,
+      "probability": 3,
+      "service_life_years": 50,
+      "check_interval_years": 5,
+      "half_life_years": 5,
+      "mitigation": {
+        "action": "Moisture inspector measures the base floor and the lower walls, checks the subsoil drain wells and writes a report",
+        "partner_category": "moisture_inspector"
+      },
+      "points": 90,
+      "known_quirks": [
+        "Houses from before 1990 with a basement often have no subsoil drains or blocked ones",
+        "Crawl spaces with closed vents grow mould on the floor joists",
+        "Interior-insulated basement walls against soil are a known risk structure",
+        "Check in spring that the subsoil drains flow after the thaw (Kunnon Koti spring to-do)"
+      ],
+      "why_hint": "DRAFT: The house is from before 1990 and has a crawl space or basement, and there is no moisture inspection on record from the last 5 years. These foundations hold the known risk structures of their time.",
+      "benefit_hint": "DRAFT: One inspection finds moisture in the base floor before it turns into mould damage and a health problem.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "last_moisture_inspection",
+        "value": "confirmation_date"
+      },
+      "tests": {
+        "match": [
+          {
+            "foundation_type": "basement",
+            "building_year": 1965
+          },
+          {
+            "foundation_type": "crawl_space",
+            "building_year": 1982,
+            "last_moisture_inspection": "2016-05-01"
+          },
+          {
+            "foundation_type": "basement",
+            "building_year": 1965,
+            "subsoil_drains": "absent"
+          }
+        ],
+        "reject": [
+          {
+            "foundation_type": "slab_on_ground",
+            "building_year": 1965
+          },
+          {
+            "foundation_type": "basement",
+            "building_year": 2001
+          },
+          {
+            "foundation_type": "basement",
+            "building_year": 1965,
+            "last_moisture_inspection": "2024-09-30"
+          },
+          {
+            "foundation_type": "unknown",
+            "building_year": 1965
+          }
+        ]
+      }
+    },
+    {
+      "id": "moist.subsoil_drains.missing",
+      "category": "moisture",
+      "title": "No subsoil drains around the house",
+      "applies_when": {
+        "op": "or",
+        "args": [
+          {
+            "op": "in",
+            "field": "subsoil_drains",
+            "value": [
+              "absent"
+            ]
+          },
+          {
+            "op": "and",
+            "args": [
+              {
+                "op": "in",
+                "field": "subsoil_drains",
+                "value": [
+                  "unknown"
+                ]
+              },
+              {
+                "op": "lt",
+                "field": "building_year",
+                "value": 1980
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 4,
+      "probability": 3,
+      "service_life_years": 40,
+      "check_interval_years": 5,
+      "half_life_years": 20,
+      "mitigation": {
+        "action": "Moisture inspector surveys the plot drainage, the rainwater routing and the drain wells, and arranges a new subsoil drain and rainwater system to be built where none exists",
+        "partner_category": "moisture_inspector"
+      },
+      "points": 120,
+      "known_quirks": [
+        "Houses from before 1980 often have no subsoil drains, or clay-pipe drains that have silted up",
+        "Plastic subsoil drain pipes reach the end of their service life at about 40 years",
+        "Rainwater from the downspouts must not run into the subsoil drains; it overloads them",
+        "Check in spring after the thaw that the drains flow and the drain wells are clear (Kunnon Koti spring and autumn to-dos)",
+        "Ground sloping towards the house keeps the foundation wet even with drains"
+      ],
+      "why_hint": "DRAFT: The house has no subsoil drains on record, or it is from before 1980 and nobody has confirmed the drains. Without drains, ground water soaks the foundation and the base floor.",
+      "benefit_hint": "DRAFT: Working drains keep the foundation and the basement dry, and prevent the mould damage that follows a wet base floor.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "subsoil_drains",
+        "value": "present"
+      },
+      "tests": {
+        "match": [
+          {
+            "subsoil_drains": "absent",
+            "building_year": 2001
+          },
+          {
+            "subsoil_drains": "unknown",
+            "building_year": 1968
+          },
+          {
+            "building_year": 1968
+          }
+        ],
+        "reject": [
+          {
+            "subsoil_drains": "present",
+            "building_year": 1968
+          },
+          {
+            "subsoil_drains": "unknown",
+            "building_year": 1995
+          },
+          {
+            "building_year": "unknown"
+          },
+          {}
+        ]
+      }
+    },
+    {
+      "id": "plumb.floor_drain.cast_iron",
+      "category": "plumbing",
+      "title": "Cast-iron floor drain in the wet room",
+      "applies_when": {
+        "op": "in",
+        "field": "floor_drain_type",
+        "value": [
+          "cast_iron"
+        ]
+      },
+      "severity": 3,
+      "probability": 4,
+      "service_life_years": 40,
+      "check_interval_years": 5,
+      "half_life_years": 10,
+      "mitigation": {
+        "action": "Plumber replaces the cast-iron floor drain with a plastic drain and seals it to the waterproofing",
+        "partner_category": "plumber"
+      },
+      "points": 70,
+      "known_quirks": [
+        "Cast-iron drains rust through at the flange where the waterproofing should seal",
+        "The seal between the drain and the membrane fails before the drain itself",
+        "Clean the drain and the traps every winter (Kunnon Koti winter to-do)"
+      ],
+      "why_hint": "DRAFT: The wet room has a cast-iron floor drain. Drains cause about one in five leak claims in Finland, and old cast-iron drains cannot be sealed to a modern membrane.",
+      "benefit_hint": "DRAFT: A new drain sealed to the waterproofing stops water from reaching the floor structure.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "floor_drain_type",
+        "value": "plastic"
+      },
+      "tests": {
+        "match": [
+          {
+            "floor_drain_type": "cast_iron"
+          },
+          {
+            "floor_drain_type": "cast_iron",
+            "bathroom_waterproofing_year": 2015
+          }
+        ],
+        "reject": [
+          {
+            "floor_drain_type": "plastic"
+          },
+          {
+            "floor_drain_type": "unknown"
+          },
+          {
+            "building_year": 1970
+          }
+        ]
+      }
+    },
+    {
+      "id": "plumb.pipe_renovation.flat_overdue",
+      "category": "plumbing",
+      "title": "Pipe renovation overdue in a 1960s to 1980s flat",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "in",
+            "field": "house_type",
+            "value": [
+              "flat",
+              "row_house"
+            ]
+          },
+          {
+            "op": "gt",
+            "field": "building_year",
+            "value": 1959
+          },
+          {
+            "op": "lt",
+            "field": "building_year",
+            "value": 1990
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "gt",
+                "field": "last_pipe_renovation",
+                "value": 1995
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 4,
+      "probability": 4,
+      "service_life_years": 50,
+      "check_interval_years": 10,
+      "half_life_years": 25,
+      "mitigation": {
+        "action": "Plumber surveys the home's tap-water and sewer pipes and renews them as part of the housing company's pipe renovation",
+        "partner_category": "plumber"
+      },
+      "points": 150,
+      "known_quirks": [
+        "Cast-iron sewer pipes in flats from the 1960s and 1970s corrode at the bottom and crack at the joints",
+        "The housing company decides the pipe renovation; the resident's own survey tells how urgent it is",
+        "A pipe condition survey (putkiston kuntotutkimus) with a camera and wall-thickness readings is the normal first step",
+        "Leaks from the riser above cause the most costly damage to a flat, and the resident below often finds it first"
+      ],
+      "why_hint": "DRAFT: The flat is in a building from the 1960s to 1980s, and there is no pipe renovation on record since 1995. Pipes of this age are at the end of their 40 to 50 year service life.",
+      "benefit_hint": "DRAFT: A pipe survey and a timely renovation prevent a sewer or riser leak into the flat below, and keep the home's resale value.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "last_pipe_renovation",
+        "value": "confirmation_year"
+      },
+      "tests": {
+        "match": [
+          {
+            "house_type": "flat",
+            "building_year": 1972
+          },
+          {
+            "house_type": "row_house",
+            "building_year": 1985,
+            "last_pipe_renovation": 1990
+          },
+          {
+            "house_type": "flat",
+            "building_year": 1965,
+            "last_pipe_renovation": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "house_type": "detached",
+            "building_year": 1972
+          },
+          {
+            "house_type": "flat",
+            "building_year": 1955
+          },
+          {
+            "house_type": "flat",
+            "building_year": 1998
+          },
+          {
+            "house_type": "flat",
+            "building_year": 1972,
+            "last_pipe_renovation": 2012
+          },
+          {
+            "house_type": "unknown",
+            "building_year": 1972
+          },
+          {
+            "house_type": "flat",
+            "building_year": "unknown"
+          }
+        ]
+      }
+    },
+    {
+      "id": "plumb.pipes.copper_age",
+      "category": "plumbing",
+      "title": "Copper water pipes over 40 years old",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "in",
+            "field": "pipe_material",
+            "value": [
+              "copper"
+            ]
+          },
+          {
+            "op": "or",
+            "args": [
+              {
+                "op": "lt",
+                "field": "last_pipe_renovation",
+                "value": 1986
+              },
+              {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "not",
+                    "args": [
+                      {
+                        "op": "exists",
+                        "field": "last_pipe_renovation"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "lt",
+                    "field": "building_year",
+                    "value": 1986
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 4,
+      "probability": 3,
+      "service_life_years": 40,
+      "check_interval_years": 10,
+      "half_life_years": 20,
+      "mitigation": {
+        "action": "Plumber inspects the copper pipes and joints for pitting and green deposits and renews the tap-water pipes",
+        "partner_category": "plumber"
+      },
+      "points": 140,
+      "known_quirks": [
+        "Thin-walled copper pipes from the 1970s pit from the inside and pinhole without warning",
+        "Pipes cast into the concrete floor of a 1970s house leak unseen under the floor until the water bill rises",
+        "Green or white deposits at a joint are a leak that has already started",
+        "Soft-soldered joints from before the 1980s fail before the pipe itself"
+      ],
+      "why_hint": "DRAFT: The tap-water pipes are copper and over 40 years old. Copper pipes of this age pit from the inside, and pipes cast into the floor leak unseen.",
+      "benefit_hint": "DRAFT: New pipes remove a hidden leak source. Tap-water pipes are the second largest leak source in Finance Finland's leak study.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "last_pipe_renovation",
+        "value": "confirmation_year"
+      },
+      "tests": {
+        "match": [
+          {
+            "pipe_material": "copper",
+            "building_year": 1974
+          },
+          {
+            "pipe_material": "copper",
+            "last_pipe_renovation": 1979
+          },
+          {
+            "pipe_material": "copper",
+            "building_year": 1974,
+            "last_pipe_renovation": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "pipe_material": "pex",
+            "building_year": 1974
+          },
+          {
+            "pipe_material": "copper",
+            "building_year": 1974,
+            "last_pipe_renovation": 2004
+          },
+          {
+            "pipe_material": "copper",
+            "building_year": 1995
+          },
+          {
+            "pipe_material": "unknown",
+            "building_year": 1974
+          },
+          {
+            "pipe_material": "copper"
+          }
+        ]
+      }
+    },
+    {
+      "id": "plumb.pipes.galvanized_steel",
+      "category": "plumbing",
+      "title": "Galvanized steel water pipes",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "in",
+            "field": "pipe_material",
+            "value": [
+              "galvanized_steel"
+            ]
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "gt",
+                "field": "last_pipe_renovation",
+                "value": 1990
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 4,
+      "probability": 4,
+      "service_life_years": 40,
+      "check_interval_years": 10,
+      "half_life_years": 20,
+      "mitigation": {
+        "action": "Plumber replaces the galvanized steel tap-water pipes with PEX or copper",
+        "partner_category": "plumber"
+      },
+      "points": 150,
+      "known_quirks": [
+        "Galvanized pipes corrode from the inside and pinhole at threaded joints",
+        "Reduced flow and brown water are early signs"
+      ],
+      "why_hint": "DRAFT: The tap-water pipes are galvanized steel and have not been renewed since 1990. Pipes of this type reach the end of their service life at about 40 years.",
+      "benefit_hint": "DRAFT: New pipes remove the single largest leak source in the house. Leak claims cost Finnish insurers about 160 million euros a year.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "pipe_material",
+        "value": "pex"
+      },
+      "tests": {
+        "match": [
+          {
+            "pipe_material": "galvanized_steel",
+            "building_year": 1968
+          },
+          {
+            "pipe_material": "galvanized_steel",
+            "last_pipe_renovation": 1985
+          },
+          {
+            "pipe_material": "galvanized_steel",
+            "last_pipe_renovation": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "pipe_material": "copper",
+            "building_year": 1968
+          },
+          {
+            "pipe_material": "galvanized_steel",
+            "last_pipe_renovation": 2015
+          },
+          {
+            "pipe_material": "unknown",
+            "building_year": 1968
+          }
+        ]
+      }
+    },
+    {
+      "id": "plumb.water_heater.age",
+      "category": "plumbing",
+      "title": "Hot-water tank past its service life",
+      "applies_when": {
+        "op": "or",
+        "args": [
+          {
+            "op": "lt",
+            "field": "water_heater_year",
+            "value": 2006
+          },
+          {
+            "op": "and",
+            "args": [
+              {
+                "op": "not",
+                "args": [
+                  {
+                    "op": "exists",
+                    "field": "water_heater_year"
+                  }
+                ]
+              },
+              {
+                "op": "lt",
+                "field": "building_year",
+                "value": 2006
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 3,
+      "probability": 4,
+      "service_life_years": 20,
+      "check_interval_years": 10,
+      "half_life_years": 10,
+      "mitigation": {
+        "action": "Plumber inspects the hot-water tank and the safety valve and replaces the tank when it is over 20 years old",
+        "partner_category": "plumber"
+      },
+      "points": 60,
+      "known_quirks": [
+        "Steel tanks corrode from the inside and leak without warning at 20 to 25 years",
+        "A dripping safety valve is normal; a wet floor under the tank is not",
+        "Tanks in a cupboard without a drip tray cause the largest damage"
+      ],
+      "why_hint": "DRAFT: The hot-water tank is over 20 years old, or its age is unknown in a house built before 2006. Tanks of this age leak from internal corrosion.",
+      "benefit_hint": "DRAFT: A new tank or a drip tray with a leak alarm stops a slow leak from soaking the floor structure.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "water_heater_year",
+        "value": "confirmation_year"
+      },
+      "tests": {
+        "match": [
+          {
+            "water_heater_year": 1999
+          },
+          {
+            "building_year": 1985
+          },
+          {
+            "building_year": 1985,
+            "water_heater_year": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "water_heater_year": 2018
+          },
+          {
+            "building_year": 2012
+          },
+          {
+            "building_year": 1985,
+            "water_heater_year": 2010
+          }
+        ]
+      }
+    },
+    {
+      "id": "roof.bitumen_felt.age",
+      "category": "roof",
+      "title": "Bitumen felt roof over 25 years old",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "in",
+            "field": "roof_material",
+            "value": [
+              "bitumen_felt"
+            ]
+          },
+          {
+            "op": "or",
+            "args": [
+              {
+                "op": "lt",
+                "field": "last_roof_renovation",
+                "value": 2001
+              },
+              {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "not",
+                    "args": [
+                      {
+                        "op": "exists",
+                        "field": "last_roof_renovation"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "lt",
+                    "field": "building_year",
+                    "value": 2001
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 4,
+      "probability": 4,
+      "service_life_years": 25,
+      "check_interval_years": 5,
+      "half_life_years": 12,
+      "mitigation": {
+        "action": "Roofer inspects the felt, the seams and the penetrations and replaces the covering when it has cracked",
+        "partner_category": "roofer"
+      },
+      "points": 130,
+      "known_quirks": [
+        "Felt cracks at the seams and around chimney and vent penetrations first",
+        "Low-pitch felt roofs pond water and leak into the attic insulation without visible marks inside",
+        "Check gutters and roof safety products every spring and autumn (Kunnon Koti to-do)"
+      ],
+      "why_hint": "DRAFT: The roof is bitumen felt and over 25 years old. Felt reaches the end of its service life at 20 to 30 years and leaks first at the seams.",
+      "benefit_hint": "DRAFT: A roof check or a new covering keeps rain out of the attic insulation and the ceiling structure.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "last_roof_renovation",
+        "value": "confirmation_year"
+      },
+      "tests": {
+        "match": [
+          {
+            "roof_material": "bitumen_felt",
+            "building_year": 1979
+          },
+          {
+            "roof_material": "bitumen_felt",
+            "building_year": 1979,
+            "last_roof_renovation": 1995
+          },
+          {
+            "roof_material": "bitumen_felt",
+            "last_roof_renovation": 1998
+          }
+        ],
+        "reject": [
+          {
+            "roof_material": "sheet_metal",
+            "building_year": 1979
+          },
+          {
+            "roof_material": "bitumen_felt",
+            "building_year": 1979,
+            "last_roof_renovation": 2015
+          },
+          {
+            "roof_material": "bitumen_felt",
+            "building_year": 2010
+          },
+          {
+            "roof_material": "unknown",
+            "building_year": 1979
+          }
+        ]
+      }
+    },
+    {
+      "id": "roof.sheet_metal.seams_age",
+      "category": "roof",
+      "title": "Steel sheet roof over 40 years old",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "in",
+            "field": "roof_material",
+            "value": [
+              "sheet_metal"
+            ]
+          },
+          {
+            "op": "or",
+            "args": [
+              {
+                "op": "lt",
+                "field": "last_roof_renovation",
+                "value": 1986
+              },
+              {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "not",
+                    "args": [
+                      {
+                        "op": "exists",
+                        "field": "last_roof_renovation"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "lt",
+                    "field": "building_year",
+                    "value": 1986
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 3,
+      "probability": 3,
+      "service_life_years": 50,
+      "check_interval_years": 5,
+      "half_life_years": 15,
+      "mitigation": {
+        "action": "Roofer inspects the seams, the screws, the penetrations and the coating, reseals and repaints the roof, or replaces the sheets",
+        "partner_category": "roofer"
+      },
+      "points": 100,
+      "known_quirks": [
+        "A painted steel roof lasts 40 to 60 years when it is repainted every 10 to 15 years; rust starts where the paint has gone",
+        "Profiled sheet roofs leak first at the screws: the rubber washers harden and the screw holes rust open",
+        "Standing-seam roofs (konesaumakatto) leak at the chimney and vent flashings and at a seam opened by ice",
+        "Snow and ice sliding off a steel roof tear off the gutters and the snow guards",
+        "Clean the gutters and downspouts every spring and autumn and check the roof safety products (Kunnon Koti to-dos)"
+      ],
+      "why_hint": "DRAFT: The roof is steel sheet and over 40 years old with no roof renovation on record. Roofs of this age leak at the screws, the seams and the flashings before the sheets themselves fail.",
+      "benefit_hint": "DRAFT: A roof check, new screws and a coat of paint add 10 to 15 years to the roof at a fraction of the cost of a new one.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "last_roof_renovation",
+        "value": "confirmation_year"
+      },
+      "tests": {
+        "match": [
+          {
+            "roof_material": "sheet_metal",
+            "building_year": 1971
+          },
+          {
+            "roof_material": "sheet_metal",
+            "last_roof_renovation": 1984
+          },
+          {
+            "roof_material": "sheet_metal",
+            "building_year": 1971,
+            "last_roof_renovation": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "roof_material": "tile",
+            "building_year": 1971
+          },
+          {
+            "roof_material": "sheet_metal",
+            "building_year": 1971,
+            "last_roof_renovation": 2001
+          },
+          {
+            "roof_material": "sheet_metal",
+            "building_year": 1992
+          },
+          {
+            "roof_material": "unknown",
+            "building_year": 1971
+          },
+          {
+            "roof_material": "sheet_metal"
+          }
+        ]
+      }
+    },
+    {
+      "id": "roof.tile.underlay_age",
+      "category": "roof",
+      "title": "Tile roof underlay over 30 years old",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "in",
+            "field": "roof_material",
+            "value": [
+              "tile"
+            ]
+          },
+          {
+            "op": "or",
+            "args": [
+              {
+                "op": "lt",
+                "field": "last_roof_renovation",
+                "value": 1996
+              },
+              {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "not",
+                    "args": [
+                      {
+                        "op": "exists",
+                        "field": "last_roof_renovation"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "lt",
+                    "field": "building_year",
+                    "value": 1996
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 4,
+      "probability": 3,
+      "service_life_years": 30,
+      "check_interval_years": 5,
+      "half_life_years": 15,
+      "mitigation": {
+        "action": "Roofer inspects the underlay, the battens and the penetrations from the attic and renews a brittle underlay under the tiles",
+        "partner_category": "roofer"
+      },
+      "points": 120,
+      "known_quirks": [
+        "Concrete tiles last 50 years or more, but the underlay (aluskate) below them lasts about 30",
+        "Tile roofs from before the 1980s often have no underlay at all, or a bitumen felt underlay that has turned brittle",
+        "Wind-driven rain and snow pass between the tiles; only the underlay carries that water to the eaves",
+        "Water marks on the attic side of the underlay and at the chimney flashing show first",
+        "Check the roof, the eaves and the snow guards every spring after the winter (Kunnon Koti spring to-do)"
+      ],
+      "why_hint": "DRAFT: The roof is tile and over 30 years old with no roof renovation on record. The tiles themselves last, but the underlay below them is at the end of its service life.",
+      "benefit_hint": "DRAFT: A new underlay keeps wind-driven rain and melt water out of the attic insulation without replacing the tiles.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "last_roof_renovation",
+        "value": "confirmation_year"
+      },
+      "tests": {
+        "match": [
+          {
+            "roof_material": "tile",
+            "building_year": 1982
+          },
+          {
+            "roof_material": "tile",
+            "last_roof_renovation": 1990
+          },
+          {
+            "roof_material": "tile",
+            "building_year": 1982,
+            "last_roof_renovation": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "roof_material": "bitumen_felt",
+            "building_year": 1982
+          },
+          {
+            "roof_material": "tile",
+            "building_year": 1982,
+            "last_roof_renovation": 2009
+          },
+          {
+            "roof_material": "tile",
+            "building_year": 2004
+          },
+          {
+            "roof_material": "unknown",
+            "building_year": 1982
+          },
+          {
+            "roof_material": "tile"
+          }
+        ]
+      }
+    },
+    {
+      "id": "vent.mechanical.service_overdue",
+      "category": "ventilation",
+      "title": "Mechanical ventilation unit not serviced in 2 years",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "in",
+            "field": "ventilation",
+            "value": [
+              "mechanical_exhaust",
+              "mechanical_supply_exhaust"
+            ]
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "gt",
+                "field": "last_ventilation_service",
+                "value": "2024-10-17"
+              }
+            ]
+          }
+        ]
+      },
+      "severity": 2,
+      "probability": 4,
+      "service_life_years": 25,
+      "check_interval_years": 2,
+      "half_life_years": 2,
+      "mitigation": {
+        "action": "Ventilation technician replaces the filters, cleans the fans and the heat-recovery cell, checks the airflows and the condensate drain",
+        "partner_category": "ventilation_technician"
+      },
+      "points": 40,
+      "known_quirks": [
+        "Change the ventilation filters and check the unit every spring and autumn (Kunnon Koti spring and autumn to-dos)",
+        "A clogged filter cuts the airflow, and the house goes to underpressure; a supply-exhaust unit then pulls air in through the structures",
+        "The heat-recovery cell of a supply-exhaust unit ices up in winter when the defrost sensor is dirty",
+        "A blocked condensate drain floods the unit and drips onto the floor below it",
+        "Units from before the 2000s have no heat recovery; the service tells whether the fan bearings still have life left",
+        "The technical service life of a ventilation unit is about 25 years; a service every 2 years keeps the airflow at the design value"
+      ],
+      "why_hint": "DRAFT: The house has mechanical ventilation, and there is no service on record from the last 2 years. Filters clog, fans and heat-recovery cells get dirty, and the airflow drops below what the house needs.",
+      "benefit_hint": "DRAFT: A service keeps the air fresh, cuts the heating bill through a clean heat-recovery cell, and stops the unit from pulling moist air in through the walls.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "last_ventilation_service",
+        "value": "confirmation_date"
+      },
+      "tests": {
+        "match": [
+          {
+            "ventilation": "mechanical_supply_exhaust"
+          },
+          {
+            "ventilation": "mechanical_exhaust",
+            "last_ventilation_service": "2023-03-15"
+          },
+          {
+            "ventilation": "mechanical_supply_exhaust",
+            "last_ventilation_service": "unknown"
+          }
+        ],
+        "reject": [
+          {
+            "ventilation": "natural"
+          },
+          {
+            "ventilation": "unknown"
+          },
+          {
+            "ventilation": "mechanical_supply_exhaust",
+            "last_ventilation_service": "2025-09-01"
+          },
+          {
+            "last_ventilation_service": "2020-01-01"
+          },
+          {}
+        ]
+      }
+    },
+    {
+      "id": "vent.natural.old_house",
+      "category": "ventilation",
+      "title": "Natural ventilation in a house from before 2000",
+      "applies_when": {
+        "op": "and",
+        "args": [
+          {
+            "op": "in",
+            "field": "ventilation",
+            "value": [
+              "natural"
+            ]
+          },
+          {
+            "op": "lt",
+            "field": "building_year",
+            "value": 2000
+          }
+        ]
+      },
+      "severity": 3,
+      "probability": 3,
+      "service_life_years": 50,
+      "check_interval_years": 5,
+      "half_life_years": 10,
+      "mitigation": {
+        "action": "Ventilation technician measures the airflows and installs a mechanical exhaust fan for the wet rooms and the kitchen",
+        "partner_category": "ventilation_technician"
+      },
+      "points": 80,
+      "known_quirks": [
+        "Natural ventilation works on the temperature difference between inside and outside; in summer it stops almost completely",
+        "New windows and extra insulation make an old house tight, and natural ventilation then no longer removes shower moisture",
+        "A bathroom that stays wet for hours after a shower is the usual sign; black mould in the ceiling corners follows",
+        "Blocked or painted-over exhaust vents in the bathroom and the kitchen are common in houses from before the 1980s",
+        "Check the ventilation of the attic, the basement and the base floor every spring and autumn (Kunnon Koti to-dos)"
+      ],
+      "why_hint": "DRAFT: The house is from before 2000 and relies on natural ventilation. In a house that has been tightened with new windows or insulation, natural ventilation no longer removes shower moisture, and the wet rooms stay damp.",
+      "benefit_hint": "DRAFT: A mechanical exhaust fan dries the bathroom after each shower and keeps mould out of the wet-room ceiling and walls.",
+      "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+      "on_done": {
+        "field": "ventilation",
+        "value": "mechanical_exhaust"
+      },
+      "tests": {
+        "match": [
+          {
+            "ventilation": "natural",
+            "building_year": 1965
+          },
+          {
+            "ventilation": "natural",
+            "building_year": 1988,
+            "bathroom_waterproofing_year": 2015
+          }
+        ],
+        "reject": [
+          {
+            "ventilation": "mechanical_exhaust",
+            "building_year": 1965
+          },
+          {
+            "ventilation": "mechanical_supply_exhaust",
+            "building_year": 1965
+          },
+          {
+            "ventilation": "natural",
+            "building_year": 2008
+          },
+          {
+            "ventilation": "unknown",
+            "building_year": 1965
+          },
+          {
+            "ventilation": "natural",
+            "building_year": "unknown"
+          },
+          {}
+        ]
+      }
+    }
+  ]
+}

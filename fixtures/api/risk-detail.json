@@ -1,0 +1,22 @@
+{
+  "risk_id": "elec.panel.screw_fuse",
+  "category": "electricity",
+  "title": "Old screw-fuse panel",
+  "severity": 4,
+  "probability": 3,
+  "why": "Your house is from 1975 and the inspection report notes the original screw-fuse panel. Loose screw-fuse holders overheat and char the panel base, and panels from before 1985 usually have no residual-current device.",
+  "benefit": "An electrician's check removes the most common cause of electrical fires in houses of this age. It raises your care score by up to 120 points.",
+  "points_available": 120,
+  "partner_category": "electrician",
+  "llm_proposed": false,
+  "status": "open",
+  "evidence": [
+    {"document_id": "doc_01", "page": 16, "quote": "Sähkökeskus on alkuperäinen tulppasulakekeskus."}
+  ],
+  "mitigation": {"action": "Electrician inspects the main panel and replaces it with automatic fuses and a residual-current device"},
+  "partners": [
+    {"partner_id": "p_03", "name": "Sähköasennus Aurasilta Oy", "rating": 4.7, "price_range": {"min": 350, "max": 900}, "if_vetted": true, "tier_discount_percent": 10, "area": "Turku"},
+    {"partner_id": "p_04", "name": "Liedon Sähkötiimi Oy", "rating": 4.2, "price_range": {"min": 300, "max": 4000}, "if_vetted": true, "tier_discount_percent": 5, "area": "Lieto"},
+    {"partner_id": "p_15", "name": "Pikasähkö Hirvensalo Oy", "rating": 3.8, "price_range": {"min": 200, "max": 1800}, "if_vetted": false, "tier_discount_percent": 0, "area": "Turku"}
+  ]
+}

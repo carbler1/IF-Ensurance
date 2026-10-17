@@ -1,0 +1,57 @@
+{
+  "title": "Steel sheet roof over 40 years old",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "in", "field": "roof_material", "value": ["sheet_metal"]},
+      {
+        "op": "or",
+        "args": [
+          {"op": "lt", "field": "last_roof_renovation", "value": 1986},
+          {
+            "op": "and",
+            "args": [
+              {"op": "not", "args": [{"op": "exists", "field": "last_roof_renovation"}]},
+              {"op": "lt", "field": "building_year", "value": 1986}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "severity": 3,
+  "probability": 3,
+  "service_life_years": 50,
+  "check_interval_years": 5,
+  "half_life_years": 15,
+  "mitigation": {
+    "action": "Roofer inspects the seams, the screws, the penetrations and the coating, reseals and repaints the roof, or replaces the sheets",
+    "partner_category": "roofer"
+  },
+  "points": 100,
+  "known_quirks": [
+    "A painted steel roof lasts 40 to 60 years when it is repainted every 10 to 15 years; rust starts where the paint has gone",
+    "Profiled sheet roofs leak first at the screws: the rubber washers harden and the screw holes rust open",
+    "Standing-seam roofs (konesaumakatto) leak at the chimney and vent flashings and at a seam opened by ice",
+    "Snow and ice sliding off a steel roof tear off the gutters and the snow guards",
+    "Clean the gutters and downspouts every spring and autumn and check the roof safety products (Kunnon Koti to-dos)"
+  ],
+  "why_hint": "DRAFT: The roof is steel sheet and over 40 years old with no roof renovation on record. Roofs of this age leak at the screws, the seams and the flashings before the sheets themselves fail.",
+  "benefit_hint": "DRAFT: A roof check, new screws and a coat of paint add 10 to 15 years to the roof at a fraction of the cost of a new one.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "last_roof_renovation", "value": "confirmation_year"},
+  "tests": {
+    "match": [
+      {"roof_material": "sheet_metal", "building_year": 1971},
+      {"roof_material": "sheet_metal", "last_roof_renovation": 1984},
+      {"roof_material": "sheet_metal", "building_year": 1971, "last_roof_renovation": "unknown"}
+    ],
+    "reject": [
+      {"roof_material": "tile", "building_year": 1971},
+      {"roof_material": "sheet_metal", "building_year": 1971, "last_roof_renovation": 2001},
+      {"roof_material": "sheet_metal", "building_year": 1992},
+      {"roof_material": "unknown", "building_year": 1971},
+      {"roof_material": "sheet_metal"}
+    ]
+  }
+}

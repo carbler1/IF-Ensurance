@@ -1,0 +1,46 @@
+{
+  "title": "Mechanical ventilation unit not serviced in 2 years",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "in", "field": "ventilation", "value": ["mechanical_exhaust", "mechanical_supply_exhaust"]},
+      {"op": "not", "args": [{"op": "gt", "field": "last_ventilation_service", "value": "2024-10-17"}]}
+    ]
+  },
+  "severity": 2,
+  "probability": 4,
+  "service_life_years": 25,
+  "check_interval_years": 2,
+  "half_life_years": 2,
+  "mitigation": {
+    "action": "Ventilation technician replaces the filters, cleans the fans and the heat-recovery cell, checks the airflows and the condensate drain",
+    "partner_category": "ventilation_technician"
+  },
+  "points": 40,
+  "known_quirks": [
+    "Change the ventilation filters and check the unit every spring and autumn (Kunnon Koti spring and autumn to-dos)",
+    "A clogged filter cuts the airflow, and the house goes to underpressure; a supply-exhaust unit then pulls air in through the structures",
+    "The heat-recovery cell of a supply-exhaust unit ices up in winter when the defrost sensor is dirty",
+    "A blocked condensate drain floods the unit and drips onto the floor below it",
+    "Units from before the 2000s have no heat recovery; the service tells whether the fan bearings still have life left",
+    "The technical service life of a ventilation unit is about 25 years; a service every 2 years keeps the airflow at the design value"
+  ],
+  "why_hint": "DRAFT: The house has mechanical ventilation, and there is no service on record from the last 2 years. Filters clog, fans and heat-recovery cells get dirty, and the airflow drops below what the house needs.",
+  "benefit_hint": "DRAFT: A service keeps the air fresh, cuts the heating bill through a clean heat-recovery cell, and stops the unit from pulling moist air in through the walls.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "last_ventilation_service", "value": "confirmation_date"},
+  "tests": {
+    "match": [
+      {"ventilation": "mechanical_supply_exhaust"},
+      {"ventilation": "mechanical_exhaust", "last_ventilation_service": "2023-03-15"},
+      {"ventilation": "mechanical_supply_exhaust", "last_ventilation_service": "unknown"}
+    ],
+    "reject": [
+      {"ventilation": "natural"},
+      {"ventilation": "unknown"},
+      {"ventilation": "mechanical_supply_exhaust", "last_ventilation_service": "2025-09-01"},
+      {"last_ventilation_service": "2020-01-01"},
+      {}
+    ]
+  }
+}

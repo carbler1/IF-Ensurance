@@ -1,0 +1,50 @@
+{
+  "title": "Crawl space or basement not inspected for moisture",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "in", "field": "foundation_type", "value": ["crawl_space", "basement"]},
+      {"op": "lt", "field": "building_year", "value": 1990},
+      {
+        "op": "or",
+        "args": [
+          {"op": "not", "args": [{"op": "exists", "field": "last_moisture_inspection"}]},
+          {"op": "lt", "field": "last_moisture_inspection", "value": "2021-01-01"}
+        ]
+      }
+    ]
+  },
+  "severity": 4,
+  "probability": 3,
+  "service_life_years": 50,
+  "check_interval_years": 5,
+  "half_life_years": 5,
+  "mitigation": {
+    "action": "Moisture inspector measures the base floor and the lower walls, checks the subsoil drain wells and writes a report",
+    "partner_category": "moisture_inspector"
+  },
+  "points": 90,
+  "known_quirks": [
+    "Houses from before 1990 with a basement often have no subsoil drains or blocked ones",
+    "Crawl spaces with closed vents grow mould on the floor joists",
+    "Interior-insulated basement walls against soil are a known risk structure",
+    "Check in spring that the subsoil drains flow after the thaw (Kunnon Koti spring to-do)"
+  ],
+  "why_hint": "DRAFT: The house is from before 1990 and has a crawl space or basement, and there is no moisture inspection on record from the last 5 years. These foundations hold the known risk structures of their time.",
+  "benefit_hint": "DRAFT: One inspection finds moisture in the base floor before it turns into mould damage and a health problem.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "last_moisture_inspection", "value": "confirmation_date"},
+  "tests": {
+    "match": [
+      {"foundation_type": "basement", "building_year": 1965},
+      {"foundation_type": "crawl_space", "building_year": 1982, "last_moisture_inspection": "2016-05-01"},
+      {"foundation_type": "basement", "building_year": 1965, "subsoil_drains": "absent"}
+    ],
+    "reject": [
+      {"foundation_type": "slab_on_ground", "building_year": 1965},
+      {"foundation_type": "basement", "building_year": 2001},
+      {"foundation_type": "basement", "building_year": 1965, "last_moisture_inspection": "2024-09-30"},
+      {"foundation_type": "unknown", "building_year": 1965}
+    ]
+  }
+}

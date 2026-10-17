@@ -1,0 +1,170 @@
+{
+  "_note": "Mock partner table (decision 7). All companies are fictional. All numbers are placeholders.",
+  "partners": [
+    {
+      "partner_id": "p_01",
+      "name": "Aurajoen Putkityö Oy",
+      "categories": ["plumber"],
+      "area": "Turku",
+      "price_range": {"min": 250, "max": 7500},
+      "rating": 4.6,
+      "if_vetted": true,
+      "tier_discount_percent": 10,
+      "listing_fee_tier": "plus"
+    },
+    {
+      "partner_id": "p_02",
+      "name": "Kupittaan Remonttitalo Oy",
+      "categories": ["bathroom_renovation", "plumber"],
+      "area": "Turku",
+      "price_range": {"min": 400, "max": 18000},
+      "rating": 4.4,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "plus"
+    },
+    {
+      "partner_id": "p_03",
+      "name": "Sähköasennus Aurasilta Oy",
+      "categories": ["electrician"],
+      "area": "Turku",
+      "price_range": {"min": 350, "max": 900},
+      "rating": 4.7,
+      "if_vetted": true,
+      "tier_discount_percent": 10,
+      "listing_fee_tier": "plus"
+    },
+    {
+      "partner_id": "p_04",
+      "name": "Liedon Sähkötiimi Oy",
+      "categories": ["electrician", "heating_technician"],
+      "area": "Lieto",
+      "price_range": {"min": 300, "max": 4000},
+      "rating": 4.2,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_05",
+      "name": "Kattomestarit Aura Oy",
+      "categories": ["roofer"],
+      "area": "Turku",
+      "price_range": {"min": 400, "max": 15000},
+      "rating": 4.5,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "plus"
+    },
+    {
+      "partner_id": "p_06",
+      "name": "Kaarinan Kattohuolto Oy",
+      "categories": ["roofer"],
+      "area": "Kaarina",
+      "price_range": {"min": 350, "max": 12000},
+      "rating": 4.0,
+      "if_vetted": false,
+      "tier_discount_percent": 0,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_07",
+      "name": "Varsinais-Suomen Kosteusmittaus Oy",
+      "categories": ["moisture_inspector"],
+      "area": "Turku",
+      "price_range": {"min": 300, "max": 900},
+      "rating": 4.8,
+      "if_vetted": true,
+      "tier_discount_percent": 10,
+      "listing_fee_tier": "plus"
+    },
+    {
+      "partner_id": "p_08",
+      "name": "Sisäilmatarkastus Aura Oy",
+      "categories": ["moisture_inspector", "ventilation_technician"],
+      "area": "Turku",
+      "price_range": {"min": 250, "max": 1200},
+      "rating": 4.3,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_09",
+      "name": "Raision Kylpyhuoneremontit Oy",
+      "categories": ["bathroom_renovation"],
+      "area": "Raisio",
+      "price_range": {"min": 6000, "max": 16000},
+      "rating": 4.9,
+      "if_vetted": true,
+      "tier_discount_percent": 10,
+      "listing_fee_tier": "plus"
+    },
+    {
+      "partner_id": "p_10",
+      "name": "Lämpöveikot Turku Oy",
+      "categories": ["heating_technician"],
+      "area": "Turku",
+      "price_range": {"min": 400, "max": 4500},
+      "rating": 4.5,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_11",
+      "name": "Naantalin LVI-Asennus Oy",
+      "categories": ["plumber", "heating_technician"],
+      "area": "Naantali",
+      "price_range": {"min": 300, "max": 8000},
+      "rating": 3.9,
+      "if_vetted": true,
+      "tier_discount_percent": 0,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_12",
+      "name": "Nuohouspalvelu Savusieppo Oy",
+      "categories": ["chimney_sweep"],
+      "area": "Turku",
+      "price_range": {"min": 60, "max": 150},
+      "rating": 4.8,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_13",
+      "name": "Hormi ja Tulisija Virta Oy",
+      "categories": ["chimney_sweep", "heating_technician"],
+      "area": "Kaarina",
+      "price_range": {"min": 70, "max": 3000},
+      "rating": 4.1,
+      "if_vetted": true,
+      "tier_discount_percent": 0,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_14",
+      "name": "Ilmavirta Huolto Oy",
+      "categories": ["ventilation_technician"],
+      "area": "Turku",
+      "price_range": {"min": 150, "max": 900},
+      "rating": 4.4,
+      "if_vetted": true,
+      "tier_discount_percent": 5,
+      "listing_fee_tier": "basic"
+    },
+    {
+      "partner_id": "p_15",
+      "name": "Pikasähkö Hirvensalo Oy",
+      "categories": ["electrician"],
+      "area": "Turku",
+      "price_range": {"min": 200, "max": 1800},
+      "rating": 3.8,
+      "if_vetted": false,
+      "tier_discount_percent": 0,
+      "listing_fee_tier": "basic"
+    }
+  ]
+}

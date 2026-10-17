@@ -32,6 +32,22 @@
         "type": "github"
       }
     },
+    "mermaid-skill": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1786476891,
+        "narHash": "sha256-Pyo9G8dd+IenDK6MocEToG9Cl825DW9itACCpX0eICo=",
+        "owner": "WH-2099",
+        "repo": "mermaid-skill",
+        "rev": "982d9035231312c527197501a882cf6c8f4394cc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "WH-2099",
+        "repo": "mermaid-skill",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1791883866,
@@ -68,25 +84,9 @@
       "inputs": {
         "impeccable": "impeccable",
         "jmo-skills": "jmo-skills",
+        "mermaid-skill": "mermaid-skill",
         "nixpkgs": "nixpkgs",
-        "ponytail": "ponytail",
-        "the-architect": "the-architect"
-      }
-    },
-    "the-architect": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1785259087,
-        "narHash": "sha256-mF/cjWVDcOUIwzrsIK9z+N6sKWeVoBroriGupCovclA=",
-        "owner": "Hainrixz",
-        "repo": "the-architect",
-        "rev": "774a02278f4fa99cc44d484911007d1ba29318ab",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Hainrixz",
-        "repo": "the-architect",
-        "type": "github"
+        "ponytail": "ponytail"
       }
     }
   },

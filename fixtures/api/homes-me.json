@@ -1,0 +1,29 @@
+{
+  "home_id": "home_01",
+  "address": {"street": "Esimerkkikatu 3", "postal_code": "20100", "city": "Turku"},
+  "profile": {
+    "house_type":                  {"value": "detached",      "confidence": 0.95, "source": "register", "doubt": false},
+    "building_year":               {"value": 1975,            "confidence": 0.95, "source": "register", "doubt": false},
+    "heating":                     {"value": "oil",           "confidence": 0.9,  "source": "document", "doubt": false},
+    "panel_type":                  {"value": "screw_fuse",    "confidence": 0.85, "source": "document", "doubt": false},
+    "pipe_material":               {"value": "copper",        "confidence": 0.8,  "source": "document", "doubt": false},
+    "roof_material":               {"value": "bitumen_felt",  "confidence": 0.9,  "source": "document", "doubt": false},
+    "last_pipe_renovation":        {"value": "unknown",       "confidence": 0.0,  "source": "none",     "doubt": false},
+    "last_electrical_check":       {"value": "unknown",       "confidence": 0.0,  "source": "none",     "doubt": false},
+    "ventilation":                 {"value": "natural",       "confidence": 0.9,  "source": "document", "doubt": false},
+    "sauna":                       {"value": "electric_stove","confidence": 0.7,  "source": "customer", "doubt": false},
+    "bathroom_waterproofing_year": {"value": 1994,            "confidence": 0.6,  "source": "customer", "doubt": false},
+    "floor_drain_type":            {"value": "cast_iron",     "confidence": 0.7,  "source": "document", "doubt": false},
+    "water_heater_year":           {"value": "unknown",       "confidence": 0.0,  "source": "none",     "doubt": false},
+    "foundation_type":             {"value": "basement",      "confidence": 0.9,  "source": "document", "doubt": false},
+    "subsoil_drains":              {"value": "unknown",       "confidence": 0.0,  "source": "none",     "doubt": false},
+    "last_roof_renovation":        {"value": 2004,            "confidence": 0.85, "source": "document", "doubt": false},
+    "oil_tank_year":               {"value": "unknown",       "confidence": 0.0,  "source": "none",     "doubt": false},
+    "last_chimney_sweep":          {"value": "2024-11-03",    "confidence": 0.5,  "source": "customer", "doubt": false},
+    "last_moisture_inspection":    {"value": "unknown",       "confidence": 0.0,  "source": "none",     "doubt": false},
+    "last_ventilation_service":    {"value": "unknown",       "confidence": 0.0,  "source": "none",     "doubt": false}
+  },
+  "documents": [
+    {"document_id": "doc_01", "type": "kuntotarkastus", "uploaded_at": "2026-10-17T10:00:00Z", "status": "processed"}
+  ]
+}

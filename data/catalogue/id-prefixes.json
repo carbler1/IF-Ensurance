@@ -1,0 +1,8 @@
+{
+  "electricity": "elec",
+  "plumbing": "plumb",
+  "moisture": "moist",
+  "roof": "roof",
+  "heating": "heat",
+  "ventilation": "vent"
+}

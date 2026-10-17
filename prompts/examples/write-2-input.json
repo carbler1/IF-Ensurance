@@ -1,0 +1,390 @@
+{
+  "today": "2026-10-17",
+  "profile": {
+    "house_type": {
+      "value": "flat",
+      "confidence": 0.95,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 1,
+        "quote": "Kerrostalohuoneisto (kr), 3 h + k + kph + parveke"
+      },
+      "doubt": false
+    },
+    "building_year": {
+      "value": 1992,
+      "confidence": 0.9,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 1,
+        "quote": "Rakennusvuosi | 1992 (isännöitsijäntodistus)"
+      },
+      "doubt": false
+    },
+    "heating": {
+      "value": "district",
+      "confidence": 0.95,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 2,
+        "quote": "Kaukolämpö, lämmönjakokeskus uusittu 2019"
+      },
+      "doubt": false
+    },
+    "panel_type": {
+      "value": "automatic_fuses",
+      "confidence": 0.95,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 2,
+        "quote": "Huoneiston ryhmäkeskus uusittu 2019. Automaattisulakkeet, vikavirtasuojat. Keittiön ja kylpyhuoneen sähköt uusittu 2019. Muut huoneet alkuperäiset 1992, maadoitetut pistorasiat"
+      },
+      "doubt": false
+    },
+    "pipe_material": {
+      "value": "plastic",
+      "confidence": 0.7,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 2,
+        "quote": "Käyttövesinousut ja huoneiston kytkentäjohdot uusittu 2019, komposiittiputki suojaputkessa"
+      },
+      "doubt": false
+    },
+    "roof_material": {
+      "value": "bitumen_felt",
+      "confidence": 0.8,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 2,
+        "quote": "Vesikate bitumikermi, uusittu 2015 (yhtiön tieto)"
+      },
+      "doubt": false
+    },
+    "last_pipe_renovation": {
+      "value": 2019,
+      "confidence": 0.95,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 2,
+        "quote": "Käyttövesinousut ja huoneiston kytkentäjohdot uusittu 2019"
+      },
+      "doubt": false
+    },
+    "last_electrical_check": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "none",
+      "evidence": null,
+      "doubt": false
+    },
+    "ventilation": {
+      "value": "mechanical_exhaust",
+      "confidence": 0.95,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 2,
+        "quote": "Koneellinen poisto, huippuimurit katolla"
+      },
+      "doubt": false
+    },
+    "sauna": {
+      "value": "none",
+      "confidence": 0.6,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 1,
+        "quote": "Kerrostalohuoneisto (kr), 3 h + k + kph + parveke"
+      },
+      "doubt": false
+    },
+    "bathroom_waterproofing_year": {
+      "value": 2019,
+      "confidence": 0.95,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 2,
+        "quote": "Kylpyhuone uusittu linjasaneerauksessa 2019. Seinät ja lattia laatoitettu, siveltävä vedeneriste, muovinen lattiakaivo"
+      },
+      "doubt": false
+    },
+    "floor_drain_type": {
+      "value": "plastic",
+      "confidence": 0.95,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 2,
+        "quote": "siveltävä vedeneriste, muovinen lattiakaivo"
+      },
+      "doubt": false
+    },
+    "water_heater_year": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 2,
+        "quote": "Lämmin käyttövesi | Yhtiön kaukolämpö, mittauksessa 56 °C"
+      },
+      "doubt": false
+    },
+    "foundation_type": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 2,
+        "quote": "Alapohja | Ei koske huoneistoa (3. kerros)"
+      },
+      "doubt": false
+    },
+    "subsoil_drains": {
+      "value": "present",
+      "confidence": 0.8,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 4,
+        "quote": "Isännöitsijäntodistuksen mukaan salaojat on kuvattu 2019 ja todettu toimiviksi"
+      },
+      "doubt": false
+    },
+    "last_roof_renovation": {
+      "value": 2015,
+      "confidence": 0.8,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 2,
+        "quote": "Vesikate bitumikermi, uusittu 2015 (yhtiön tieto)"
+      },
+      "doubt": false
+    },
+    "oil_tank_year": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "document",
+      "evidence": {
+        "document_id": "doc_synth_1992",
+        "page": 2,
+        "quote": "Öljysäiliö | Ei"
+      },
+      "doubt": false
+    },
+    "last_chimney_sweep": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "none",
+      "evidence": null,
+      "doubt": false
+    },
+    "last_moisture_inspection": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "none",
+      "evidence": null,
+      "doubt": false
+    },
+    "last_ventilation_service": {
+      "value": "unknown",
+      "confidence": 0,
+      "source": "none",
+      "evidence": null,
+      "doubt": false
+    }
+  },
+  "matched": [
+    {
+      "id": "elec.check.overdue",
+      "title": "Electrical installation not checked in 15 years",
+      "severity": 3,
+      "probability": 3,
+      "mitigation": {
+        "action": "Electrician inspects the fixed installation, the sockets and the earthing and writes a report",
+        "partner_category": "electrician"
+      },
+      "points": 80,
+      "known_quirks": [
+        "Brittle rubber-insulated cables in houses from before 1970",
+        "Missing earthing in bathroom and outdoor sockets",
+        "Home-made extensions behind panels and in attics"
+      ],
+      "why_hint": "DRAFT: The house is over 30 years old and there is no record of an electrical inspection in the last 15 years. Tukes recommends a check of old installations every 15 to 30 years.",
+      "benefit_hint": "DRAFT: One inspection finds brittle cables and missing earthing before they start a fire or give a shock.",
+      "triggering_facts": [
+        {
+          "field": "building_year",
+          "value": 1992,
+          "evidence": {
+            "document_id": "doc_synth_1992",
+            "page": 1,
+            "quote": "Rakennusvuosi | 1992 (isännöitsijäntodistus)"
+          }
+        },
+        {
+          "field": "last_electrical_check",
+          "value": "unknown",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "plumb.water_heater.age",
+      "title": "Hot-water tank past its service life",
+      "severity": 3,
+      "probability": 4,
+      "mitigation": {
+        "action": "Plumber inspects the hot-water tank and the safety valve and replaces the tank when it is over 20 years old",
+        "partner_category": "plumber"
+      },
+      "points": 60,
+      "known_quirks": [
+        "Steel tanks corrode from the inside and leak without warning at 20 to 25 years",
+        "A dripping safety valve is normal; a wet floor under the tank is not",
+        "Tanks in a cupboard without a drip tray cause the largest damage"
+      ],
+      "why_hint": "DRAFT: The hot-water tank is over 20 years old, or its age is unknown in a house built before 2006. Tanks of this age leak from internal corrosion.",
+      "benefit_hint": "DRAFT: A new tank or a drip tray with a leak alarm stops a slow leak from soaking the floor structure.",
+      "triggering_facts": [
+        {
+          "field": "building_year",
+          "value": 1992,
+          "evidence": {
+            "document_id": "doc_synth_1992",
+            "page": 1,
+            "quote": "Rakennusvuosi | 1992 (isännöitsijäntodistus)"
+          }
+        },
+        {
+          "field": "water_heater_year",
+          "value": "unknown",
+          "evidence": {
+            "document_id": "doc_synth_1992",
+            "page": 2,
+            "quote": "Lämmin käyttövesi | Yhtiön kaukolämpö, mittauksessa 56 °C"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vent.mechanical.service_overdue",
+      "title": "Mechanical ventilation unit not serviced in 2 years",
+      "severity": 2,
+      "probability": 4,
+      "mitigation": {
+        "action": "Ventilation technician replaces the filters, cleans the fans and the heat-recovery cell, checks the airflows and the condensate drain",
+        "partner_category": "ventilation_technician"
+      },
+      "points": 40,
+      "known_quirks": [
+        "Change the ventilation filters and check the unit every spring and autumn (Kunnon Koti spring and autumn to-dos)",
+        "A clogged filter cuts the airflow, and the house goes to underpressure; a supply-exhaust unit then pulls air in through the structures",
+        "The heat-recovery cell of a supply-exhaust unit ices up in winter when the defrost sensor is dirty",
+        "A blocked condensate drain floods the unit and drips onto the floor below it",
+        "Units from before the 2000s have no heat recovery; the service tells whether the fan bearings still have life left",
+        "The technical service life of a ventilation unit is about 25 years; a service every 2 years keeps the airflow at the design value"
+      ],
+      "why_hint": "DRAFT: The house has mechanical ventilation, and there is no service on record from the last 2 years. Filters clog, fans and heat-recovery cells get dirty, and the airflow drops below what the house needs.",
+      "benefit_hint": "DRAFT: A service keeps the air fresh, cuts the heating bill through a clean heat-recovery cell, and stops the unit from pulling moist air in through the walls.",
+      "triggering_facts": [
+        {
+          "field": "last_ventilation_service",
+          "value": "unknown",
+          "evidence": null
+        },
+        {
+          "field": "ventilation",
+          "value": "mechanical_exhaust",
+          "evidence": {
+            "document_id": "doc_synth_1992",
+            "page": 2,
+            "quote": "Koneellinen poisto, huippuimurit katolla"
+          }
+        }
+      ]
+    }
+  ],
+  "unmatched": [
+    {
+      "id": "elec.panel.screw_fuse",
+      "title": "Old screw-fuse panel"
+    },
+    {
+      "id": "elec.sauna.electric_stove_wiring",
+      "title": "Electric sauna stove wiring not checked in 10 years"
+    },
+    {
+      "id": "elec.wet_room.no_rcd",
+      "title": "Wet-room sockets without a residual-current device"
+    },
+    {
+      "id": "heat.chimney.sweep_overdue",
+      "title": "Chimney not swept in the last year"
+    },
+    {
+      "id": "heat.oil_tank.age",
+      "title": "Steel oil tank over 30 years old"
+    },
+    {
+      "id": "moist.bathroom.waterproofing_missing",
+      "title": "Wet room without modern waterproofing"
+    },
+    {
+      "id": "moist.foundation.false_plinth",
+      "title": "False plinth risk structure not inspected"
+    },
+    {
+      "id": "moist.foundation.inspection_overdue",
+      "title": "Crawl space or basement not inspected for moisture"
+    },
+    {
+      "id": "moist.subsoil_drains.missing",
+      "title": "No subsoil drains around the house"
+    },
+    {
+      "id": "plumb.floor_drain.cast_iron",
+      "title": "Cast-iron floor drain in the wet room"
+    },
+    {
+      "id": "plumb.pipe_renovation.flat_overdue",
+      "title": "Pipe renovation overdue in a 1960s to 1980s flat"
+    },
+    {
+      "id": "plumb.pipes.copper_age",
+      "title": "Copper water pipes over 40 years old"
+    },
+    {
+      "id": "plumb.pipes.galvanized_steel",
+      "title": "Galvanized steel water pipes"
+    },
+    {
+      "id": "roof.bitumen_felt.age",
+      "title": "Bitumen felt roof over 25 years old"
+    },
+    {
+      "id": "roof.sheet_metal.seams_age",
+      "title": "Steel sheet roof over 40 years old"
+    },
+    {
+      "id": "roof.tile.underlay_age",
+      "title": "Tile roof underlay over 30 years old"
+    },
+    {
+      "id": "vent.natural.old_house",
+      "title": "Natural ventilation in a house from before 2000"
+    }
+  ]
+}

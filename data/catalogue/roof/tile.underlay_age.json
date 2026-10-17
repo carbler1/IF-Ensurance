@@ -1,0 +1,57 @@
+{
+  "title": "Tile roof underlay over 30 years old",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "in", "field": "roof_material", "value": ["tile"]},
+      {
+        "op": "or",
+        "args": [
+          {"op": "lt", "field": "last_roof_renovation", "value": 1996},
+          {
+            "op": "and",
+            "args": [
+              {"op": "not", "args": [{"op": "exists", "field": "last_roof_renovation"}]},
+              {"op": "lt", "field": "building_year", "value": 1996}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "severity": 4,
+  "probability": 3,
+  "service_life_years": 30,
+  "check_interval_years": 5,
+  "half_life_years": 15,
+  "mitigation": {
+    "action": "Roofer inspects the underlay, the battens and the penetrations from the attic and renews a brittle underlay under the tiles",
+    "partner_category": "roofer"
+  },
+  "points": 120,
+  "known_quirks": [
+    "Concrete tiles last 50 years or more, but the underlay (aluskate) below them lasts about 30",
+    "Tile roofs from before the 1980s often have no underlay at all, or a bitumen felt underlay that has turned brittle",
+    "Wind-driven rain and snow pass between the tiles; only the underlay carries that water to the eaves",
+    "Water marks on the attic side of the underlay and at the chimney flashing show first",
+    "Check the roof, the eaves and the snow guards every spring after the winter (Kunnon Koti spring to-do)"
+  ],
+  "why_hint": "DRAFT: The roof is tile and over 30 years old with no roof renovation on record. The tiles themselves last, but the underlay below them is at the end of its service life.",
+  "benefit_hint": "DRAFT: A new underlay keeps wind-driven rain and melt water out of the attic insulation without replacing the tiles.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "last_roof_renovation", "value": "confirmation_year"},
+  "tests": {
+    "match": [
+      {"roof_material": "tile", "building_year": 1982},
+      {"roof_material": "tile", "last_roof_renovation": 1990},
+      {"roof_material": "tile", "building_year": 1982, "last_roof_renovation": "unknown"}
+    ],
+    "reject": [
+      {"roof_material": "bitumen_felt", "building_year": 1982},
+      {"roof_material": "tile", "building_year": 1982, "last_roof_renovation": 2009},
+      {"roof_material": "tile", "building_year": 2004},
+      {"roof_material": "unknown", "building_year": 1982},
+      {"roof_material": "tile"}
+    ]
+  }
+}

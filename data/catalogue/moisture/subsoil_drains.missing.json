@@ -1,0 +1,50 @@
+{
+  "title": "No subsoil drains around the house",
+  "applies_when": {
+    "op": "or",
+    "args": [
+      {"op": "in", "field": "subsoil_drains", "value": ["absent"]},
+      {
+        "op": "and",
+        "args": [
+          {"op": "in", "field": "subsoil_drains", "value": ["unknown"]},
+          {"op": "lt", "field": "building_year", "value": 1980}
+        ]
+      }
+    ]
+  },
+  "severity": 4,
+  "probability": 3,
+  "service_life_years": 40,
+  "check_interval_years": 5,
+  "half_life_years": 20,
+  "mitigation": {
+    "action": "Moisture inspector surveys the plot drainage, the rainwater routing and the drain wells, and arranges a new subsoil drain and rainwater system to be built where none exists",
+    "partner_category": "moisture_inspector"
+  },
+  "points": 120,
+  "known_quirks": [
+    "Houses from before 1980 often have no subsoil drains, or clay-pipe drains that have silted up",
+    "Plastic subsoil drain pipes reach the end of their service life at about 40 years",
+    "Rainwater from the downspouts must not run into the subsoil drains; it overloads them",
+    "Check in spring after the thaw that the drains flow and the drain wells are clear (Kunnon Koti spring and autumn to-dos)",
+    "Ground sloping towards the house keeps the foundation wet even with drains"
+  ],
+  "why_hint": "DRAFT: The house has no subsoil drains on record, or it is from before 1980 and nobody has confirmed the drains. Without drains, ground water soaks the foundation and the base floor.",
+  "benefit_hint": "DRAFT: Working drains keep the foundation and the basement dry, and prevent the mould damage that follows a wet base floor.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "subsoil_drains", "value": "present"},
+  "tests": {
+    "match": [
+      {"subsoil_drains": "absent", "building_year": 2001},
+      {"subsoil_drains": "unknown", "building_year": 1968},
+      {"building_year": 1968}
+    ],
+    "reject": [
+      {"subsoil_drains": "present", "building_year": 1968},
+      {"subsoil_drains": "unknown", "building_year": 1995},
+      {"building_year": "unknown"},
+      {}
+    ]
+  }
+}

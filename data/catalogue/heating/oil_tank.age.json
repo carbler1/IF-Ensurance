@@ -1,0 +1,54 @@
+{
+  "title": "Steel oil tank over 30 years old",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "in", "field": "heating", "value": ["oil"]},
+      {
+        "op": "or",
+        "args": [
+          {"op": "lt", "field": "oil_tank_year", "value": 1996},
+          {
+            "op": "and",
+            "args": [
+              {"op": "not", "args": [{"op": "exists", "field": "oil_tank_year"}]},
+              {"op": "lt", "field": "building_year", "value": 1996}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "severity": 5,
+  "probability": 3,
+  "service_life_years": 30,
+  "check_interval_years": 10,
+  "half_life_years": 15,
+  "mitigation": {
+    "action": "Heating technician inspects the oil tank and the lines and replaces a corroded tank with a double-walled one",
+    "partner_category": "heating_technician"
+  },
+  "points": 110,
+  "known_quirks": [
+    "Steel tanks corrode from the bottom where condensation water collects",
+    "An underground tank leak contaminates the soil; clean-up costs far exceed the tank",
+    "Tanks in groundwater areas must be inspected every 10 years by law"
+  ],
+  "why_hint": "DRAFT: The house heats with oil and the tank is over 30 years old, or its age is unknown in a house from before 1996. Steel tanks corrode from the bottom.",
+  "benefit_hint": "DRAFT: A tank inspection or a new tank prevents an oil leak into the soil, one of the most expensive damages a house can have.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "oil_tank_year", "value": "confirmation_year"},
+  "tests": {
+    "match": [
+      {"heating": "oil", "oil_tank_year": 1985},
+      {"heating": "oil", "building_year": 1978},
+      {"heating": "oil", "building_year": 1978, "oil_tank_year": "unknown"}
+    ],
+    "reject": [
+      {"heating": "district", "building_year": 1978},
+      {"heating": "oil", "oil_tank_year": 2010},
+      {"heating": "oil", "building_year": 2004},
+      {"heating": "unknown", "building_year": 1978}
+    ]
+  }
+}

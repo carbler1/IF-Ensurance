@@ -1,0 +1,45 @@
+{
+  "title": "Natural ventilation in a house from before 2000",
+  "applies_when": {
+    "op": "and",
+    "args": [
+      {"op": "in", "field": "ventilation", "value": ["natural"]},
+      {"op": "lt", "field": "building_year", "value": 2000}
+    ]
+  },
+  "severity": 3,
+  "probability": 3,
+  "service_life_years": 50,
+  "check_interval_years": 5,
+  "half_life_years": 10,
+  "mitigation": {
+    "action": "Ventilation technician measures the airflows and installs a mechanical exhaust fan for the wet rooms and the kitchen",
+    "partner_category": "ventilation_technician"
+  },
+  "points": 80,
+  "known_quirks": [
+    "Natural ventilation works on the temperature difference between inside and outside; in summer it stops almost completely",
+    "New windows and extra insulation make an old house tight, and natural ventilation then no longer removes shower moisture",
+    "A bathroom that stays wet for hours after a shower is the usual sign; black mould in the ceiling corners follows",
+    "Blocked or painted-over exhaust vents in the bathroom and the kitchen are common in houses from before the 1980s",
+    "Check the ventilation of the attic, the basement and the base floor every spring and autumn (Kunnon Koti to-dos)"
+  ],
+  "why_hint": "DRAFT: The house is from before 2000 and relies on natural ventilation. In a house that has been tightened with new windows or insulation, natural ventilation no longer removes shower moisture, and the wet rooms stay damp.",
+  "benefit_hint": "DRAFT: A mechanical exhaust fan dries the bathroom after each shower and keeps mould out of the wet-room ceiling and walls.",
+  "source": "Seed entry. Numbers are placeholders until Rasi's analysis arrives.",
+  "on_done": {"field": "ventilation", "value": "mechanical_exhaust"},
+  "tests": {
+    "match": [
+      {"ventilation": "natural", "building_year": 1965},
+      {"ventilation": "natural", "building_year": 1988, "bathroom_waterproofing_year": 2015}
+    ],
+    "reject": [
+      {"ventilation": "mechanical_exhaust", "building_year": 1965},
+      {"ventilation": "mechanical_supply_exhaust", "building_year": 1965},
+      {"ventilation": "natural", "building_year": 2008},
+      {"ventilation": "unknown", "building_year": 1965},
+      {"ventilation": "natural", "building_year": "unknown"},
+      {}
+    ]
+  }
+}

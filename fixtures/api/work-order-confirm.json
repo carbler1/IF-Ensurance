@@ -1,0 +1,6 @@
+{
+  "work_order_id": "wo_01",
+  "status": "confirmed",
+  "confirmed_at": "2026-10-17T12:00:00Z",
+  "score_event": {"event_id": "ev_02", "delta": 120, "score_after": 1120, "reason": "Old screw-fuse panel: replaced by Sähköasennus Aurasilta Oy"}
+}
