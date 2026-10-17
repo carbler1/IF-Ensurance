@@ -1,31 +1,33 @@
-%%{init: {"theme": "base", "themeVariables": {"fontSize": "15px", "primaryColor": "#eef3fb", "primaryBorderColor": "#2f5fa7", "lineColor": "#44546a"}}}%%
+%%{init: {"theme": "base", "flowchart": {"nodeSpacing": 40, "rankSpacing": 70}, "themeVariables": {"fontSize": "15px", "lineColor": "#44546a"}}}%%
 flowchart LR
     app["<b>Customer app</b><br/>Lovable web app<br/>Chrome on Pixel"]
     tunnel["<b>cloudflared</b><br/>HTTPS tunnel"]
 
-    subgraph be["Backend on pc-btw, 127.0.0.1:8000"]
-        direction TB
-        api["<b>api.py</b> FastAPI<br/>endpoints, token check,<br/>CORS, PDF upload"]
+    subgraph be["Backend on pc-btw (127.0.0.1:8000)"]
+        direction LR
+        api["<b>api.py</b> (FastAPI)<br/>endpoints, token check,<br/>CORS, PDF upload"]
         engine["<b>engine.py</b><br/>risk list, partners,<br/>maintenance dates"]
-        worker["<b>worker.py + pipeline.py</b><br/>polls jobs table<br/>extract, merge, match, write"]
-        db[("<b>SQLite</b><br/>var/ilp.sqlite")]
-        files[("<b>Static data</b><br/>catalogue.json<br/>partners.json")]
-        api --> engine
-        api --> db
-        engine --> db
-        engine --> files
-        worker -->|"poll jobs,<br/>save profile and texts"| db
-        worker -->|"match risks"| files
+        worker["<b>worker.py + pipeline.py</b><br/>extract, merge,<br/>match, write"]
     end
 
-    ollama["<b>Ollama</b><br/>qwen3.5:9b<br/>reads PDF text, writes texts"]
+    db[("<b>SQLite</b><br/>var/ilp.sqlite")]
+    data[("<b>Static data</b><br/>catalogue.json<br/>partners.json")]
+    ollama["<b>Ollama</b><br/>qwen3.5:9b"]
 
     app -->|"JSON over HTTPS"| tunnel --> api
+    api --> engine
+    engine --> db
+    engine --> data
+    worker -->|"polls jobs,<br/>saves results"| db
+    worker -->|"matches risks"| data
     worker -->|"/api/chat"| ollama
 
     classDef code fill:#e3f1e5,stroke:#2e7d32,color:#10300f
     classDef model fill:#fdeede,stroke:#c26a00,color:#3a2100
     classDef store fill:#f3f0fa,stroke:#6a4fb0,color:#241a47
+    classDef ext fill:#eef3fb,stroke:#2f5fa7,color:#10233f
     class api,engine,worker code
     class ollama model
-    class db,files store
+    class db,data store
+    class app,tunnel ext
+    style be fill:#fafafa,stroke:#999,stroke-dasharray:4 4
