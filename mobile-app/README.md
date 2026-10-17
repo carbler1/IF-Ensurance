@@ -1,6 +1,6 @@
 # If Life Partner: mobile app
 
-The customer app for the house, built with Expo (SDK 58), Expo Router and React Native.
+The customer app for the house, built with Expo (SDK 57), Expo Router and React Native.
 It runs on iOS, Android and the web from one code base.
 
 ## Run
