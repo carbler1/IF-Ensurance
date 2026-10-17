@@ -10,6 +10,10 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts" / "catalogue"))
 from validate import matches  # noqa: E402
 
+from sqlalchemy import func, select  # noqa: E402
+
+from backend.models import Home, Profile, WorkOrder  # noqa: E402
+
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}")
 
 
@@ -20,19 +24,19 @@ def _add_years(d, n):
         return d.replace(year=d.year + n, day=28)
 
 
-def maintenance(conn, home_id, today=None):
+def maintenance(s, home_id, today=None):
     today = today or date.today()
-    created = date.fromisoformat(
-        conn.execute("SELECT created_at FROM homes WHERE home_id=?", (home_id,)).fetchone()[0][:10])
-    profile = json.loads(conn.execute("SELECT profile FROM profiles WHERE home_id=?", (home_id,)).fetchone()[0])
+    created = date.fromisoformat(s.get(Home, home_id).created_at[:10])
+    profile = json.loads(s.get(Profile, home_id).profile)
     entries = json.loads((ROOT / "data" / "catalogue.json").read_text())["entries"]
     rows = []
     for e in entries:
         if not matches(e["applies_when"], profile):
             continue
         base = None
-        w = conn.execute("SELECT MAX(confirmed_at) FROM work_orders WHERE home_id=? AND risk_id=? "
-                         "AND status='confirmed' AND confirmed_at IS NOT NULL", (home_id, e["id"])).fetchone()[0]
+        w = s.scalar(select(func.max(WorkOrder.confirmed_at)).where(
+            WorkOrder.home_id == home_id, WorkOrder.risk_id == e["id"], WorkOrder.status == "confirmed",
+            WorkOrder.confirmed_at.is_not(None)))
         if w:
             base = date.fromisoformat(w[:10])
         else:

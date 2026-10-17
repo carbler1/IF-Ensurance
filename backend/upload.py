@@ -7,6 +7,7 @@ from fastapi import APIRouter, File, Form, UploadFile
 from fastapi.responses import JSONResponse
 
 from backend import db
+from backend.models import Document, Job
 
 router = APIRouter()
 MAX_BYTES = 20 * 1024 * 1024
@@ -27,17 +28,11 @@ async def post_document(file: UploadFile = File(...), type: str = Form(...)):
         return _err("unsupported_document", "File is not a PDF")
     doc_id = "doc_" + secrets.token_hex(4)
     job_id = "job_" + secrets.token_hex(4)
-    conn = db.connect()  # also creates db.UPLOADS
-    (db.UPLOADS / f"{doc_id}.pdf").write_bytes(data)
-    now = datetime.now(timezone.utc).isoformat()
-    with conn:
-        conn.execute(
-            "INSERT INTO documents VALUES (?, 'home_01', ?, ?, 'queued')",
-            (doc_id, type, now),
-        )
-        conn.execute(
-            "INSERT INTO jobs (job_id, document_id, status) VALUES (?, ?, 'queued')",
-            (job_id, doc_id),
-        )
-    conn.close()
+    with db.connect() as s:  # connect() also creates db.UPLOADS
+        (db.UPLOADS / f"{doc_id}.pdf").write_bytes(data)
+        now = datetime.now(timezone.utc).isoformat()
+        s.add(Document(document_id=doc_id, home_id="home_01", type=type, uploaded_at=now, status="queued"))
+        s.flush()  # the job references the document
+        s.add(Job(job_id=job_id, document_id=doc_id, status="queued"))
+        s.commit()
     return {"document_id": doc_id, "job_id": job_id}

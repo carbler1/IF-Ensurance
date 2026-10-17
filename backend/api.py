@@ -8,8 +8,10 @@ from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import select
 
 from backend import admin, db, engine, maintenance
+from backend.models import Document, Home, Job, Profile
 
 HOME_ID = "home_01"  # the single demo home
 
@@ -59,59 +61,49 @@ v1 = APIRouter(prefix="/v1", dependencies=[Depends(require_token)])
 
 @v1.get("/homes/me")
 def get_home():
-    conn = db.connect()
-    try:
-        home = conn.execute("SELECT * FROM homes WHERE home_id=?", (HOME_ID,)).fetchone()
-        prof = conn.execute("SELECT profile FROM profiles WHERE home_id=?", (HOME_ID,)).fetchone()
-        docs = conn.execute(
-            "SELECT document_id, type, uploaded_at, status FROM documents WHERE home_id=? ORDER BY uploaded_at, document_id",
-            (HOME_ID,),
-        ).fetchall()
-    finally:
-        conn.close()
-    if home is None or prof is None:
-        raise HTTPException(404, "Home not found.")
-    return {
-        "home_id": home["home_id"],
-        "address": {"street": home["street"], "postal_code": home["postal_code"], "city": home["city"]},
-        "profile": json.loads(prof["profile"]),
-        "documents": [dict(d) for d in docs],
-    }
+    with db.connect() as s:
+        home = s.get(Home, HOME_ID)
+        prof = s.get(Profile, HOME_ID)
+        docs = s.scalars(select(Document).where(Document.home_id == HOME_ID)
+                         .order_by(Document.uploaded_at, Document.document_id)).all()
+        if home is None or prof is None:
+            raise HTTPException(404, "Home not found.")
+        return {
+            "home_id": home.home_id,
+            "address": {"street": home.street, "postal_code": home.postal_code, "city": home.city},
+            "profile": json.loads(prof.profile),
+            "documents": [{"document_id": d.document_id, "type": d.type, "uploaded_at": d.uploaded_at,
+                           "status": d.status} for d in docs],
+        }
 
 
 @v1.get("/jobs/{job_id}")
 def get_job(job_id: str):
-    conn = db.connect()
-    try:
-        job = conn.execute("SELECT * FROM jobs WHERE job_id=?", (job_id,)).fetchone()
-    finally:
-        conn.close()
+    with db.connect() as s:
+        job = s.get(Job, job_id)
     if job is None:
         raise HTTPException(404, f"Job {job_id} not found.")
     error = None
-    if job["error"]:
+    if job.error:
         try:
-            error = json.loads(job["error"])
+            error = json.loads(job.error)
         except ValueError:
             error = None
         if not isinstance(error, dict):
-            error = {"code": "failed", "message": job["error"]}
+            error = {"code": "failed", "message": job.error}
     return {
-        "job_id": job["job_id"],
-        "status": job["status"],
-        "stage": job["stage"] if job["status"] == "running" else None,
-        "started_at": job["started_at"],
-        "finished_at": job["finished_at"],
+        "job_id": job.job_id,
+        "status": job.status,
+        "stage": job.stage if job.status == "running" else None,
+        "started_at": job.started_at,
+        "finished_at": job.finished_at,
         "error": error,
     }
 
 
 def _read(fn, *args):
-    conn = db.connect()
-    try:
-        return fn(conn, HOME_ID, *args)
-    finally:
-        conn.close()
+    with db.connect() as s:
+        return fn(s, HOME_ID, *args)
 
 
 @v1.get("/homes/me/risks")
@@ -152,6 +144,5 @@ def health():
 
 @app.on_event("startup")
 def _seed():
-    conn = db.connect()
-    db.seed(conn)
-    conn.close()
+    with db.connect() as s:
+        db.seed(s)

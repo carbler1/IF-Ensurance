@@ -10,7 +10,10 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts" / "catalogue"))
 from validate import condition_leaves, matches  # noqa: E402
 
+from sqlalchemy import select  # noqa: E402
+
 from backend import db  # noqa: E402
+from backend.models import Home, Profile, RiskText, WorkOrder  # noqa: E402
 
 DRAFT = "DRAFT: "
 
@@ -19,26 +22,27 @@ def _strip(s: str) -> str:
     return s[len(DRAFT):] if s.startswith(DRAFT) else s
 
 
-def _load(conn, home_id):
-    row = conn.execute("SELECT profile FROM profiles WHERE home_id=?", (home_id,)).fetchone()
-    profile = json.loads(row[0]) if row else {}
+def _load(s, home_id):
+    row = s.get(Profile, home_id)
+    profile = json.loads(row.profile) if row else {}
     entries = json.loads((ROOT / "data" / "catalogue.json").read_text())["entries"]
     return profile, {e["id"]: e for e in entries}
 
 
-def _items(conn, home_id) -> list[tuple[dict, dict]]:
+def _orders(s, home_id, status) -> set[str]:
+    return set(s.scalars(select(WorkOrder.risk_id).where(WorkOrder.home_id == home_id, WorkOrder.status == status)))
+
+
+def _items(s, home_id) -> list[tuple[dict, dict]]:
     """(item, entry) pairs, sorted and cut to 5."""
-    profile, by_id = _load(conn, home_id)
-    texts = {r[0]: r for r in conn.execute(
-        "SELECT risk_id, why, benefit, llm_proposed FROM risk_texts WHERE home_id=?", (home_id,))}
-    booked = {r[0] for r in conn.execute(
-        "SELECT risk_id FROM work_orders WHERE home_id=? AND status='booked'", (home_id,))}
-    done = {r[0] for r in conn.execute(
-        "SELECT risk_id FROM work_orders WHERE home_id=? AND status='confirmed'", (home_id,))}
+    profile, by_id = _load(s, home_id)
+    texts = {t.risk_id: t for t in s.scalars(select(RiskText).where(RiskText.home_id == home_id))}
+    booked = _orders(s, home_id, "booked")
+    done = _orders(s, home_id, "confirmed")
     out = []
     for rid, e in by_id.items():
         t = texts.get(rid)
-        llm = bool(t and t["llm_proposed"])
+        llm = bool(t and t.llm_proposed)
         if not (matches(e["applies_when"], profile) or llm) or rid in done:
             continue
         out.append(({
@@ -47,8 +51,8 @@ def _items(conn, home_id) -> list[tuple[dict, dict]]:
             "title": e["title"],
             "severity": e["severity"],
             "probability": e["probability"],
-            "why": t["why"] if t else _strip(e["why_hint"]),
-            "benefit": t["benefit"] if t else _strip(e["benefit_hint"]),
+            "why": t.why if t else _strip(e["why_hint"]),
+            "benefit": t.benefit if t else _strip(e["benefit_hint"]),
             "points_available": e["points"],
             "partner_category": e["mitigation"]["partner_category"],
             "llm_proposed": llm,
@@ -58,19 +62,19 @@ def _items(conn, home_id) -> list[tuple[dict, dict]]:
     return out[:5]
 
 
-def risk_list(conn, home_id: str) -> dict:
+def risk_list(s, home_id: str) -> dict:
     """Response body of GET /homes/me/risks: matched entries with texts, by severity x probability,
     LLM-proposed last, at most 5."""
     return {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "risks": [i for i, _ in _items(conn, home_id)],
+        "risks": [i for i, _ in _items(s, home_id)],
     }
 
 
-def risk_detail(conn, home_id: str, risk_id: str) -> dict:
+def risk_detail(s, home_id: str, risk_id: str) -> dict:
     """The risk, its evidence quotes and up to 3 partners. Raises LookupError if unknown."""
-    profile, _ = _load(conn, home_id)
-    pairs = [p for p in _items(conn, home_id) if p[0]["risk_id"] == risk_id]
+    profile, _ = _load(s, home_id)
+    pairs = [p for p in _items(s, home_id) if p[0]["risk_id"] == risk_id]
     if not pairs:
         raise LookupError(risk_id)
     item, e = pairs[0]
@@ -81,10 +85,10 @@ def risk_detail(conn, home_id: str, risk_id: str) -> dict:
         if ev and leaf["field"] not in seen:
             seen.add(leaf["field"])
             evidence.append({k: ev[k] for k in ("document_id", "page", "quote")})
-    city = conn.execute("SELECT city FROM homes WHERE home_id=?", (home_id,)).fetchone()[0]
+    city = s.get(Home, home_id).city
     cat = e["mitigation"]["partner_category"]
     # Partners live in SQLite so If staff can change prices and vetting in the dashboard.
-    partners = [p for p in db.partners(conn)
+    partners = [p for p in db.partners(s)
                 if cat in p["categories"] and p["area"] == city and p["if_vetted"]]
     partners.sort(key=lambda p: -p["rating"])
     return {
@@ -96,6 +100,6 @@ def risk_detail(conn, home_id: str, risk_id: str) -> dict:
     }
 
 
-def maintenance(conn, home_id: str) -> list[dict]:
+def maintenance(s, home_id: str) -> list[dict]:
     """Due date = last known date + check_interval_years, or today."""
     raise NotImplementedError

@@ -19,13 +19,14 @@ def test_routes(tmp_path, monkeypatch):
     monkeypatch.setenv("CUSTOMER_TOKEN", "t")
     from backend.api import app
     with TestClient(app) as c:  # runs the startup seed
-        conn = db.connect()
+        from backend.models import Profile, RiskText
         prof = json.loads((ROOT / "prompts/examples/write-1-input.json").read_text())["profile"]
         now = datetime.now(timezone.utc).isoformat()
-        with conn:
-            conn.execute("UPDATE profiles SET profile=? WHERE home_id='home_01'", (json.dumps(prof),))
-            conn.execute("INSERT INTO risk_texts VALUES ('home_01','elec.check.overdue','w','b',0,?)", (now,))
-        conn.close()
+        with db.connect() as s:
+            s.get(Profile, "home_01").profile = json.dumps(prof)
+            s.add(RiskText(home_id="home_01", risk_id="elec.check.overdue", why="w", benefit="b",
+                           llm_proposed=0, generated_at=now))
+            s.commit()
         for p in ("/v1/homes/me/risks", "/v1/homes/me/risks/x", "/v1/homes/me/maintenance"):
             assert c.get(p).status_code == 401
         r = c.get("/v1/homes/me/risks", headers=H).json()

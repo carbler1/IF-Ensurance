@@ -3,7 +3,11 @@
 import json
 import time
 
+from sqlalchemy import literal_column, select, update
+from sqlalchemy.orm import Session
+
 from backend import db, pipeline
+from backend.models import Document, Job
 
 LIMIT = 180  # seconds
 
@@ -12,48 +16,53 @@ class Timeout(Exception):
     code = "timeout"
 
 
-def _fail(conn, job_id, document_id, code, message) -> None:
+def _finish(s: Session, job_id, document_id, job_values: dict, document_status: str) -> None:
+    s.execute(update(Job).where(Job.job_id == job_id).values(stage=None, finished_at=pipeline.now(), **job_values))
+    s.execute(update(Document).where(Document.document_id == document_id).values(status=document_status))
+    s.commit()
+
+
+def _fail(s: Session, job_id, document_id, code, message) -> None:
     err = json.dumps({"code": code, "message": message})
-    conn.execute("UPDATE jobs SET status='failed', stage=NULL, finished_at=?, error=? WHERE job_id=?",
-                 (pipeline.now(), err, job_id))
-    conn.execute("UPDATE documents SET status='failed' WHERE document_id=?", (document_id,))
-    conn.commit()
+    _finish(s, job_id, document_id, {"status": "failed", "error": err}, "failed")
 
 
-def run_once(conn) -> bool:
-    row = conn.execute("SELECT job_id, document_id FROM jobs WHERE status='queued' ORDER BY rowid LIMIT 1").fetchone()
+def run_once(s: Session) -> bool:
+    # rowid keeps insertion order, so the oldest queued job runs first.
+    row = s.execute(select(Job.job_id, Job.document_id).where(Job.status == "queued")
+                    .order_by(literal_column("jobs.rowid")).limit(1)).first()
     if row is None:
+        s.rollback()  # end the read so the next poll sees new jobs
         return False
-    job_id, document_id = row[0], row[1]
-    conn.execute("UPDATE jobs SET status='running', started_at=? WHERE job_id=?", (pipeline.now(), job_id))
-    conn.commit()
+    job_id, document_id = row
+    s.execute(update(Job).where(Job.job_id == job_id).values(status="running", started_at=pipeline.now()))
+    s.commit()
     t0 = time.monotonic()
 
     def stage(name):
-        conn.execute("UPDATE jobs SET stage=? WHERE job_id=?", (name, job_id))
-        conn.commit()
+        s.execute(update(Job).where(Job.job_id == job_id).values(stage=name))
+        s.commit()
 
     def check():
         if time.monotonic() - t0 > LIMIT:
             raise Timeout(f"job ran over {LIMIT} s")
 
     try:
-        pipeline.run(conn, document_id, stage, check)
+        pipeline.run(s, document_id, stage, check)
     except Exception as e:
-        _fail(conn, job_id, document_id, getattr(e, "code", "pipeline_error"), str(e))
+        s.rollback()
+        _fail(s, job_id, document_id, getattr(e, "code", "pipeline_error"), str(e))
         return True
-    conn.execute("UPDATE jobs SET status='done', stage=NULL, finished_at=? WHERE job_id=?", (pipeline.now(), job_id))
-    conn.execute("UPDATE documents SET status='processed' WHERE document_id=?", (document_id,))
-    conn.commit()
+    _finish(s, job_id, document_id, {"status": "done"}, "processed")
     return True
 
 
 def main() -> None:
-    conn = db.connect()
-    for r in conn.execute("SELECT job_id, document_id FROM jobs WHERE status='running'").fetchall():
-        _fail(conn, r[0], r[1], "worker_restart", "worker restarted while the job ran")
+    s = db.connect()
+    for job_id, document_id in s.execute(select(Job.job_id, Job.document_id).where(Job.status == "running")).all():
+        _fail(s, job_id, document_id, "worker_restart", "worker restarted while the job ran")
     while True:
-        if not run_once(conn):
+        if not run_once(s):
             time.sleep(1)
 
 

@@ -16,6 +16,7 @@ RUN pip install --no-cache-dir \
     python-multipart \
     pypdfium2 \
     httpx \
+    sqlalchemy \
     jsonschema
 
 COPY backend ./backend
