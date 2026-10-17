@@ -14,7 +14,7 @@ async function Model() {
   return (
     <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
       <Card>
-        <h2 className="text-base font-semibold">Insurance score</h2>
+        <h2 className="text-lg font-semibold">Insurance score</h2>
         <p className="mt-1 text-sm text-muted-foreground">Every insurance has its own score from 0 to {s.max_score}. Confirmed fixes add points to it.</p>
         <SaveForm action={saveSettings}>
           <div className="mt-4">
@@ -25,7 +25,7 @@ async function Model() {
         </SaveForm>
       </Card>
       <Card>
-        <h2 className="text-base font-semibold">Discount bands</h2>
+        <h2 className="text-lg font-semibold">Discount bands</h2>
         <p className="mt-1 text-sm text-muted-foreground">An insurance&apos;s own score sets the discount on that insurance only.</p>
         <BandsEditor bands={b.bands} max={b.max_score} />
       </Card>
@@ -47,15 +47,15 @@ export default function ScoringPage() {
       />
       <Data load={() => Model()} />
       <Card tone="accent" className="mt-4">
-        <h2 className="text-sm font-semibold text-accent-foreground">How it adds up</h2>
-        <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-accent-foreground">
+        <h2 className="font-semibold text-accent-foreground">How it adds up</h2>
+        <ol className="mt-2 list-decimal space-y-1 pl-5 text-[0.9375rem] text-accent-foreground">
           <li>Each insurance starts at the new-insurance score. A confirmed fix adds its points to that insurance&apos;s score.</li>
           <li>A fix&apos;s points come from its active context with the highest priority that matches the object, else its default rule.</li>
           <li>The insurance&apos;s score picks its discount band: that percent comes off that insurance&apos;s premium.</li>
           <li>The Care Score is the average of all the customer&apos;s insurance scores. It sets the tier and its bonuses (Tiers &amp; rewards).</li>
         </ol>
       </Card>
-      <h2 className="mt-10 mb-4 text-lg font-semibold">Insurances and their fixes</h2>
+      <h2 className="mt-12 mb-5 text-xl font-semibold">Insurances and their fixes</h2>
       <Data load={() => Rules()} />
     </>
   );

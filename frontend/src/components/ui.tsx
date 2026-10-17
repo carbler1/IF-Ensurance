@@ -34,7 +34,7 @@ export const classIcon: Record<string, LucideIcon> = {
 
 // Lives here, not in the client-only ./form, so server pages get the string rather than a client reference.
 export const inputClass =
-  "h-10 w-full rounded-lg border border-input bg-card px-3 text-[0.9375rem] tabular-nums text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-3 focus:ring-primary/20";
+  "h-11 w-full rounded-lg border border-input bg-card px-3.5 text-base tabular-nums text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-3 focus:ring-primary/20";
 
 export const tierColor = ["bg-tier-bronze", "bg-tier-silver", "bg-tier-gold", "bg-tier-platinum"];
 
@@ -42,8 +42,8 @@ export function PageHeader({ title, sub, children }: { title: string; sub: strin
   return (
     <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-[1.75rem] leading-tight font-medium">{title}</h1>
-        <p className="mt-1.5 max-w-2xl text-muted-foreground">{sub}</p>
+        <h1 className="text-[2.125rem] leading-tight font-medium">{title}</h1>
+        <p className="mt-2 max-w-3xl text-[1.0625rem] text-muted-foreground">{sub}</p>
       </div>
       {children}
     </header>
@@ -59,8 +59,8 @@ export function Card({ className = "", tone = "card", flush = false, children }:
 
 export function IconTile({ icon: Icon, size = "md" }: { icon: LucideIcon; size?: "md" | "lg" }) {
   return (
-    <span className={`grid shrink-0 place-items-center rounded-lg bg-secondary text-muted-foreground ${size === "lg" ? "h-11 w-11" : "h-9 w-9"}`}>
-      <Icon className={size === "lg" ? "h-5 w-5" : "h-[18px] w-[18px]"} aria-hidden />
+    <span className={`grid shrink-0 place-items-center rounded-lg bg-secondary text-muted-foreground ${size === "lg" ? "h-12 w-12" : "h-10 w-10"}`}>
+      <Icon className={size === "lg" ? "h-6 w-6" : "h-5 w-5"} strokeWidth={1.75} aria-hidden />
     </span>
   );
 }
@@ -72,7 +72,7 @@ export function Pill({ children, tone = "secondary" }: { children: ReactNode; to
     success: "bg-success-soft text-success",
     warning: "bg-warning-soft text-foreground",
   };
-  return <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${tones[tone]}`}>{children}</span>;
+  return <span className={`inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 text-[0.8125rem] font-medium ${tones[tone]}`}>{children}</span>;
 }
 
 /** A small segmented control: one pressed button out of a few. */
@@ -81,7 +81,7 @@ export function Segmented<T extends string>({ label, options, value, onChange }:
     <div role="group" aria-label={label} className="inline-flex flex-wrap gap-1 rounded-lg bg-secondary p-1">
       {options.map((o) => (
         <button key={o.value} type="button" aria-pressed={o.value === value} onClick={() => onChange(o.value)}
-          className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors ${o.value === value ? "bg-card text-foreground shadow-soft ring-1 ring-border" : "text-muted-foreground hover:text-foreground"}`}>
+          className={`inline-flex h-9 items-center gap-1.5 rounded-md px-3.5 text-[0.9375rem] font-medium transition-colors ${o.value === value ? "bg-card text-foreground shadow-soft ring-1 ring-border" : "text-muted-foreground hover:text-foreground"}`}>
           {o.label}
         </button>
       ))}
@@ -92,6 +92,7 @@ export function Segmented<T extends string>({ label, options, value, onChange }:
 export const formatDate = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
-export const eur = (n: number) => `${n.toLocaleString("en-GB")} €`;
+// A no-break space keeps the euro sign on the number's line.
+export const eur = (n: number) => `${n.toLocaleString("en-GB")}\u00a0€`;
 
 export const humanize = (s: string) => s.replaceAll("_", " ").replace(/^\w/, (c) => c.toUpperCase());

@@ -2,14 +2,14 @@
 
 import { useActionState, useState, type ReactNode } from "react";
 import type { SaveState } from "@/app/actions";
-// Form controls: 36–40 px buttons, the app's small blue switch.
+// Form controls: 40–44 px buttons, the app's small blue switch.
 
 export function Label({ text, hint, children, className = "" }: { text: string; hint?: string; children: ReactNode; className?: string }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1.5 block text-sm font-medium">{text}</span>
+      <span className="mb-1.5 block text-[0.9375rem] font-medium">{text}</span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-muted-foreground">{hint}</span>}
+      {hint && <span className="mt-1.5 block text-sm text-muted-foreground">{hint}</span>}
     </label>
   );
 }
@@ -35,7 +35,7 @@ export function Switch({ name, defaultChecked, label, onChange, children }: { na
       >
         <span className={`block h-4 w-4 rounded-full bg-card shadow-sm transition-transform ${on ? "translate-x-4" : "translate-x-0"}`} />
       </button>
-      {children && <span className="text-sm font-medium">{children}</span>}
+      {children && <span className="text-[0.9375rem] font-medium">{children}</span>}
     </label>
   );
 }
@@ -65,7 +65,7 @@ export function Button({ children, variant = "primary", big = true, className = 
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center gap-2 font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${big ? "h-10 px-5 text-[0.9375rem]" : "h-9 px-3.5 text-sm"} rounded-lg ${variants[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${big ? "h-11 px-5 text-base" : "h-10 px-4 text-[0.9375rem]"} rounded-lg ${variants[variant]} ${className}`}
     >
       {children}
     </button>

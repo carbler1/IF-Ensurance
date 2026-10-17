@@ -43,7 +43,7 @@ export function BandsEditor({ bands, max }: { bands: Band[]; max: number }) {
         <div className="grid grid-cols-[1fr_1fr_2.25rem] gap-2 text-sm font-medium">
           <span>From insurance score</span><span>% off that insurance</span><span />
         </div>
-        <p className="text-xs text-muted-foreground">Below {Math.min(...preview.map((r) => r.min_score), max)}: no discount.</p>
+        <p className="text-sm text-muted-foreground">Below {Math.min(...preview.map((r) => r.min_score), max)}: no discount.</p>
         {rows.map((r) => (
           <div key={r.key} className="grid grid-cols-[1fr_1fr_2.25rem] items-center gap-2">
             <input aria-label="From insurance score" name="min_score" type="number" min={1} max={max} required defaultValue={r.min_score}

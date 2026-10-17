@@ -14,7 +14,7 @@ async function Ladder() {
       {[...tiers].reverse().map((t) => (
         <Card key={t.index}>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 text-base font-semibold">
+            <h2 className="flex items-center gap-2 text-lg font-semibold">
               <span className={`h-2.5 w-2.5 rounded-full ${tierColor[t.index] ?? "bg-primary"}`} />
               {t.name}
             </h2>

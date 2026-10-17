@@ -8,8 +8,8 @@ function Stat({ label, value, sub }: { label: string; value: string | number; su
   return (
     <div className="bg-card px-5 py-4">
       <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-1 text-[1.75rem] leading-tight font-light tabular-nums">{value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
+      <p className="mt-1 text-[2.25rem] leading-tight font-light tabular-nums">{value}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{sub}</p>
     </div>
   );
 }
@@ -20,7 +20,7 @@ async function Tiles() {
   const premiums = classes.reduce((a, k) => a + k.base_annual_premium_eur, 0);
   return (
     // One strip; the 1 px gaps over the border colour draw the dividers in any column count.
-    <Card tone="line" flush className="grid gap-px overflow-hidden sm:grid-cols-2 lg:grid-cols-4">
+    <Card tone="line" flush className="grid grid-cols-2 gap-px overflow-hidden lg:grid-cols-4">
       <Stat label="Customers" value={c.customers} sub={`${c.classes} insurance classes`} />
       <Stat label="Documents" value={total(c.documents)} sub={`${c.documents.processed ?? 0} processed · ${c.documents.failed ?? 0} failed`} />
       <Stat label="App bookings" value={c.bookings.open + c.bookings.confirmed} sub={`${c.bookings.open} in progress · ${c.bookings.confirmed} confirmed`} />

@@ -5,7 +5,7 @@ import { bandSoft } from "./Bands";
 
 const tierSoft = bandSoft.slice(0, 4);
 
-export function ScoreRing({ score, projected, max, tierMins, size = 200 }: { score: number; projected: number; max: number; tierMins: number[]; size?: number }) {
+export function ScoreRing({ score, projected, max, tierMins, size = 220 }: { score: number; projected: number; max: number; tierMins: number[]; size?: number }) {
   const r = size / 2 - 8;
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(1, score / max));
@@ -33,9 +33,9 @@ export function ScoreRing({ score, projected, max, tierMins, size = 200 }: { sco
         </g>
       </svg>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`text-[2.75rem] leading-none font-light tabular-nums ${projected > score ? "text-primary-light" : ""}`}>{projected}</span>
+        <span className={`text-[3.25rem] leading-none font-light tabular-nums ${projected > score ? "text-primary-light" : ""}`}>{projected}</span>
         {projected > score && <span className="mt-1 text-base font-medium text-primary tabular-nums">+{projected - score}</span>}
-        <span className="mt-1 text-xs text-muted-foreground">Care Score</span>
+        <span className="mt-1 text-sm text-muted-foreground">Care Score</span>
       </div>
     </div>
   );

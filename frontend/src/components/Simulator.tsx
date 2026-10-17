@@ -105,7 +105,7 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
             </div>
             <div>
               <p className="text-sm text-muted-foreground">All premiums per year</p>
-              <p className="mt-1 text-[1.75rem] leading-tight font-light tabular-nums">{eur(sim?.premium.after ?? 0)}</p>
+              <p className="mt-1 text-[2.25rem] leading-tight font-light tabular-nums">{eur(sim?.premium.after ?? 0)}</p>
               <p className="text-sm text-muted-foreground">
                 Base {eur(sim?.premium.base ?? 0)} · now {eur(sim?.premium.now ?? 0)}
               </p>
@@ -125,12 +125,12 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
           return (
             <button key={o.object_id ?? i} aria-pressed={on} type="button" onClick={() => setActive(i)}
               className={`rounded-xl border bg-card px-4 py-3 text-left transition-colors ${on ? "border-primary ring-1 ring-primary" : "hover:border-input"}`}>
-              <span className="flex items-center gap-2 text-sm font-semibold"><Icon className={`h-4 w-4 ${on ? "text-primary" : "text-muted-foreground"}`} strokeWidth={1.75} aria-hidden />{r?.class_name ?? o.class_id}</span>
-              <span className="mt-0.5 block truncate text-xs text-muted-foreground">{o.name}</span>
-              <span className="mt-2 block text-xl font-light tabular-nums">
+              <span className="flex items-center gap-2 font-semibold"><Icon className={`h-[18px] w-[18px] ${on ? "text-primary" : "text-muted-foreground"}`} strokeWidth={1.75} aria-hidden />{r?.class_name ?? o.class_id}</span>
+              <span className="mt-0.5 block truncate text-sm text-muted-foreground">{o.name}</span>
+              <span className="mt-2 block text-2xl font-light tabular-nums">
                 {r?.score.now ?? "—"}{r && r.score.after > r.score.now && <span className="text-primary"> → {r.score.after}</span>}
               </span>
-              <span className={`block text-xs font-medium ${r?.band.after ? "text-success" : "text-muted-foreground"}`}>
+              <span className={`block text-sm font-medium ${r?.band.after ? "text-success" : "text-muted-foreground"}`}>
                 {r ? (r.band.after > r.band.now ? `${off(r.band.now)} → ${off(r.band.after)}` : off(r.band.now)) : ""}
               </span>
             </button>
@@ -142,7 +142,7 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
         <div className="grid gap-4 @4xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <Card className="h-fit">
             <div className="flex items-center justify-between gap-2">
-              <h2 className="text-base font-semibold">{cls.name}</h2>
+              <h2 className="text-lg font-semibold">{cls.name}</h2>
               <button type="button" onClick={() => setInputs(inputs.map((o, i) => (i === active ? inputsOf(customer, classes)[i] : o)))} className="flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-primary hover:bg-accent">
                 <RotateCcw className="h-3.5 w-3.5" aria-hidden />Reset
               </button>
@@ -163,7 +163,7 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">{cls.name} score</p>
-                  <p className="text-[2rem] leading-tight font-light tabular-nums">
+                  <p className="text-[2.75rem] leading-tight font-light tabular-nums">
                     {result.score.now}{result.score.after > result.score.now && <span className="text-primary"> → {result.score.after}</span>}
                     <span className="ml-1 font-sans text-base font-normal text-muted-foreground">/ {max}</span>
                   </p>
@@ -173,7 +173,7 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">{cls.name} premium per year</p>
-                  <p className="text-[1.75rem] leading-tight font-light tabular-nums">{eur(result.premium.after)}</p>
+                  <p className="text-[2.25rem] leading-tight font-light tabular-nums">{eur(result.premium.after)}</p>
                   <p className="text-sm text-muted-foreground">
                     <span className="line-through">{eur(result.premium.base)}</span> · now {off(result.band.now)}
                     {result.band.after > result.band.now && <span className="font-semibold text-success"> → {off(result.band.after)}</span>}
@@ -197,7 +197,7 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
               </Card>
             )}
 
-            <h2 className="pt-2 text-base font-semibold">{result.fixes.length} {result.fixes.length === 1 ? "fix applies" : "fixes apply"}</h2>
+            <h2 className="pt-3 text-lg font-semibold">{result.fixes.length} {result.fixes.length === 1 ? "fix applies" : "fixes apply"}</h2>
             {result.fixes.length === 0 && <Card className="text-sm text-muted-foreground">No fix applies. Fill in more of the profile.</Card>}
             {result.fixes.length > 0 && <Card flush className="divide-y">
             {result.fixes.map((f) => {
@@ -218,8 +218,8 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
                       </div>
                     </div>
                     <div className="shrink-0 text-right text-primary">
-                      <p className="text-xl font-light tabular-nums">+{f.points}</p>
-                      <p className="text-xs text-muted-foreground">points</p>
+                      <p className="text-2xl font-light tabular-nums">+{f.points}</p>
+                      <p className="text-sm text-muted-foreground">points</p>
                     </div>
                   </div>
                 </div>

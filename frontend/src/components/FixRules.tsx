@@ -13,7 +13,7 @@ function RuleEditor({ rule }: { rule: Rule }) {
     <div className={`rounded-lg border p-4 ${rule.active ? "bg-background" : "border-dashed bg-card opacity-70"}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold">{rule.label}</p>
+          <p className="font-semibold">{rule.label}</p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {describe(rule.context).map((d) => <Pill key={d} tone={rule.context ? "accent" : "secondary"}>{d}</Pill>)}
           </div>
@@ -74,7 +74,7 @@ function AddRule({ risk, fields, onDone, defaults }: { risk: Risk; fields: Field
   return (
     <div className="pop-in rounded-lg border border-primary bg-accent/40 p-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold">New context for “{risk.title}”</p>
+        <p className="font-semibold">New context for “{risk.title}”</p>
         <button type="button" onClick={onDone} aria-label="Close" className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-card hover:text-foreground"><X className="h-4 w-4" aria-hidden /></button>
       </div>
       <SaveForm action={async (s, f) => { const r = await addRule(s, f); if (r?.ok) onDone(); return r; }} button="Add context" className="mt-3">
@@ -155,8 +155,8 @@ function FixCard({ risk, rules, fields }: { risk: Risk; rules: Rule[]; fields: F
         </div>
         {def && (
           <div className="hidden shrink-0 text-right sm:block">
-            <p className="text-2xl font-light text-primary tabular-nums">+{def.points}</p>
-            <p className="text-xs text-muted-foreground">points by default</p>
+            <p className="text-[1.75rem] leading-tight font-light text-primary tabular-nums">+{def.points}</p>
+            <p className="text-sm text-muted-foreground">points by default</p>
           </div>
         )}
       </div>
@@ -207,7 +207,7 @@ export function FixRules({ classes, rules }: { classes: InsuranceClass[]; rules:
         <Segmented label="Insurance class" value={cls.class_id} onChange={(id) => { setClassId(id); setCategory("all"); setQuery(""); }}
           options={classes.map((c) => {
             const Icon = classIcon[c.class_id] ?? classIcon.house;
-            return { value: c.class_id, label: <><Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />{c.name}<span className="text-xs text-muted-foreground tabular-nums">{c.risks.length}</span></> };
+            return { value: c.class_id, label: <><Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />{c.name}<span className="text-sm text-muted-foreground tabular-nums">{c.risks.length}</span></> };
           })} />
       </div>
 
