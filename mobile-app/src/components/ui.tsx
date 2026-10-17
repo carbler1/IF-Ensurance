@@ -125,7 +125,7 @@ export function Screen({ title, sub, back, children }: { title?: string; sub?: s
           <Pressable
             accessibilityRole="button"
             onPress={() => (router.canGoBack() ? router.back() : router.navigate("/"))}
-            style={{ marginBottom: 12, marginLeft: -8, height: 44, flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, alignSelf: "flex-start" }}
+            style={({ pressed }) => [{ marginBottom: 12, marginLeft: -8, minHeight: 44, flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, alignSelf: "flex-start", borderRadius: radius.md }, pressed && { backgroundColor: colors.accent }]}
           >
             <ChevronLeft size={20} color={colors.primary} />
             <Text size="base" weight={500} color="primary">{t("back")}</Text>
@@ -156,7 +156,7 @@ export function Wordmark() {
   const { t } = useStore();
   return (
     <Link href="/" asChild>
-      <Pressable accessibilityRole="link" accessibilityLabel={t("brand")} style={{ alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 10 }}>
+      <Pressable accessibilityRole="link" accessibilityLabel={t("brand")} hitSlop={{ top: 4, bottom: 4 }} style={{ alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 10 }}>
         <Mark size={40} />
         <Text size="xl" weight={600} style={{ letterSpacing: -0.4 }}>Ensurance</Text>
       </Pressable>
@@ -180,7 +180,7 @@ export function PressCard({ style, children, ...props }: PressableProps & { styl
       style={[style, { transform: [{ scale: held.interpolate({ inputRange: [0, 1], outputRange: [1, 0.96] }) }] }]}
     >
       {children}
-      <Animated.View pointerEvents="none" style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, borderRadius: radius["2xl"], borderWidth: 2, borderColor: colors.primary, backgroundColor: "rgba(0, 84, 240, 0.06)", opacity: held }} />
+      <Animated.View pointerEvents="none" style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, borderRadius: radius["2xl"], borderWidth: 2, borderColor: colors.primary, backgroundColor: colors.primaryTint, opacity: held }} />
     </AnimatedPressable>
   );
 }
@@ -269,10 +269,12 @@ export function SwitchRow({ value, onValueChange, label, style, children }: { va
 // The web "pop-in" utility: scale 0.85 -> 1 and fade in with a slight overshoot.
 export function PopIn({ style, children }: { style?: StyleProp<ViewStyle>; children: ReactNode }) {
   const v = useRef(new Animated.Value(0)).current;
+  const reducedMotion = useReducedMotion();
   useEffect(() => {
-    Animated.timing(v, { toValue: 1, duration: 600, easing: Easing.bezier(0.2, 0.9, 0.3, 1.3), useNativeDriver: true }).start();
-  }, [v]);
-  return <Animated.View style={[style, { opacity: v.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolate: "clamp" }), transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }] }]}>{children}</Animated.View>;
+    // Reduce Motion: no scale or overshoot, only a short fade, so the confirmation still registers.
+    Animated.timing(v, { toValue: 1, duration: reducedMotion ? 150 : 600, easing: reducedMotion ? Easing.linear : Easing.bezier(0.2, 0.9, 0.3, 1.3), useNativeDriver: true }).start();
+  }, [v, reducedMotion]);
+  return <Animated.View style={[style, { opacity: v.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolate: "clamp" }), transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [reducedMotion ? 1 : 0.85, 1] }) }] }]}>{children}</Animated.View>;
 }
 
 export function Spinner({ size, color }: { size: number; color: string }) {
@@ -319,7 +321,7 @@ function useSweepDuration(intro: boolean) {
 }
 
 /** surface: the colour behind the ring, which the threshold notches cut through to. once: see useIntro. */
-export function ScoreRing({ score, max = 1000, size = 200, projectedScore = score, thresholdScore = score, showThresholds = false, segments, surface = colors.card, once }: { score: number; max?: number; size?: number; projectedScore?: number; thresholdScore?: number; showThresholds?: boolean; segments: RingSegment[]; surface?: string; once?: string }) {
+export function ScoreRing({ score, max = 1000, size = 200, projectedScore = score, thresholdScore = score, showThresholds = false, segments, surface = colors.card, once, projectedProgress }: { score: number; max?: number; size?: number; projectedScore?: number; thresholdScore?: number; showThresholds?: boolean; segments: RingSegment[]; surface?: string; once?: string; projectedProgress?: Animated.Value }) {
   const r = size / 2 - 12;
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(1, score / max));
@@ -374,7 +376,19 @@ export function ScoreRing({ score, max = 1000, size = 200, projectedScore = scor
             );
           })}
           <AnimatedCircle cx={center} cy={center} r={r} fill="none" strokeWidth={14} strokeLinecap="round" strokeDasharray={`${c}`} strokeDashoffset={offset} stroke={colors.primary} />
-          {projectedPct > pct && <Circle cx={center} cy={center} r={r} fill="none" strokeWidth={14} strokeDasharray={`${c * (projectedPct - pct)} ${c}`} strokeDashoffset={-c * pct} stroke={colors.primaryLight} />}
+          {/* projectedProgress (0..1) grows the projected arc without re-rendering the ring. */}
+          {projectedPct > pct && (
+            <AnimatedCircle
+              cx={center}
+              cy={center}
+              r={r}
+              fill="none"
+              strokeWidth={14}
+              strokeDasharray={projectedProgress ? projectedProgress.interpolate({ inputRange: [0, 1], outputRange: [`0 ${c}`, `${c * (projectedPct - pct)} ${c}`] }) : `${c * (projectedPct - pct)} ${c}`}
+              strokeDashoffset={-c * pct}
+              stroke={colors.primaryLight}
+            />
+          )}
           {/* The scale's start and end meet at the top: a short gap keeps 0 and the maximum apart and gives the arc a clean start. */}
           {showThresholds && <Circle cx={center} cy={center} r={r} fill="none" strokeWidth={16} strokeDasharray={`9 ${c}`} strokeDashoffset={9} stroke={surface} />}
         </G>
@@ -423,7 +437,7 @@ export function CountUp({ value, once, ...props }: TextProps & TextOwnProps & { 
     run.start();
     return () => run.stop();
   }, [value, anim, reducedMotion]);
-  return <Text accessibilityLabel={String(value)} tabular {...props}>{shown}</Text>;
+  return <Text accessibilityLabel={String(value)} tabular maxFontSizeMultiplier={1.2} {...props}>{shown}</Text>;
 }
 
 // Arrives after the ring lands: rises 6 px and fades in. With Reduce Motion it is simply there.

@@ -255,13 +255,14 @@ export function Onboarding() {
                   return (
                     <Pressable
                       key={k}
-                      accessibilityRole="button"
+                      accessibilityRole="checkbox"
+                      aria-checked={on}
                       onPress={() =>
                         setAdded(
                           on ? added.filter((x) => x !== k) : [...added, k],
                         )
                       }
-                      style={{
+                      style={({ pressed }) => [{
                         minHeight: 64,
                         flexDirection: "row",
                         alignItems: "center",
@@ -274,7 +275,7 @@ export function Onboarding() {
                         backgroundColor: colors.card,
                         paddingHorizontal: 16,
                         paddingVertical: 12,
-                      }}
+                      }, pressed && { opacity: 0.8 }]}
                     >
                       <View
                         style={{

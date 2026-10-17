@@ -16,6 +16,7 @@ import { Onboarding } from "@/components/Onboarding";
 import { TabBar } from "@/components/TabBar";
 import { Button, Heading, Spinner, Text } from "@/components/ui";
 import { StoreProvider, useStore } from "@/lib/store";
+import { dictionaries } from "@/lib/i18n";
 import { colors, shadows } from "@/lib/theme";
 
 SplashScreen.preventAutoHideAsync();
@@ -24,13 +25,13 @@ SplashScreen.preventAutoHideAsync();
 const tabPage = { animation: "none" } as const;
 
 export default function RootLayout() {
-  const [loaded] = useFonts({ Figtree_400Regular, Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Fraunces_400Regular, Fraunces_400Regular_Italic, Fraunces_600SemiBold });
+  const [loaded, fontError] = useFonts({ Figtree_400Regular, Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Fraunces_400Regular, Fraunces_400Regular_Italic, Fraunces_600SemiBold });
 
   useEffect(() => {
-    if (loaded) SplashScreen.hideAsync();
-  }, [loaded]);
+    if (loaded || fontError) SplashScreen.hideAsync();
+  }, [loaded, fontError]);
 
-  if (!loaded) return null;
+  if (!loaded && !fontError) return null;
 
   return (
     <SafeAreaProvider>
@@ -91,19 +92,21 @@ function AppFrame() {
   );
 }
 
+// Renders in place of the root layout, outside StoreProvider, so the chosen language is not known here: English, the app default.
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   console.error(error);
+  const t = dictionaries.en;
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background, paddingHorizontal: 16 }}>
       <View style={{ maxWidth: 448, alignItems: "center" }}>
-        <Heading size="xl" display={false} center>This page didn't load</Heading>
+        <Heading size="xl" display={false} center>{t["err.title"]}</Heading>
         <Text size="sm" color="mutedForeground" center style={{ marginTop: 8 }}>
-          Something went wrong on our end. You can try refreshing or head back home.
+          {t["err.sub"]}
         </Text>
         <View style={{ marginTop: 24, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8 }}>
-          <Button onPress={retry}>Try again</Button>
+          <Button onPress={retry}>{t["err.retry"]}</Button>
           <Link href="/" asChild>
-            <Button variant="outline">Go home</Button>
+            <Button variant="outline">{t["err.home"]}</Button>
           </Link>
         </View>
       </View>

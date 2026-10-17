@@ -46,7 +46,7 @@ export function TabBar() {
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             onPress={() => router.navigate(to)}
-            style={{ flex: 1, minHeight: 64, paddingVertical: 8, alignItems: "center", justifyContent: "center", gap: 4 }}
+            style={({ pressed }) => [{ flex: 1, minHeight: 64, paddingVertical: 8, alignItems: "center", justifyContent: "center", gap: 4 }, pressed && { backgroundColor: colors.accent }]}
           >
             <TabIcon Icon={Icon} active={active} color={color} />
             {/* One line and a capped scale: at large font sizes "Maintenance" would break mid-word and push its icon up. */}

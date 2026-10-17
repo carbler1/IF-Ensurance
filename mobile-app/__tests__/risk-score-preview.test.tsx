@@ -13,7 +13,7 @@ jest.mock("@/components/ui", () => ({
 jest.mock("@/lib/store", () => {
   const bands = [{ min: 500, percent: 5 }, { min: 700, percent: 10 }, { min: 900, percent: 15 }];
   const getBand = (score: number) => bands.reduce((p, b) => (score >= b.min ? b.percent : p), 0);
-  return { useStore: () => ({ t: (key: string) => key, bands, getBand }) };
+  return { useStore: () => ({ t: (key: string) => key, bands, getBand, model: { maxScore: 1000 } }) };
 });
 
 describe("Risk score preview thresholds", () => {

@@ -19,6 +19,9 @@ export default function RiskDetailRoute() {
 }
 
 // A selectable option card: blue border and tint when chosen, soft shadow otherwise.
+// Held: the card dims a touch, so the tap is acknowledged before the selection lands.
+const pressedChoice = { opacity: 0.8 };
+
 const choice = (selected: boolean) => [
   { borderRadius: radius["2xl"], borderWidth: 2, backgroundColor: colors.card, padding: 16 },
   selected ? { borderColor: colors.primary, backgroundColor: colors.accent } : { borderColor: "transparent", boxShadow: shadows.soft },
@@ -94,52 +97,57 @@ function RiskDetail({ risk }: { risk: Risk }) {
       </Card>
 
       <Heading size="xl" style={{ paddingTop: 8 }}>{t("rd.how")}</Heading>
-      {([["hire", HardHat], ["diy", Search]] as const).map(([m, MIcon]) => (
-        <Pressable
-          key={m}
-          accessibilityRole="button"
-          accessibilityState={{ selected: mode === m }}
-          onPress={() => { setMode(m); setBid(null); }}
-          style={[...choice(mode === m), { flexDirection: "row", alignItems: "center", gap: 16 }]}
-        >
-          <MIcon size={28} color={colors.primary} />
-          <View style={{ flex: 1 }}>
-            <Text size="lg" weight={600}>{t(m === "hire" ? "rd.hire" : "rd.diy")}</Text>
-            <Text color="mutedForeground">{t(m === "hire" ? "rd.hireSub" : "rd.diySub")}</Text>
-          </View>
-        </Pressable>
-      ))}
+      {/* Single choice: a radio group, so a screen reader announces "1 of 2, selected". */}
+      <View accessibilityRole="radiogroup" style={{ gap: 16 }}>
+        {([["hire", HardHat], ["diy", Search]] as const).map(([m, MIcon]) => (
+          <Pressable
+            key={m}
+            accessibilityRole="radio"
+            aria-checked={mode === m}
+            onPress={() => { setMode(m); setBid(null); }}
+            style={({ pressed }) => [...choice(mode === m), { flexDirection: "row", alignItems: "center", gap: 16 }, pressed && pressedChoice]}
+          >
+            <MIcon size={28} color={colors.primary} />
+            <View style={{ flex: 1 }}>
+              <Text size="lg" weight={600}>{t(m === "hire" ? "rd.hire" : "rd.diy")}</Text>
+              <Text color="mutedForeground">{t(m === "hire" ? "rd.hireSub" : "rd.diySub")}</Text>
+            </View>
+          </Pressable>
+        ))}
+      </View>
 
       {mode && (
         <>
           <Heading size="xl" style={{ paddingTop: 8 }}>{t("rd.bids")}</Heading>
           <Text color="mutedForeground" style={{ marginTop: -8 }}>{t("rd.bidsSub")}</Text>
-          {bids.map((b) => {
-            const base = Math.round(mode === "diy" ? b.price * inspectionPriceFactor : b.price);
-            const final = Math.round(base * (1 - discount / 100));
-            return (
-              <Pressable key={b.id} accessibilityRole="button" accessibilityState={{ selected: bid === b.id }} onPress={() => setBid(b.id)} style={choice(bid === b.id)}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
-                  <Text weight={600} style={{ flexShrink: 1 }}>{b.name}</Text>
-                  <View style={{ alignItems: "flex-end" }}>
-                    <Text size="xl" weight={600}>{final} €</Text>
-                    <Text size="sm" color="mutedForeground" style={{ textDecorationLine: "line-through" }}>{base} €</Text>
+          <View accessibilityRole="radiogroup" style={{ gap: 16 }}>
+            {bids.map((b) => {
+              const base = Math.round(mode === "diy" ? b.price * inspectionPriceFactor : b.price);
+              const final = Math.round(base * (1 - discount / 100));
+              return (
+                <Pressable key={b.id} accessibilityRole="radio" aria-checked={bid === b.id} onPress={() => setBid(b.id)} style={({ pressed }) => [...choice(bid === b.id), pressed && pressedChoice]}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
+                    <Text weight={600} style={{ flexShrink: 1 }}>{b.name}</Text>
+                    <View style={{ alignItems: "flex-end" }}>
+                      <Text size="xl" weight={600}>{final} €</Text>
+                      <Text size="sm" color="mutedForeground" style={{ textDecorationLine: "line-through" }}>{base} €</Text>
+                    </View>
                   </View>
-                </View>
-                <View style={{ marginTop: 4, flexDirection: "row", flexWrap: "wrap", columnGap: 16, rowGap: 4 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                    <Star size={16} color={colors.warning} fill={colors.warning} />
-                    <Text size="sm" color="mutedForeground">{b.rating} ({b.reviews})</Text>
+                  <View style={{ marginTop: 4, flexDirection: "row", flexWrap: "wrap", columnGap: 16, rowGap: 4 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                      <Star size={16} color={colors.warning} fill={colors.warning} />
+                      <Text size="sm" color="mutedForeground">{b.rating} ({b.reviews})</Text>
+                    </View>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                      <CalendarDays size={16} color={colors.mutedForeground} />
+                      <Text size="sm" color="mutedForeground">{t("rd.earliest")} {b.date}</Text>
+                    </View>
+                    <Text size="sm" weight={600} color="success">−{discount}% {t("rd.yourDiscount")}</Text>
                   </View>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                    <CalendarDays size={16} color={colors.mutedForeground} />
-                    <Text size="sm" color="mutedForeground">{t("rd.earliest")} {b.date}</Text>
-                  </View>
-                  <Text size="sm" weight={600} color="success">−{discount}% {t("rd.yourDiscount")}</Text>
-                </View>
-              </Pressable>
-            );
-          })}
+                </Pressable>
+              );
+            })}
+          </View>
           <Button
             big
             disabled={!bid}

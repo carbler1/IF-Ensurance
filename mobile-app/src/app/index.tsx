@@ -6,7 +6,7 @@ import { useStore } from "@/lib/store";
 import { colors, radius, shadows, tierColors } from "@/lib/theme";
 
 export default function Dashboard() {
-  const { t, scores, aggregate: score, completed, customer, insurances, risks, tiers, getTier, getBand } = useStore();
+  const { t, scores, aggregate: score, completed, customer, insurances, risks, tiers, model, getTier, getBand } = useStore();
   const { tier, next } = getTier(score);
   // The open fix worth the most points, across all five insurances.
   const nextRisk = [...risks].sort((a, b) => b.points - a.points).find((r) => !completed.includes(r.id));
@@ -22,11 +22,11 @@ export default function Dashboard() {
       {/* The hero: the Care Score on the page itself, no card, so nothing else competes with it. */}
       <LinkBlock href="/score" style={{ alignItems: "center", paddingTop: 8, paddingBottom: 20 }}>
         <View style={{ maxWidth: "100%" }}>
-          <ScoreRing once="home" size={232} score={score} showThresholds segments={tierSegmentsOf(tiers)} surface={colors.background} />
+          <ScoreRing once="home" size={232} max={model.maxScore} score={score} showThresholds segments={tierSegmentsOf(tiers)} surface={colors.background} />
           <RingOverlay>
-            <Text size="sm" weight={500} color="mutedForeground">{t("home.ringLabel")}</Text>
+            <Text size="sm" weight={500} color="mutedForeground" maxFontSizeMultiplier={1.3}>{t("home.ringLabel")}</Text>
             <CountUp once="home" size="6xl" display weight={600} value={score} />
-            <Text size="sm" color="mutedForeground">/ 1000</Text>
+            <Text size="sm" color="mutedForeground" maxFontSizeMultiplier={1.3}>/ {model.maxScore}</Text>
           </RingOverlay>
         </View>
         {/* Reading order as the score lands: the number, then the tier, then the next goal. */}
@@ -53,8 +53,8 @@ export default function Dashboard() {
             return (
               <View key={id} style={[{ flex: 1, alignItems: "center", gap: 4 }, i > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border }]}>
                 <Icon size={20} color={colors.mutedForeground} />
-                <Text size="xl" display weight={600} tabular>{scores[id]}</Text>
-                <Text size="xs" weight={600} color={pct ? "success" : "mutedForeground"}>{pct ? fmt(t("band.off"), { pct }) : "—"}</Text>
+                <Text size="xl" display weight={600} tabular maxFontSizeMultiplier={1.3}>{scores[id]}</Text>
+                <Text size="xs" weight={600} color={pct ? "success" : "mutedForeground"} maxFontSizeMultiplier={1.3} numberOfLines={1} adjustsFontSizeToFit>{pct ? fmt(t("band.off"), { pct }) : "—"}</Text>
               </View>
             );
           })}

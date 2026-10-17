@@ -6,34 +6,41 @@ import { fmt } from "@/lib/i18n";
 import { Heading, RingOverlay, ScoreRing, Text, bandSegmentsOf, useReducedMotion } from "./ui";
 
 /** An insurance score now and after one fix, on the discount band ring. label: "House score" etc. */
-export function RiskScorePreview({ score, addedPoints, label }: { score: number; addedPoints: number; label: string }) {
-  const { t, getBand, bands } = useStore();
-  const reducedMotion = useReducedMotion();
-  const projectedScore = Math.min(1000, score + addedPoints);
-  const [previewScore, setPreviewScore] = useState(score);
-
+// The counting number re-renders alone; the ring around it is driven by the same Animated value.
+function RisingNumber({ from, to, progress, style }: { from: number; to: number; progress: Animated.Value; style: object }) {
+  const [shown, setShown] = useState(from);
   useEffect(() => {
-    setPreviewScore(score);
+    const id = progress.addListener(({ value }) => setShown(Math.round(from + (to - from) * value)));
+    return () => progress.removeListener(id);
+  }, [progress, from, to]);
+  return <Animated.Text maxFontSizeMultiplier={1.2} style={style}>{shown}</Animated.Text>;
+}
+
+/** An insurance score now and after one fix, on the discount band ring. label: "House score" etc. */
+export function RiskScorePreview({ score, addedPoints, label }: { score: number; addedPoints: number; label: string }) {
+  const { t, getBand, bands, model } = useStore();
+  const reducedMotion = useReducedMotion();
+  const projectedScore = Math.min(model.maxScore, score + addedPoints);
+  const progress = useRef(new Animated.Value(0)).current;
+  const [rising, setRising] = useState(false);
+
+  // The preview waits a beat, then rises to the projected score.
+  useEffect(() => {
+    progress.setValue(0);
+    setRising(false);
     if (projectedScore === score) return;
     if (reducedMotion) {
-      setPreviewScore(projectedScore);
+      progress.setValue(1);
+      setRising(true);
       return;
     }
-    let frame = 0;
-    let startedAt: number | undefined;
-    const animate = (now: number) => {
-      startedAt ??= now;
-      const progress = Math.min(1, Math.max(0, (now - startedAt - 450) / 1400));
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setPreviewScore(Math.round(score + (projectedScore - score) * eased));
-      if (progress < 1) frame = requestAnimationFrame(animate);
-    };
-    frame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frame);
-  }, [score, projectedScore, reducedMotion]);
+    const run = Animated.timing(progress, { toValue: 1, delay: 450, duration: 1400, easing: Easing.out(Easing.cubic), useNativeDriver: false });
+    const started = setTimeout(() => setRising(true), 450);
+    run.start();
+    return () => { run.stop(); clearTimeout(started); };
+  }, [score, projectedScore, reducedMotion, progress]);
 
-  // Once the preview starts rising: the number turns light blue, "+N" grows in and "/ 1000" slides down.
-  const rising = previewScore > score;
+  // Once the preview starts rising: the number turns light blue, "+N" grows in and "/ max" slides down.
   const tint = useRef(new Animated.Value(0)).current;
   const reveal = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -49,9 +56,12 @@ export function RiskScorePreview({ score, addedPoints, label }: { score: number;
     <View accessibilityLabel={label} style={{ alignItems: "center", paddingVertical: 8 }}>
       <Heading size="lg" center>{label}</Heading>
       <View style={{ maxWidth: "100%" }}>
-        <ScoreRing score={score} projectedScore={previewScore} thresholdScore={score} showThresholds segments={bandSegmentsOf(bands)} surface={colors.background} />
+        <ScoreRing score={score} max={model.maxScore} projectedScore={projectedScore} projectedProgress={progress} thresholdScore={score} showThresholds segments={bandSegmentsOf(bands)} surface={colors.background} />
         <RingOverlay>
-          <Animated.Text
+          <RisingNumber
+            from={score}
+            to={projectedScore}
+            progress={progress}
             style={{
               fontFamily: fontFamily(true, 600),
               fontSize: bigSize,
@@ -59,11 +69,10 @@ export function RiskScorePreview({ score, addedPoints, label }: { score: number;
               fontVariant: ["tabular-nums"],
               color: tint.interpolate({ inputRange: [0, 1], outputRange: [colors.foreground, colors.primary] }),
             }}
-          >
-            {previewScore}
-          </Animated.Text>
+          />
           {addedPoints > 0 && (
             <Animated.Text
+              maxFontSizeMultiplier={1.2}
               style={{
                 fontFamily: fontFamily(false, 700),
                 fontSize: plusSize,
@@ -78,7 +87,7 @@ export function RiskScorePreview({ score, addedPoints, label }: { score: number;
             </Animated.Text>
           )}
           <Animated.View style={{ transform: [{ translateY: reveal.interpolate({ inputRange: [0, 1], outputRange: [0, 12] }) }] }}>
-            <Text size="sm" color="mutedForeground">/ 1000</Text>
+            <Text size="sm" color="mutedForeground" maxFontSizeMultiplier={1.3}>/ {model.maxScore}</Text>
           </Animated.View>
         </RingOverlay>
       </View>
@@ -95,8 +104,8 @@ export function RiskScorePreview({ score, addedPoints, label }: { score: number;
         </View>
       )}
       {/* The discount this insurance earns, and the higher one once the fix lands in a new band. */}
-      <View style={{ marginTop: 12, borderRadius: 999, backgroundColor: getBand(previewScore) ? colors.successSoft : colors.secondary, paddingHorizontal: 14, paddingVertical: 4 }}>
-        <Text size="sm" weight={600} color={getBand(previewScore) ? "success" : "mutedForeground"}>
+      <View style={{ marginTop: 12, borderRadius: 999, backgroundColor: getBand(score) || (rising && getBand(projectedScore)) ? colors.successSoft : colors.secondary, paddingHorizontal: 14, paddingVertical: 4 }}>
+        <Text size="sm" weight={600} color={getBand(score) || (rising && getBand(projectedScore)) ? "success" : "mutedForeground"}>
           {getBand(score) ? fmt(t("band.off"), { pct: getBand(score) }) : t("band.none")}
           {getBand(projectedScore) > getBand(score) ? ` → ${fmt(t("band.off"), { pct: getBand(projectedScore) })}` : ""}
         </Text>

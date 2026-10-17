@@ -13,6 +13,8 @@ export const colors = {
   mutedForeground: "#6e625e",
   accent: "#e1e9f6",
   accentForeground: "#1241a2",
+  // The held-press tint on PressCard: primary at 6 %.
+  primaryTint: "rgba(0, 84, 240, 0.06)",
   destructive: "#bb320c",
   dangerSoft: "#f9e3d4",
   // "Good news" (discounts, done, verified) is a deep blue, not green: the app speaks in one hue.
@@ -31,6 +33,12 @@ export const colors = {
 } as const;
 
 export type ColorName = keyof typeof colors;
+
+// Maintenance seasons: warm for autumn and summer, the app's blues for winter and spring. Text-safe on their soft colour.
+export const seasonColors = {
+  autumn: { solid: "#a8432a", soft: "#f4ddd2" },
+  summer: { solid: "#8a5f00", soft: "#f9e8c4" },
+} as const;
 
 export const tierColors = {
   bronze: { solid: "#d16547", soft: "#f4ddd2" },

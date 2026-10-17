@@ -2,16 +2,16 @@ import { View } from "react-native";
 import { Leaf, Snowflake, Sprout, Sun } from "lucide-react-native";
 import { Card, Heading, Screen, SwitchRow, Text } from "@/components/ui";
 import { useStore } from "@/lib/store";
-import { colors, radius } from "@/lib/theme";
+import { colors, radius, seasonColors } from "@/lib/theme";
 
 const seasons = ["autumn", "winter", "spring", "summer"] as const;
 
 // Each season gets its own icon and warm or cool tint, so the list reads like a year, not a chore list.
 const seasonLook = {
-  autumn: { Icon: Leaf, solid: "#a8432a", soft: "#f4ddd2" },
+  autumn: { Icon: Leaf, ...seasonColors.autumn },
   winter: { Icon: Snowflake, solid: colors.primary, soft: colors.accent },
   spring: { Icon: Sprout, solid: colors.success, soft: colors.successSoft },
-  summer: { Icon: Sun, solid: "#8a5f00", soft: "#f9e8c4" },
+  summer: { Icon: Sun, ...seasonColors.summer },
 };
 
 export default function Maintenance() {

@@ -20,14 +20,14 @@ export default function Profile() {
     <Screen title={t("s.title")}>
       <Card>
         <Heading size="lg">{t("s.language")}</Heading>
-        <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
+        <View accessibilityRole="radiogroup" style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
           {langs.map((l) => (
             <Pressable
               key={l.id}
-              accessibilityRole="button"
-              accessibilityState={{ selected: lang === l.id }}
+              accessibilityRole="radio"
+              aria-checked={lang === l.id}
               onPress={() => setLang(l.id)}
-              style={{ flex: 1, height: 48, alignItems: "center", justifyContent: "center", borderRadius: radius.xl, backgroundColor: lang === l.id ? colors.primary : colors.muted }}
+              style={({ pressed }) => [{ flex: 1, minHeight: 48, alignItems: "center", justifyContent: "center", borderRadius: radius.xl, backgroundColor: lang === l.id ? colors.primary : colors.muted }, pressed && lang !== l.id && { backgroundColor: colors.accent }]}
             >
               <Text weight={600} color={lang === l.id ? "primaryForeground" : "foreground"}>{l.label}</Text>
             </Pressable>
@@ -60,8 +60,8 @@ export default function Profile() {
         )}
         {invite === "form" && (
           <View style={{ marginTop: 16, gap: 12 }}>
-            <Input placeholder={t("s.name")} value={name} onChangeText={setName} />
-            <Input placeholder={t("s.phone")} value={phone} onChangeText={setPhone} keyboardType="phone-pad" textContentType="telephoneNumber" />
+            <Input placeholder={t("s.name")} accessibilityLabel={t("s.name")} value={name} onChangeText={setName} />
+            <Input placeholder={t("s.phone")} accessibilityLabel={t("s.phone")} value={phone} onChangeText={setPhone} keyboardType="phone-pad" textContentType="telephoneNumber" />
             <View style={{ flexDirection: "row", gap: 8, borderRadius: radius.xl, backgroundColor: colors.accent, padding: 12 }}>
               <ShieldCheck size={20} color={colors.accentForeground} />
               <Text size="sm" color="accentForeground" style={{ flex: 1 }}>{t("s.inviteNote")}</Text>
@@ -81,7 +81,7 @@ export default function Profile() {
         )}
       </Card>
 
-      <LinkBlock href="/score" style={{ height: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: radius["2xl"], backgroundColor: colors.card, paddingHorizontal: 20, boxShadow: shadows.soft }}>
+      <LinkBlock href="/score" style={{ minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: radius["2xl"], backgroundColor: colors.card, paddingHorizontal: 20, boxShadow: shadows.soft }}>
         <Text weight={500}>{t("s.scoreLink")}</Text>
         <ChevronRight size={20} color={colors.foreground} />
       </LinkBlock>

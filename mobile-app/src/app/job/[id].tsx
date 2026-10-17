@@ -8,7 +8,7 @@ import { colors, radius } from "@/lib/theme";
 
 export default function JobStatus() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t, jobs, advanceJob, scores, aggregate, bids, risks, getBand, getTier } = useStore();
+  const { t, jobs, advanceJob, scores, aggregate, bids, risks, model, getBand, getTier } = useStore();
   const job = jobs[id];
   const risk = risks.find((r) => r.id === id);
   if (!job || !risk) {
@@ -53,7 +53,7 @@ export default function JobStatus() {
             <Text color="mutedForeground" center>{t("job.up")}</Text>
             <Text size="6xl" weight={700} color="primary" center>+{risk.points}</Text>
             <Text size="lg" center style={{ marginTop: 4 }}>
-              {t(`ins.${risk.insurance}`)} {scores[risk.insurance]} / 1000 · {getBand(scores[risk.insurance]) ? fmt(t("band.off"), { pct: getBand(scores[risk.insurance]) }) : t("band.none")}
+              {t(`ins.${risk.insurance}`)} {scores[risk.insurance]} / {model.maxScore} · {getBand(scores[risk.insurance]) ? fmt(t("band.off"), { pct: getBand(scores[risk.insurance]) }) : t("band.none")}
             </Text>
             <Text color="mutedForeground" center>{t("score.title")} {aggregate} · {getTier(aggregate).tier.name}</Text>
             <View style={{ marginTop: 16, alignSelf: "stretch", flexDirection: "row", alignItems: "center", gap: 8, borderRadius: radius.xl, backgroundColor: colors.successSoft, padding: 12 }}>
