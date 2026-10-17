@@ -42,11 +42,11 @@ function RiskDetail({ risk }: { risk: Risk }) {
   if (done) {
     return (
       <Screen back>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ alignItems: "center", gap: 12 }}>
           <View style={{ height: 56, width: 56, alignItems: "center", justifyContent: "center", borderRadius: radius["2xl"], backgroundColor: colors.secondary }}>
             <Icon size={28} color={colors.secondaryForeground} />
           </View>
-          <Heading style={{ flexShrink: 1 }}>{risk.title}</Heading>
+          <Heading center>{risk.title}</Heading>
         </View>
         <Card style={{ alignItems: "center" }}>
           <CheckCircle2 size={48} color={colors.success} />
@@ -75,16 +75,16 @@ function RiskDetail({ risk }: { risk: Risk }) {
 
   return (
     <Screen back>
-      <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+      <View style={{ alignItems: "center", gap: 12 }}>
         <View style={{ height: 56, width: 56, alignItems: "center", justifyContent: "center", borderRadius: radius["2xl"], backgroundColor: colors.secondary }}>
           <Icon size={28} color={colors.secondaryForeground} />
         </View>
-        <View style={{ alignItems: "center" }}>
-          <Text size="3xl" display weight={600} color="primaryLight" tabular>+{risk.points}</Text>
-          <Text size="sm" color="mutedForeground">{t("pts")}</Text>
+        <Heading center>{risk.title}</Heading>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, borderRadius: radius.full, backgroundColor: colors.accent, paddingHorizontal: 14, paddingVertical: 4 }}>
+          <Text size="lg" weight={700} color="primary" tabular>+{risk.points}</Text>
+          <Text size="sm" color="accentForeground">{t("pts")}</Text>
         </View>
       </View>
-      <Heading>{risk.title}</Heading>
       {scoreProgress}
       <Card>
         <Heading size="lg">{t("rd.what")}</Heading>

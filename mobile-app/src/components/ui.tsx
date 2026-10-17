@@ -4,6 +4,7 @@ import {
   Animated,
   Easing,
   Image,
+  Keyboard,
   Pressable,
   ScrollView,
   Text as RNText,
@@ -108,22 +109,35 @@ export function Heading({ size = "3xl", weight = 600, display = true, style, ...
 export function Screen({ title, sub, back, children }: { title?: string; sub?: string; back?: boolean; children: ReactNode }) {
   const { t } = useStore();
   const insets = useSafeAreaInsets();
+  const scroll = useRef<ScrollView>(null);
+  // Android does not scroll a focused field into view when the keyboard opens; this does, on both platforms.
+  useEffect(() => {
+    const sub = Keyboard.addListener("keyboardDidShow", () => {
+      const input = TextInput.State.currentlyFocusedInput();
+      if (input) scroll.current?.scrollResponderScrollNativeHandleToKeyboard(input, 160, true);
+    });
+    return () => sub.remove();
+  }, []);
   return (
-    <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 + insets.top, paddingBottom: 48 }}>
-      {back && (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => (router.canGoBack() ? router.back() : router.navigate("/"))}
-          style={{ marginBottom: 12, marginLeft: -8, height: 44, flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, alignSelf: "flex-start" }}
-        >
-          <ChevronLeft size={20} color={colors.primary} />
-          <Text size="base" weight={500} color="primary">{t("back")}</Text>
-        </Pressable>
-      )}
-      {title && <Heading center>{title}</Heading>}
-      {sub && <Text color="mutedForeground" center style={{ marginTop: 8 }}>{sub}</Text>}
-      <View style={[title ? { marginTop: 24 } : null, { gap: 16 }]}>{children}</View>
-    </ScrollView>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView ref={scroll} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 + insets.top, paddingBottom: 48 }}>
+        {back && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => (router.canGoBack() ? router.back() : router.navigate("/"))}
+            style={{ marginBottom: 12, marginLeft: -8, height: 44, flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, alignSelf: "flex-start" }}
+          >
+            <ChevronLeft size={20} color={colors.primary} />
+            <Text size="base" weight={500} color="primary">{t("back")}</Text>
+          </Pressable>
+        )}
+        {title && <Heading center>{title}</Heading>}
+        {sub && <Text color="mutedForeground" center style={{ marginTop: 8 }}>{sub}</Text>}
+        <View style={[title ? { marginTop: 24 } : null, { gap: 16 }]}>{children}</View>
+      </ScrollView>
+      {/* Covers content that scrolls up under the status bar. */}
+      <View pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, height: insets.top, backgroundColor: colors.background }} />
+    </View>
   );
 }
 
@@ -172,10 +186,10 @@ export function PressCard({ style, children, ...props }: PressableProps & { styl
 }
 
 // A tappable block that navigates, like a web <Link className="block">.
-export function LinkBlock({ href, style, children }: { href: Href; style?: StyleProp<ViewStyle>; children: ReactNode }) {
+export function LinkBlock({ href, style, accessibilityLabel, children }: { href: Href; style?: StyleProp<ViewStyle>; accessibilityLabel?: string; children: ReactNode }) {
   return (
     <Link href={href} asChild>
-      <PressCard accessibilityRole="link" style={style}>{children}</PressCard>
+      <PressCard accessibilityRole="link" accessibilityLabel={accessibilityLabel} style={style}>{children}</PressCard>
     </Link>
   );
 }
@@ -275,7 +289,37 @@ export function Spinner({ size, color }: { size: number; color: string }) {
   );
 }
 
-export function ScoreRing({ score, max = 1000, size = 200, projectedScore = score, thresholdScore = score, showThresholds = false, segments }: { score: number; max?: number; size?: number; projectedScore?: number; thresholdScore?: number; showThresholds?: boolean; segments: RingSegment[] }) {
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+/** The ring's first sweep lands at this time; what follows the score (tier, next goal) keys off it. */
+export const ringLandMs = 1100;
+const ringEase = Easing.bezier(0.16, 1, 0.3, 1);
+
+const playedIntros = new Set<string>();
+
+// once: an id whose entrance plays only on its first mount in this app session; later mounts start at rest.
+// Read at render, so siblings mounted together all see the same answer.
+function useIntro(once?: string) {
+  const intro = useRef(once === undefined || !playedIntros.has(once)).current;
+  useEffect(() => {
+    if (once) playedIntros.add(once);
+  }, [once]);
+  return intro;
+}
+
+// The first sweep tells the score; later changes are updates and move faster.
+function useSweepDuration(intro: boolean) {
+  const first = useRef(true);
+  const reducedMotion = useReducedMotion();
+  return () => {
+    const ms = reducedMotion ? 0 : first.current ? (intro ? ringLandMs : 0) : 700;
+    first.current = false;
+    return ms;
+  };
+}
+
+/** surface: the colour behind the ring, which the threshold notches cut through to. once: see useIntro. */
+export function ScoreRing({ score, max = 1000, size = 200, projectedScore = score, thresholdScore = score, showThresholds = false, segments, surface = colors.card, once }: { score: number; max?: number; size?: number; projectedScore?: number; thresholdScore?: number; showThresholds?: boolean; segments: RingSegment[]; surface?: string; once?: string }) {
   const r = size / 2 - 12;
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(1, score / max));
@@ -284,18 +328,30 @@ export function ScoreRing({ score, max = 1000, size = 200, projectedScore = scor
   const outerSize = size + padding * 2;
   const center = outerSize / 2;
   const reducedMotion = useReducedMotion();
+  const intro = useIntro(once);
+  const sweepMs = useSweepDuration(intro);
+  const thresholds = showThresholds ? segments.filter((seg) => seg.min > thresholdScore) : [];
+  const goal = thresholds[0];
+  const at = (value: number, radius: number) => {
+    const angle = (value / max) * 2 * Math.PI - Math.PI / 2;
+    return { x: center + Math.cos(angle) * radius, y: center + Math.sin(angle) * radius, dx: Math.cos(angle) };
+  };
 
-  // The arc fills from empty on mount, then eases to each new score.
-  const [offset, setOffset] = useState(c);
-  const anim = useRef(new Animated.Value(c)).current;
+  // The arc sweeps from empty to the score; on landing, one ripple at the next threshold points to the goal.
+  // Animated props on the SVG circles: no React re-render per frame.
+  const offset = useRef(new Animated.Value(intro ? c : c * (1 - pct))).current;
+  const ripple = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    const id = anim.addListener(({ value }) => setOffset(value));
-    return () => anim.removeListener(id);
-  }, [anim]);
-  useEffect(() => {
-    Animated.timing(anim, { toValue: c * (1 - pct), duration: reducedMotion ? 0 : 900, easing: Easing.bezier(0.16, 1, 0.3, 1), useNativeDriver: false }).start();
-  }, [c, pct, anim, reducedMotion]);
+    const duration = sweepMs();
+    const arc = Animated.timing(offset, { toValue: c * (1 - pct), duration, easing: ringEase, useNativeDriver: false });
+    ripple.setValue(0);
+    const run = duration === 0 || !goal ? arc : Animated.sequence([arc, Animated.timing(ripple, { toValue: 1, duration: 900, easing: Easing.out(Easing.cubic), useNativeDriver: false })]);
+    run.start();
+    return () => run.stop();
+    // sweepMs is left out of the deps on purpose: it is a fresh closure each render, and the sweep reruns only on a new score.
+  }, [c, pct, offset, ripple, reducedMotion, goal?.min]);
 
+  const goalPoint = goal && at(goal.min, r);
   return (
     <View accessible accessibilityRole="image" accessibilityLabel={`${score} / ${max}${projectedScore > score ? ` → ${projectedScore}` : ""}`} style={{ width: outerSize, maxWidth: "100%", aspectRatio: 1 }}>
       <Svg width="100%" height="100%" viewBox={`0 0 ${outerSize} ${outerSize}`}>
@@ -317,19 +373,30 @@ export function ScoreRing({ score, max = 1000, size = 200, projectedScore = scor
               />
             );
           })}
-          <Circle cx={center} cy={center} r={r} fill="none" strokeWidth={14} strokeLinecap="round" strokeDasharray={`${c}`} strokeDashoffset={offset} stroke={colors.primary} />
+          <AnimatedCircle cx={center} cy={center} r={r} fill="none" strokeWidth={14} strokeLinecap="round" strokeDasharray={`${c}`} strokeDashoffset={offset} stroke={colors.primary} />
           {projectedPct > pct && <Circle cx={center} cy={center} r={r} fill="none" strokeWidth={14} strokeDasharray={`${c * (projectedPct - pct)} ${c}`} strokeDashoffset={-c * pct} stroke={colors.primaryLight} />}
+          {/* The scale's start and end meet at the top: a short gap keeps 0 and the maximum apart and gives the arc a clean start. */}
+          {showThresholds && <Circle cx={center} cy={center} r={r} fill="none" strokeWidth={16} strokeDasharray={`9 ${c}`} strokeDashoffset={9} stroke={surface} />}
         </G>
-        {showThresholds && segments.filter((seg) => seg.min > thresholdScore).map((seg) => {
-          const angle = seg.min / max * 2 * Math.PI - Math.PI / 2;
-          const x = Math.cos(angle);
-          const y = Math.sin(angle);
-          const labelX = center + x * (r + 22);
-          const labelY = center + y * (r + 22);
+        {goalPoint && (
+          <AnimatedCircle
+            cx={goalPoint.x}
+            cy={goalPoint.y}
+            r={ripple.interpolate({ inputRange: [0, 1], outputRange: [7, 22] })}
+            fill={colors.primary}
+            opacity={ripple.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0, 0.28, 0] })}
+          />
+        )}
+        {thresholds.map((seg) => {
+          const inner = at(seg.min, r - 8);
+          const outer = at(seg.min, r + 8);
+          const label = at(seg.min, r + 22);
+          const isGoal = seg === goal;
           return (
             <G key={seg.key}>
-              <Line x1={center + x * (r - 10)} y1={center + y * (r - 10)} x2={center + x * (r + 10)} y2={center + y * (r + 10)} strokeWidth={2} stroke={colors.foreground} />
-              <SvgText x={labelX} y={labelY + 4} textAnchor={x < -0.3 ? "end" : x > 0.3 ? "start" : "middle"} fill={colors.mutedForeground} fontFamily={fontFamily(false, 600)} fontSize={11}>
+              {/* A notch cut through the track marks where the next tier or band starts. */}
+              <Line x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} strokeWidth={3} stroke={surface} />
+              <SvgText x={label.x} y={label.y + 4} textAnchor={label.dx < -0.3 ? "end" : label.dx > 0.3 ? "start" : "middle"} fill={isGoal ? colors.foreground : colors.mutedForeground} fontFamily={fontFamily(false, isGoal ? 700 : 500)} fontSize={isGoal ? 12 : 11}>
                 {seg.min}
               </SvgText>
             </G>
@@ -341,18 +408,35 @@ export function ScoreRing({ score, max = 1000, size = 200, projectedScore = scor
 }
 
 // A number that counts up to its value with the same timing as the ScoreRing arc.
-export function CountUp({ value, ...props }: TextProps & TextOwnProps & { value: number }) {
+export function CountUp({ value, once, ...props }: TextProps & TextOwnProps & { value: number; once?: string }) {
+  const intro = useIntro(once);
+  const sweepMs = useSweepDuration(intro);
   const reducedMotion = useReducedMotion();
-  const [shown, setShown] = useState(0);
-  const anim = useRef(new Animated.Value(0)).current;
+  const [shown, setShown] = useState(intro ? 0 : value);
+  const anim = useRef(new Animated.Value(intro ? 0 : value)).current;
   useEffect(() => {
     const id = anim.addListener(({ value: v }) => setShown(Math.round(v)));
     return () => anim.removeListener(id);
   }, [anim]);
   useEffect(() => {
-    Animated.timing(anim, { toValue: value, duration: reducedMotion ? 0 : 900, easing: Easing.bezier(0.16, 1, 0.3, 1), useNativeDriver: false }).start();
+    const run = Animated.timing(anim, { toValue: value, duration: sweepMs(), easing: ringEase, useNativeDriver: false });
+    run.start();
+    return () => run.stop();
   }, [value, anim, reducedMotion]);
   return <Text accessibilityLabel={String(value)} tabular {...props}>{shown}</Text>;
+}
+
+// Arrives after the ring lands: rises 6 px and fades in. With Reduce Motion it is simply there.
+export function Arrive({ delay = 0, once, style, children }: { delay?: number; once?: string; style?: StyleProp<ViewStyle>; children: ReactNode }) {
+  const intro = useIntro(once);
+  const v = useRef(new Animated.Value(intro ? 0 : 1)).current;
+  const reducedMotion = useReducedMotion();
+  useEffect(() => {
+    const run = Animated.timing(v, { toValue: 1, duration: reducedMotion || !intro ? 0 : 420, delay: reducedMotion || !intro ? 0 : delay, easing: ringEase, useNativeDriver: true });
+    run.start();
+    return () => run.stop();
+  }, [v, reducedMotion, delay, intro]);
+  return <Animated.View style={[style, { opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [6, 0] }) }] }]}>{children}</Animated.View>;
 }
 
 // Centres its children over a ScoreRing, like the web "absolute inset-0" overlay.

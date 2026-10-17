@@ -49,7 +49,8 @@ export function TabBar() {
             style={{ flex: 1, minHeight: 64, paddingVertical: 8, alignItems: "center", justifyContent: "center", gap: 4 }}
           >
             <TabIcon Icon={Icon} active={active} color={color} />
-            <Text size="sm" weight={active ? 600 : 400} color={active ? "primary" : "mutedForeground"}>{t(key)}</Text>
+            {/* One line and a capped scale: at large font sizes "Maintenance" would break mid-word and push its icon up. */}
+            <Text size="sm" weight={active ? 600 : 400} color={active ? "primary" : "mutedForeground"} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>{t(key)}</Text>
           </Pressable>
         );
       })}

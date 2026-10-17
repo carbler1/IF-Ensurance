@@ -1,102 +1,96 @@
-import { ScrollView, View } from "react-native";
-import { router } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { View } from "react-native";
 import { ChevronRight, Snowflake } from "lucide-react-native";
-import { Button, Card, CountUp, Heading, LinkBlock, RingOverlay, ScoreRing, Text, Wordmark, areaIcon, insuranceIcon, tierSegmentsOf } from "@/components/ui";
+import { Arrive, Card, CountUp, LinkBlock, RingOverlay, ScoreRing, Screen, Text, Wordmark, areaIcon, insuranceIcon, ringLandMs, tierSegmentsOf } from "@/components/ui";
 import { fmt } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
-import { colors, radius, tierColors } from "@/lib/theme";
+import { colors, radius, shadows, tierColors } from "@/lib/theme";
 
 export default function Dashboard() {
   const { t, scores, aggregate: score, completed, customer, insurances, risks, tiers, getTier, getBand } = useStore();
-  const insets = useSafeAreaInsets();
   const { tier, next } = getTier(score);
   // The open fix worth the most points, across all five insurances.
   const nextRisk = [...risks].sort((a, b) => b.points - a.points).find((r) => !completed.includes(r.id));
-  const rows = [insurances.slice(0, 2), insurances.slice(2, 4), insurances.slice(4)];
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 + insets.top, paddingBottom: 48, gap: 16 }}>
+    <Screen>
       {/* The web wordmark is an inline link, so the list spacing never applied below it. */}
       <View style={{ alignItems: "center" }}>
         <Wordmark />
         <Text color="mutedForeground" center>{t("home.hello")}, {customer.name}</Text>
       </View>
 
-      <LinkBlock href="/score">
-        <Card style={{ alignItems: "center" }}>
-          <View style={{ maxWidth: "100%" }}>
-            <ScoreRing score={score} showThresholds segments={tierSegmentsOf(tiers)} />
-            <RingOverlay>
-              <CountUp size="5xl" display weight={600} value={score} />
-              <Text size="sm" color="mutedForeground">/ 1000</Text>
-            </RingOverlay>
-          </View>
-          <View style={{ marginTop: -32, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: radius.full, backgroundColor: colors.secondary, paddingHorizontal: 16, paddingVertical: 4 }}>
-            <View style={{ height: 12, width: 12, borderRadius: radius.full, backgroundColor: tierColors[tier.id].solid }} />
-            <Text weight={600} color="secondaryForeground">{tier.name}</Text>
-          </View>
-          <Text size="lg" weight={500} color="mutedForeground" center style={{ marginTop: 12 }}>
+      {/* The hero: the Care Score on the page itself, no card, so nothing else competes with it. */}
+      <LinkBlock href="/score" style={{ alignItems: "center", paddingTop: 8, paddingBottom: 20 }}>
+        <View style={{ maxWidth: "100%" }}>
+          <ScoreRing once="home" size={232} score={score} showThresholds segments={tierSegmentsOf(tiers)} surface={colors.background} />
+          <RingOverlay>
+            <Text size="sm" weight={500} color="mutedForeground">{t("home.ringLabel")}</Text>
+            <CountUp once="home" size="6xl" display weight={600} value={score} />
+            <Text size="sm" color="mutedForeground">/ 1000</Text>
+          </RingOverlay>
+        </View>
+        {/* Reading order as the score lands: the number, then the tier, then the next goal. */}
+        <Arrive once="home" delay={ringLandMs - 250} style={{ marginTop: -28, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: radius.full, backgroundColor: colors.card, paddingHorizontal: 16, paddingVertical: 6, boxShadow: shadows.sm }}>
+          <View style={{ height: 12, width: 12, borderRadius: radius.full, backgroundColor: tierColors[tier.id].solid }} />
+          <Text weight={600}>{tier.name}</Text>
+        </Arrive>
+        <Arrive once="home" delay={ringLandMs - 50}>
+          <Text size="lg" weight={500} color="mutedForeground" center style={{ marginTop: 10 }}>
             {next ? `${next.min - score} ${t("home.toNext")} ${next.name}` : t("home.topTier")}
           </Text>
+        </Arrive>
+      </LinkBlock>
+
+      {/* The five insurances as one row of equal columns: no orphan tile, and quieter than the hero. */}
+      <LinkBlock
+        href="/score"
+        accessibilityLabel={insurances.map(({ id }) => `${t(`ins.${id}`)} ${scores[id]}, ${getBand(scores[id]) ? fmt(t("band.off"), { pct: getBand(scores[id]) }) : t("band.none")}`).join("; ")}
+      >
+        <Card style={{ flexDirection: "row", paddingHorizontal: 4, paddingVertical: 16 }}>
+          {insurances.map(({ id }, i) => {
+            const Icon = insuranceIcon[id];
+            const pct = getBand(scores[id]);
+            return (
+              <View key={id} style={[{ flex: 1, alignItems: "center", gap: 4 }, i > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border }]}>
+                <Icon size={20} color={colors.mutedForeground} />
+                <Text size="xl" display weight={600} tabular>{scores[id]}</Text>
+                <Text size="xs" weight={600} color={pct ? "success" : "mutedForeground"}>{pct ? fmt(t("band.off"), { pct }) : "—"}</Text>
+              </View>
+            );
+          })}
         </Card>
       </LinkBlock>
 
-      {/* One small card per insurance: its own score and the discount that score earns. */}
-      <View style={{ gap: 12 }}>
-        {rows.map((row, i) => (
-          <View key={i} style={{ flexDirection: "row", gap: row.length === 1 ? 6 : 12 }}>
-            {row.length === 1 && <View style={{ flex: 1 }} />}
-            {row.map(({ id }) => {
-              const Icon = insuranceIcon[id];
-              const pct = getBand(scores[id]);
-              return (
-                <LinkBlock key={id} href="/score" style={{ flex: row.length === 1 ? 2 : 1 }}>
-                  <Card style={{ flex: 1, padding: 16, alignItems: "center" }}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, maxWidth: "100%" }}>
-                      <Icon size={16} color={colors.mutedForeground} />
-                      <Text size="sm" color="mutedForeground" numberOfLines={1} style={{ flexShrink: 1 }}>{t(`ins.${id}`)}</Text>
-                    </View>
-                    <Text size="3xl" display weight={600} tabular>{scores[id]}</Text>
-                    <Text size="sm" weight={pct ? 600 : 400} color={pct ? "success" : "mutedForeground"} center>
-                      {pct ? fmt(t("band.off"), { pct }) : t("band.none")}
-                    </Text>
-                  </Card>
-                </LinkBlock>
-              );
-            })}
-            {row.length === 1 && <View style={{ flex: 1 }} />}
-          </View>
-        ))}
-      </View>
-
+      {/* Supporting rows: one shape for the next step and the alert, so they read as a pair under the hero. */}
       {nextRisk && (() => {
         const Icon = areaIcon[nextRisk.area];
         return (
-          <Card>
-            <Text size="sm" color="mutedForeground">{t("home.next")}</Text>
-            <View style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <Icon size={24} color={colors.primary} style={{ marginTop: 4 }} />
+          <LinkBlock href={{ pathname: "/risks/[id]", params: { id: nextRisk.id } }}>
+            <Card style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 16 }}>
+              <View style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: radius.full, backgroundColor: colors.accent }}>
+                <Icon size={20} color={colors.primary} />
+              </View>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Heading size="xl">{nextRisk.title}</Heading>
+                <Text size="sm" color="mutedForeground">{t("home.next")}</Text>
+                <Text weight={600}>{nextRisk.title}</Text>
               </View>
-              <View style={{ alignItems: "center" }}>
-                <Text size="3xl" weight={700} color="primary" tabular>+{nextRisk.points}</Text>
-                <Text size="sm" color="mutedForeground">{t("pts")}</Text>
+              <View style={{ alignItems: "flex-end" }}>
+                <Text size="xl" weight={700} color="primary" tabular>+{nextRisk.points}</Text>
+                <Text size="xs" color="mutedForeground">{t("pts")}</Text>
               </View>
-            </View>
-            <Button big style={{ marginTop: 16 }} onPress={() => router.navigate({ pathname: "/risks/[id]", params: { id: nextRisk.id } })}>{t("home.start")}</Button>
-          </Card>
+              <ChevronRight size={20} color={colors.mutedForeground} />
+            </Card>
+          </LinkBlock>
         );
       })()}
 
-      <Card flat style={{ flexDirection: "row", gap: 12, backgroundColor: colors.accent }}>
+      <Card flat style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 16, backgroundColor: colors.accent }}>
         <View style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: radius.full, backgroundColor: colors.card }}>
-          <Snowflake size={22} color={colors.primary} />
+          <Snowflake size={20} color={colors.primary} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text weight={600} color="accentForeground">{t("home.alert")}</Text>
-          <Text color="foreground">{t("home.alertText")}</Text>
+          <Text size="sm" weight={600} color="accentForeground">{t("home.alert")}</Text>
+          <Text>{t("home.alertText")}</Text>
         </View>
       </Card>
 
@@ -104,6 +98,6 @@ export default function Dashboard() {
         <Text weight={500} color="primary">{t("home.seeScore")}</Text>
         <ChevronRight size={20} color={colors.primary} />
       </LinkBlock>
-    </ScrollView>
+    </Screen>
   );
 }

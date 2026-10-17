@@ -9,7 +9,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Bath, Camera, Check, CircleHelp, Droplets, FileText, House, MapPin, X, Zap } from "lucide-react-native";
+import Svg, { Path } from "react-native-svg";
+import { Bath, Camera, Check, Droplets, FileText, House, MapPin, X, Zap } from "lucide-react-native";
 import { questions } from "@/data/mock";
 import { useStore } from "@/lib/store";
 import { colors, radius, shadows } from "@/lib/theme";
@@ -19,10 +20,22 @@ const bigBottom = { marginTop: "auto" } as const;
 
 // What each question is about, and how each answer looks.
 const questionIcon = { q1: Bath, q2: Zap, q3: Droplets, q4: House } as const;
+// The bare "?" from Lucide's circle-question-mark (its circle left out), so it sits in the same 2 px stroke family as Check and X.
+function QuestionMark({ size, color }: { size: number; color: string }) {
+  return (
+    // Lucide drew this "?" to sit inside a circle; a 1.3x crop brings it to the height of Check and X, with the stroke kept at 2 px.
+    <Svg width={size} height={size} viewBox="2.75 3.25 18.5 18.5" fill="none" stroke={color} strokeWidth={2 / 1.3} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <Path d="M12 17h.01" />
+    </Svg>
+  );
+}
+
+// One hue, three weights: a definite yes is filled, a no is outlined, an unsure answer has a broken outline.
 const answerLook = {
-  yes: { Icon: Check, solid: colors.success, soft: colors.successSoft },
-  no: { Icon: X, solid: colors.destructive, soft: colors.dangerSoft },
-  unsure: { Icon: CircleHelp, solid: colors.mutedForeground, soft: colors.secondary },
+  yes: { Icon: Check, badge: { backgroundColor: colors.primary }, ink: colors.primaryForeground },
+  no: { Icon: X, badge: { borderWidth: 1.5, borderColor: colors.primary }, ink: colors.primary },
+  unsure: { Icon: QuestionMark, badge: { borderWidth: 1.5, borderColor: colors.primary, borderStyle: "dashed" }, ink: colors.primary },
 } as const;
 
 // Each new question slides in from the right.
@@ -192,7 +205,7 @@ export function Onboarding() {
               </SlideIn>
               <View style={{ marginTop: "auto", paddingTop: 24, gap: 12 }}>
                 {questions[qi]!.options.map((o) => {
-                  const { Icon, solid, soft } = answerLook[o];
+                  const { Icon, badge, ink } = answerLook[o];
                   return (
                     <PressCard
                       key={`${qi}-${o}`}
@@ -214,8 +227,8 @@ export function Onboarding() {
                         boxShadow: shadows.soft,
                       }}
                     >
-                      <View style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: radius.full, backgroundColor: soft }}>
-                        <Icon size={20} color={solid} />
+                      <View style={[{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: radius.full }, badge]}>
+                        <Icon size={20} color={ink} />
                       </View>
                       <Text size="lg" weight={500}>{t(`ob.${o}`)}</Text>
                     </PressCard>
@@ -255,8 +268,9 @@ export function Onboarding() {
                         gap: 16,
                         borderRadius: radius["2xl"],
                         borderWidth: 2,
-                        borderStyle: "dashed",
-                        borderColor: colors.border,
+                        // Dashed while empty, solid blue once added: the same outline language as the answers.
+                        borderStyle: on ? "solid" : "dashed",
+                        borderColor: on ? colors.primary : colors.control,
                         backgroundColor: colors.card,
                         paddingHorizontal: 16,
                         paddingVertical: 12,
@@ -269,20 +283,20 @@ export function Onboarding() {
                           alignItems: "center",
                           justifyContent: "center",
                           borderRadius: radius.xl,
-                          backgroundColor: colors.secondary,
+                          ...(on ? { backgroundColor: colors.primary } : { borderWidth: 1.5, borderColor: colors.primary }),
                         }}
                       >
                         {on ? (
-                          <Check size={24} color={colors.secondaryForeground} />
+                          <Check size={24} color={colors.primaryForeground} />
                         ) : (
-                          <Icon size={24} color={colors.secondaryForeground} />
+                          <Icon size={24} color={colors.primary} />
                         )}
                       </View>
                       <Text weight={500} style={{ flex: 1 }}>
                         {t(`ob.${k}`)}
                       </Text>
                       {on && (
-                        <Text size="sm" weight={600} color="success">
+                        <Text size="sm" weight={600} color="primary">
                           {t("ob.added")}
                         </Text>
                       )}

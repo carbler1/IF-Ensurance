@@ -49,7 +49,7 @@ export function RiskScorePreview({ score, addedPoints, label }: { score: number;
     <View accessibilityLabel={label} style={{ alignItems: "center", paddingVertical: 8 }}>
       <Heading size="lg" center>{label}</Heading>
       <View style={{ maxWidth: "100%" }}>
-        <ScoreRing score={score} projectedScore={previewScore} thresholdScore={score} showThresholds segments={bandSegmentsOf(bands)} />
+        <ScoreRing score={score} projectedScore={previewScore} thresholdScore={score} showThresholds segments={bandSegmentsOf(bands)} surface={colors.background} />
         <RingOverlay>
           <Animated.Text
             style={{
