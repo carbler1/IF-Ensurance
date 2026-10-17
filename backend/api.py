@@ -9,7 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from ilp import db, engine, maintenance
+from backend import db, engine, maintenance
 
 HOME_ID = "home_01"  # the single demo home
 
@@ -133,7 +133,7 @@ def get_maintenance():
 
 
 try:
-    from ilp.upload import router as _upload_router
+    from backend.upload import router as _upload_router
 
     v1.include_router(_upload_router)
 except ImportError:  # upload.py not written yet

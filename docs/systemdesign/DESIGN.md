@@ -45,11 +45,11 @@ All backend parts run on pc-btw.
 
 | Module | Does |
 |---|---|
-| `ilp/api.py` | The endpoints, the bearer token check, CORS, the upload |
-| `ilp/db.py` + `ilp/schema.sql` | Opens SQLite, creates the tables, seeds `home_01` |
-| `ilp/engine.py` | Builds the risk list, picks the partners, computes the maintenance dates. Later: booking, confirm, score |
-| `ilp/pipeline.py` | The Ollama calls and the steps extract → merge → match → write |
-| `ilp/worker.py` | Takes the next queued job, runs the pipeline, sets `status` and `stage` |
+| `backend/api.py` | The endpoints, the bearer token check, CORS, the upload |
+| `backend/db.py` + `backend/schema.sql` | Opens SQLite, creates the tables, seeds `home_01` |
+| `backend/engine.py` | Builds the risk list, picks the partners, computes the maintenance dates. Later: booking, confirm, score |
+| `backend/pipeline.py` | The Ollama calls and the steps extract → merge → match → write |
+| `backend/worker.py` | Takes the next queued job, runs the pipeline, sets `status` and `stage` |
 | `scripts/catalogue/validate.py` | Exists. Validates the catalogue and builds `data/catalogue.json`. Its `matches()` is the matcher the backend imports |
 
 ## 4. Stack

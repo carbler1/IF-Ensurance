@@ -3,7 +3,7 @@
 import json
 from datetime import datetime, timezone
 
-from ilp.db import UPLOADS
+from backend.db import UPLOADS
 
 
 def now() -> str:
@@ -12,7 +12,7 @@ def now() -> str:
 
 def run(conn, document_id: str, stage, check) -> None:
     """stage(name) records the stage; check() raises when the job is over time."""
-    from ilp import extract, write  # lazy: written by other modules
+    from backend import extract, write  # lazy: written by other modules
 
     home_id = conn.execute("SELECT home_id FROM documents WHERE document_id=?", (document_id,)).fetchone()[0]
     stage("extracting")

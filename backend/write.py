@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts" / "catalogue"))
 from validate import condition_leaves, matches  # noqa: E402
 
-log = logging.getLogger("ilp.write")
+log = logging.getLogger("backend.write")
 STRIP = {"applies_when", "tests", "source", "on_done", "service_life_years", "check_interval_years", "half_life_years"}
 
 
@@ -34,7 +34,7 @@ def _full(e: dict, profile: dict) -> dict:
 
 
 def _call(profile: dict, matched: list[dict], unmatched: list[dict]) -> dict:
-    from ilp import llm  # lazy: tests patch llm.chat
+    from backend import llm  # lazy: tests patch llm.chat
 
     blocks = re.findall(r"```text\n(.*?)\n```", (ROOT / "prompts" / "write.md").read_text(), re.S)
     system, user = blocks[0], blocks[1]

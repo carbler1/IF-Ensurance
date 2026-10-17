@@ -6,7 +6,7 @@ from pathlib import Path
 
 import httpx
 
-log = logging.getLogger("ilp.llm")
+log = logging.getLogger("backend.llm")
 NUM_CTX = 16384
 _VERSION = Path(__file__).resolve().parent.parent / "prompts" / "VERSION"
 

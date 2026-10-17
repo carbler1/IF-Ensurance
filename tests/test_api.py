@@ -13,11 +13,11 @@ def fx(n):
 
 
 def test_routes(tmp_path, monkeypatch):
-    from ilp import db
+    from backend import db
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "t.sqlite")
     monkeypatch.setattr(db, "UPLOADS", tmp_path / "up")
     monkeypatch.setenv("CUSTOMER_TOKEN", "t")
-    from ilp.api import app
+    from backend.api import app
     with TestClient(app) as c:  # runs the startup seed
         conn = db.connect()
         prof = json.loads((ROOT / "prompts/examples/write-1-input.json").read_text())["profile"]
