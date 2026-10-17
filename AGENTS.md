@@ -16,7 +16,7 @@ Phases:
 
 Team:
 - Antton: system design, backend, LLM pipeline, data form, all merging to `main`.
-- Ege: UI in Lovable (React, TypeScript, Tailwind), tested on a Google Pixel. Builds against the API contract. No Supabase for app data.
+- Ege: UI in Lovable (React, TypeScript, Tailwind). Builds against the API contract. No Supabase for app data.
 - Rasi: analysis documents in prose, like a hired consultant. Rasi does not write data structures. Antton converts the prose into the risk catalogue.
 
 Rules of the design:
@@ -59,7 +59,6 @@ Nix flakes in a git repository see only tracked files. Run `git add flake.nix fl
   - `impeccable` (pbakaus/impeccable): frontend design: shape, critique, audit, polish, animate. On first use, its launcher downloads its engine binary to `~/.impeccable/` (network needed once; Nix does not pin that binary).
 - `.gitignore` keeps `.claude/settings.local.json`, `docs/pc.md`, `.direnv/`, agent worktrees in `.claude/worktrees/` and the skill links in `.claude/skills/` and `.agents/skills/` out of git.
 
-There is no language stack yet. Add packages to `packages` in `flake.nix` when the team picks the app stack.
 
 ## Update or add
 - Update one input: `nix flake update <input>`, for example `nix flake update ponytail`.
@@ -73,7 +72,6 @@ Branches:
 - Each person and their agents work only on their own branch.
 
 Merging:
-- Antton and Antton's agents merge to `main` and manage all pull requests (PRs).
 - Everyone else opens a PR from their branch to `main`. They do not merge it.
 
 Commit style:
@@ -91,7 +89,3 @@ Commit often enough, but not too often:
 - Do not commit after every file edit. Do not make one large commit at the end of a day.
 - Agents commit at most a few times for each task.
 - Push to your own branch after each commit.
-
-Never add a "Co-Authored-By" trailer or any Claude or AI attribution line to a commit message or a PR body.
-
-PR body: write a few lines. State what changed and why.
