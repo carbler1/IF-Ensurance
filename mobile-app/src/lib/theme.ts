@@ -15,8 +15,10 @@ export const colors = {
   accentForeground: "#1241a2",
   destructive: "#bb320c",
   dangerSoft: "#f9e3d4",
-  success: "#217331",
-  successSoft: "#e0f0db",
+  // "Good news" (discounts, done, verified) is a deep blue, not green: the app speaks in one hue.
+  // Deeper than primary so it never reads as a button. 7.5:1 on successSoft, 9:1 on white.
+  success: "#1241a2",
+  successSoft: "#e1e9f6",
   warning: "#fcc74f",
   warningSoft: "#f9ebc7",
   inverted: "#24150c",
