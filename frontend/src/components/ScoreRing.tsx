@@ -5,8 +5,8 @@ import { bandSoft } from "./Bands";
 
 const tierSoft = bandSoft.slice(0, 4);
 
-export function ScoreRing({ score, projected, max, tierMins, size = 220 }: { score: number; projected: number; max: number; tierMins: number[]; size?: number }) {
-  const r = size / 2 - 12;
+export function ScoreRing({ score, projected, max, tierMins, size = 200 }: { score: number; projected: number; max: number; tierMins: number[]; size?: number }) {
+  const r = size / 2 - 8;
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(1, score / max));
   const projectedPct = Math.max(pct, Math.min(1, projected / max));
@@ -20,22 +20,22 @@ export function ScoreRing({ score, projected, max, tierMins, size = 220 }: { sco
             const from = i === 0 ? 0 : start;
             const end = mins[i + 1] ?? max;
             return (
-              <circle key={start} cx={center} cy={center} r={r} fill="none" strokeWidth={14} stroke={tierSoft[i % tierSoft.length]}
+              <circle key={start} cx={center} cy={center} r={r} fill="none" strokeWidth={10} stroke={tierSoft[i % tierSoft.length]}
                 strokeDasharray={`${c * ((end - from) / max)} ${c}`} strokeDashoffset={-c * (from / max)} />
             );
           })}
-          <circle cx={center} cy={center} r={r} fill="none" strokeWidth={14} strokeLinecap="round" stroke="var(--primary)"
+          <circle cx={center} cy={center} r={r} fill="none" strokeWidth={10} strokeLinecap="round" stroke="var(--primary)"
             strokeDasharray={c} strokeDashoffset={c * (1 - pct)} className="motion-safe:transition-all motion-safe:duration-1000" />
           {projectedPct > pct && (
-            <circle cx={center} cy={center} r={r} fill="none" strokeWidth={14} stroke="var(--primary-light)"
+            <circle cx={center} cy={center} r={r} fill="none" strokeWidth={10} stroke="var(--primary-light)"
               strokeDasharray={`${c * (projectedPct - pct)} ${c}`} strokeDashoffset={-c * pct} className="motion-safe:transition-all motion-safe:duration-700" />
           )}
         </g>
       </svg>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`font-display text-5xl font-semibold tabular-nums ${projected > score ? "text-primary-light" : ""}`}>{projected}</span>
-        {projected > score && <span className="font-display text-2xl font-semibold text-primary-light tabular-nums">+{projected - score}</span>}
-        <span className="text-sm text-muted-foreground">Care Score</span>
+        <span className={`text-[2.75rem] leading-none font-light tabular-nums ${projected > score ? "text-primary-light" : ""}`}>{projected}</span>
+        {projected > score && <span className="mt-1 text-base font-medium text-primary tabular-nums">+{projected - score}</span>}
+        <span className="mt-1 text-xs text-muted-foreground">Care Score</span>
       </div>
     </div>
   );

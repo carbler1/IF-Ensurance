@@ -4,13 +4,13 @@ import { Data } from "@/components/Data";
 import { Card, PageHeader, eur } from "@/components/ui";
 import { getClasses, getOverview } from "@/lib/api";
 
-function Tile({ label, value, sub }: { label: string; value: string | number; sub: string }) {
+function Stat({ label, value, sub }: { label: string; value: string | number; sub: string }) {
   return (
-    <Card>
+    <div className="bg-card px-5 py-4">
       <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-1 font-display text-3xl font-semibold tabular-nums">{value}</p>
-      <p className="mt-1 text-sm text-muted-foreground">{sub}</p>
-    </Card>
+      <p className="mt-1 text-[1.75rem] leading-tight font-light tabular-nums">{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
+    </div>
   );
 }
 
@@ -19,12 +19,13 @@ async function Tiles() {
   const total = (o: Record<string, number>) => Object.values(o).reduce((a, b) => a + b, 0);
   const premiums = classes.reduce((a, k) => a + k.base_annual_premium_eur, 0);
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <Tile label="Customers" value={c.customers} sub={`${c.classes} insurance classes`} />
-      <Tile label="Documents" value={total(c.documents)} sub={`${c.documents.processed ?? 0} processed · ${c.documents.failed ?? 0} failed`} />
-      <Tile label="App bookings" value={c.bookings.open + c.bookings.confirmed} sub={`${c.bookings.open} in progress · ${c.bookings.confirmed} confirmed`} />
-      <Tile label="Base premiums" value={eur(premiums)} sub={`All five classes per year · ${c.active_rules} active fix rules`} />
-    </div>
+    // One strip; the 1 px gaps over the border colour draw the dividers in any column count.
+    <Card tone="line" flush className="grid gap-px overflow-hidden sm:grid-cols-2 lg:grid-cols-4">
+      <Stat label="Customers" value={c.customers} sub={`${c.classes} insurance classes`} />
+      <Stat label="Documents" value={total(c.documents)} sub={`${c.documents.processed ?? 0} processed · ${c.documents.failed ?? 0} failed`} />
+      <Stat label="App bookings" value={c.bookings.open + c.bookings.confirmed} sub={`${c.bookings.open} in progress · ${c.bookings.confirmed} confirmed`} />
+      <Stat label="Base premiums" value={eur(premiums)} sub={`All five classes per year · ${c.active_rules} active fix rules`} />
+    </Card>
   );
 }
 
@@ -41,17 +42,17 @@ export default function OverviewPage() {
     <>
       <PageHeader title="Overview" sub="Good to see you. This is what is happening across If Ensurance right now." />
       <Data load={() => Tiles()} />
-      <div className="mt-6 space-y-3">
+      <Card flush className="mt-6 divide-y overflow-hidden">
         {sections.map((s) => (
-          <Link key={s.href} href={s.href} className="flex items-center justify-between gap-4 rounded-2xl bg-card p-5 shadow-soft transition-shadow hover:shadow-lg">
+          <Link key={s.href} href={s.href} className="group flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-secondary/60">
             <span>
-              <span className="block font-display text-xl font-semibold">{s.title}</span>
-              <span className="mt-1 block text-muted-foreground">{s.text}</span>
+              <span className="block font-medium">{s.title}</span>
+              <span className="mt-0.5 block text-sm text-muted-foreground">{s.text}</span>
             </span>
-            <ChevronRight className="h-5 w-5 shrink-0 text-primary" aria-hidden />
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" aria-hidden />
           </Link>
         ))}
-      </div>
+      </Card>
     </>
   );
 }

@@ -2,17 +2,19 @@
 
 /* The customer app's design tokens, 1:1 from mobile-app/src/lib/theme.ts. */
 :root {
-  --background: #f6f3f0;
-  --foreground: #331e11;
+  /* Staff dashboard palette: the app's blue, tier and state colours on cool neutrals.
+     The canvas, text and lines are cooler than the customer app's warm beige on purpose. */
+  --background: #f4f6fa;
+  --foreground: #0f1b33;
   --card: #ffffff;
   --primary: #0054f0;
-  --primary-foreground: #faf9f7;
+  --primary-foreground: #ffffff;
   --primary-pressed: #1241a2;
   --primary-light: #3b82f6;
-  --secondary: #f1ece8;
-  --muted: #f1ece8;
-  --muted-foreground: #6e625e;
-  --accent: #e1e9f6;
+  --secondary: #eef1f6;
+  --muted: #eef1f6;
+  --muted-foreground: #5b6780;
+  --accent: #e8effd;
   --accent-foreground: #1241a2;
   --destructive: #bb320c;
   --danger-soft: #f9e3d4;
@@ -20,17 +22,17 @@
   --success-soft: #e0f0db;
   --warning: #fcc74f;
   --warning-soft: #f9ebc7;
-  --frame: #e8e0d9;
-  --border: #e8e0d9;
-  /* Darker than the app's #d6cec8: borders and the off switch need 3:1 on white (WCAG 1.4.11). */
-  --input: #8f837e;
+  --frame: #e3e8f0;
+  --border: #e3e8f0;
+  /* Borders of inputs and the off switch need 3:1 on white and on the canvas (WCAG 1.4.11). */
+  --input: #838da0;
   --tier-bronze: #d16547;
   --tier-silver: #9f948f;
   --tier-gold: #e9ad25;
   --tier-platinum: #0054f0;
   /* Soft segment colours of the score ring and the band bar, lowest first. */
   --band-1: #f4ddd2;
-  --band-2: #e6e1de;
+  --band-2: #e4e7ec;
   --band-3: #f9e8c4;
   --band-4: #dbe4fb;
   --band-5: #e0f0db;
@@ -64,11 +66,11 @@
   --color-tier-platinum: var(--tier-platinum);
   --font-sans: var(--font-figtree), system-ui, sans-serif;
   --font-display: var(--font-fraunces), Georgia, serif;
-  /* --radius 0.75rem, as in the app: lg 12, xl 16, 2xl 20 */
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.25rem;
-  --shadow-soft: 0 8px 24px -14px rgb(51 30 17 / 0.25);
+  /* Tighter than the app's 12/16/20 for a flatter, denser staff tool. */
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.625rem;
+  --radius-2xl: 0.75rem;
+  --shadow-soft: 0 1px 2px rgb(15 27 51 / 0.04);
 }
 
 @layer base {
@@ -86,14 +88,19 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  font-size: 17px;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
-h1,
-h2,
-h3 {
+/* Fraunces only for the page title and the logo; the rest of the interface is Figtree. */
+h1 {
   font-family: var(--font-display);
   letter-spacing: -0.01em;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-foreground);
 }
 
 @keyframes pop-in {

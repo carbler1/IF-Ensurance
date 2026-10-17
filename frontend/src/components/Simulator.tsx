@@ -6,16 +6,15 @@ import { runSimulation, type SimInput } from "@/app/actions";
 import { describe, fieldLabel } from "@/lib/context";
 import type { Customer, Field, InsuranceClass, ProfileValue, Simulation } from "@/lib/types";
 import { BandBar } from "./Bands";
-import { smallInputClass } from "./form";
 import { ScoreRing } from "./ScoreRing";
-import { Card, IconTile, Pill, categoryIcon, classIcon, eur, humanize, tierColor } from "./ui";
+import { Card, IconTile, Pill, categoryIcon, classIcon, eur, humanize, inputClass, tierColor } from "./ui";
 
 const UNKNOWN = "unknown";
 
 function FieldControl({ field, value, onChange }: { field: Field; value: ProfileValue; onChange: (v: ProfileValue) => void }) {
   if (field.kind === "enum") {
     return (
-      <select aria-label={fieldLabel(field.name)} value={String(value)} onChange={(e) => onChange(e.target.value)} className={smallInputClass}>
+      <select aria-label={fieldLabel(field.name)} value={String(value)} onChange={(e) => onChange(e.target.value)} className={inputClass}>
         <option value={UNKNOWN}>Unknown</option>
         {field.options.map((o) => <option key={o} value={o}>{humanize(o)}</option>)}
       </select>
@@ -28,7 +27,7 @@ function FieldControl({ field, value, onChange }: { field: Field; value: Profile
       value={value === UNKNOWN ? "" : String(value)}
       placeholder="Unknown"
       onChange={(e) => onChange(e.target.value === "" ? UNKNOWN : field.kind === "year" ? Number(e.target.value) : e.target.value)}
-      className={smallInputClass}
+      className={inputClass}
     />
   );
 }
@@ -89,15 +88,15 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
         <div className="@container min-w-0 flex-1">
           <div className="grid gap-4 @md:grid-cols-2 @2xl:grid-cols-3">
             <label className="col-span-full block">
-              <span className="mb-1 block font-medium">Customer</span>
-              <select value={customerId} onChange={(e) => pickCustomer(e.target.value)} className={smallInputClass}>
+              <span className="mb-1.5 block text-sm font-medium">Customer</span>
+              <select value={customerId} onChange={(e) => pickCustomer(e.target.value)} className={inputClass}>
                 {customers.map((c) => <option key={c.customer_id} value={c.customer_id}>{c.name}</option>)}
               </select>
             </label>
             <div>
               <p className="text-sm text-muted-foreground">Tier · now {agg?.tier_now?.name ?? "—"}</p>
-              <p className="mt-1 flex items-center gap-2 text-xl font-semibold">
-                {agg?.tier_after && <span className={`h-3 w-3 rounded-full ${tierColor[agg.tier_after.index] ?? "bg-primary"}`} />}
+              <p className="mt-1 flex items-center gap-2 text-lg font-medium">
+                {agg?.tier_after && <span className={`h-2.5 w-2.5 rounded-full ${tierColor[agg.tier_after.index] ?? "bg-primary"}`} />}
                 {agg?.tier_after?.name ?? "—"} <span className="text-sm font-normal text-muted-foreground">after every fix</span>
               </p>
               <ul className="mt-1 space-y-0.5 text-sm text-muted-foreground">
@@ -106,7 +105,7 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
             </div>
             <div>
               <p className="text-sm text-muted-foreground">All premiums per year</p>
-              <p className="mt-1 font-display text-3xl font-semibold tabular-nums">{eur(sim?.premium.after ?? 0)}</p>
+              <p className="mt-1 text-[1.75rem] leading-tight font-light tabular-nums">{eur(sim?.premium.after ?? 0)}</p>
               <p className="text-sm text-muted-foreground">
                 Base {eur(sim?.premium.base ?? 0)} · now {eur(sim?.premium.now ?? 0)}
               </p>
@@ -118,20 +117,20 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
         </div>
       </Card>
 
-      <div role="group" aria-label="Insurance" className="grid grid-cols-2 gap-3 @xl:grid-cols-3 @4xl:grid-cols-5">
+      <div role="group" aria-label="Insurance" className="grid grid-cols-2 gap-2 @xl:grid-cols-3 @4xl:grid-cols-5">
         {inputs.map((o, i) => {
           const Icon = classIcon[o.class_id] ?? classIcon.house;
           const r = sim?.objects[i];
           const on = i === active;
           return (
             <button key={o.object_id ?? i} aria-pressed={on} type="button" onClick={() => setActive(i)}
-              className={`rounded-2xl border-2 bg-card p-4 text-left ${on ? "border-primary bg-accent" : "border-transparent shadow-soft"}`}>
-              <span className="flex items-center gap-2 font-semibold"><Icon className="h-5 w-5 text-primary" aria-hidden />{r?.class_name ?? o.class_id}</span>
-              <span className="mt-1 block truncate text-sm text-muted-foreground">{o.name}</span>
-              <span className="mt-2 block font-display text-2xl font-semibold tabular-nums">
-                {r?.score.now ?? "—"}{r && r.score.after > r.score.now && <span className="text-primary-light"> → {r.score.after}</span>}
+              className={`rounded-xl border bg-card px-4 py-3 text-left transition-colors ${on ? "border-primary ring-1 ring-primary" : "hover:border-input"}`}>
+              <span className="flex items-center gap-2 text-sm font-semibold"><Icon className={`h-4 w-4 ${on ? "text-primary" : "text-muted-foreground"}`} strokeWidth={1.75} aria-hidden />{r?.class_name ?? o.class_id}</span>
+              <span className="mt-0.5 block truncate text-xs text-muted-foreground">{o.name}</span>
+              <span className="mt-2 block text-xl font-light tabular-nums">
+                {r?.score.now ?? "—"}{r && r.score.after > r.score.now && <span className="text-primary"> → {r.score.after}</span>}
               </span>
-              <span className={`block text-sm font-semibold ${r?.band.after ? "text-success" : "text-muted-foreground"}`}>
+              <span className={`block text-xs font-medium ${r?.band.after ? "text-success" : "text-muted-foreground"}`}>
                 {r ? (r.band.after > r.band.now ? `${off(r.band.now)} → ${off(r.band.after)}` : off(r.band.now)) : ""}
               </span>
             </button>
@@ -143,16 +142,16 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
         <div className="grid gap-4 @4xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <Card className="h-fit">
             <div className="flex items-center justify-between gap-2">
-              <h2 className="text-xl font-semibold">{cls.name}</h2>
-              <button type="button" onClick={() => setInputs(inputs.map((o, i) => (i === active ? inputsOf(customer, classes)[i] : o)))} className="flex h-11 items-center gap-1 rounded-xl px-3 font-medium text-primary hover:bg-accent">
-                <RotateCcw className="h-4 w-4" />Reset
+              <h2 className="text-base font-semibold">{cls.name}</h2>
+              <button type="button" onClick={() => setInputs(inputs.map((o, i) => (i === active ? inputsOf(customer, classes)[i] : o)))} className="flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-primary hover:bg-accent">
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden />Reset
               </button>
             </div>
             <p className="text-sm text-muted-foreground">{obj.name}. Change any value to see the effect.</p>
-            <div className="mt-3 space-y-3">
+            <div className="mt-4 space-y-3">
               {cls.fields.map((f) => (
                 <label key={f.name} className="block">
-                  <span className="mb-1 block text-sm font-medium">{fieldLabel(f.name)}</span>
+                  <span className="mb-1.5 block text-sm font-medium">{fieldLabel(f.name)}</span>
                   <FieldControl field={f} value={obj.profile[f.name] ?? UNKNOWN} onChange={(v) => setValue(f.name, v)} />
                 </label>
               ))}
@@ -164,8 +163,8 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">{cls.name} score</p>
-                  <p className="font-display text-4xl font-semibold tabular-nums">
-                    {result.score.now}{result.score.after > result.score.now && <span className="text-primary-light"> → {result.score.after}</span>}
+                  <p className="text-[2rem] leading-tight font-light tabular-nums">
+                    {result.score.now}{result.score.after > result.score.now && <span className="text-primary"> → {result.score.after}</span>}
                     <span className="ml-1 font-sans text-base font-normal text-muted-foreground">/ {max}</span>
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -174,7 +173,7 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">{cls.name} premium per year</p>
-                  <p className="font-display text-3xl font-semibold tabular-nums">{eur(result.premium.after)}</p>
+                  <p className="text-[1.75rem] leading-tight font-light tabular-nums">{eur(result.premium.after)}</p>
                   <p className="text-sm text-muted-foreground">
                     <span className="line-through">{eur(result.premium.base)}</span> · now {off(result.band.now)}
                     {result.band.after > result.band.now && <span className="font-semibold text-success"> → {off(result.band.after)}</span>}
@@ -186,29 +185,30 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
 
             {result.history.length > 0 && (
               <Card>
-                <h3 className="text-lg font-semibold">Since insured ({sim.model.insurance_score_start})</h3>
-                <ul className="mt-2">
+                <h3 className="font-semibold">Since insured ({sim.model.insurance_score_start})</h3>
+                <ul className="mt-2 text-sm">
                   {result.history.map((h, n) => (
                     <li key={h.label} className={`flex justify-between gap-3 py-2 ${n ? "border-t" : ""}`}>
                       <span>{h.label}</span>
-                      <span className={`font-semibold ${h.points >= 0 ? "text-success" : "text-destructive"}`}>{h.points >= 0 ? `+${h.points}` : `−${Math.abs(h.points)}`}</span>
+                      <span className={`font-semibold tabular-nums ${h.points >= 0 ? "text-success" : "text-destructive"}`}>{h.points >= 0 ? `+${h.points}` : `−${Math.abs(h.points)}`}</span>
                     </li>
                   ))}
                 </ul>
               </Card>
             )}
 
-            <h2 className="pt-2 text-xl font-semibold">{result.fixes.length} {result.fixes.length === 1 ? "fix applies" : "fixes apply"}</h2>
-            {result.fixes.length === 0 && <Card className="text-muted-foreground">No fix applies. Fill in more of the profile.</Card>}
+            <h2 className="pt-2 text-base font-semibold">{result.fixes.length} {result.fixes.length === 1 ? "fix applies" : "fixes apply"}</h2>
+            {result.fixes.length === 0 && <Card className="text-sm text-muted-foreground">No fix applies. Fill in more of the profile.</Card>}
+            {result.fixes.length > 0 && <Card flush className="divide-y">
             {result.fixes.map((f) => {
               const Icon = categoryIcon[f.category] ?? categoryIcon.roof;
               return (
-                <Card key={f.risk_id}>
+                <div key={f.risk_id} className="px-5 py-4">
                   <div className="flex items-start gap-4">
                     <IconTile icon={Icon} />
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-xl font-semibold">{f.title}</h3>
-                      <div className="mt-2 flex flex-wrap gap-2">
+                      <h3 className="font-semibold">{f.title}</h3>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {f.rule_id ? (
                           <Pill tone={f.rule_context ? "accent" : "secondary"}>{f.rule_context ? `${f.rule_label}: ${describe(f.rule_context).join(", ")}` : "Default rule"}</Pill>
                         ) : (
@@ -217,14 +217,15 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
                         {f.half_life_years && <Pill>Halves every {f.half_life_years} years</Pill>}
                       </div>
                     </div>
-                    <div className="shrink-0 text-center text-primary-light">
-                      <p className="font-display text-3xl font-semibold tabular-nums">+{f.points}</p>
-                      <p className="text-sm text-muted-foreground">points</p>
+                    <div className="shrink-0 text-right text-primary">
+                      <p className="text-xl font-light tabular-nums">+{f.points}</p>
+                      <p className="text-xs text-muted-foreground">points</p>
                     </div>
                   </div>
-                </Card>
+                </div>
               );
             })}
+            </Card>}
           </div>
         </div>
       )}
