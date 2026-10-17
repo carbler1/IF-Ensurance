@@ -9,6 +9,7 @@
 services:
   postgres:
     image: postgres:17-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-ilp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
@@ -24,6 +25,7 @@ services:
       retries: 20
 
   backend:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -56,6 +58,7 @@ services:
       retries: 12
 
   frontend:
+    restart: unless-stopped
     build: ./frontend
     environment:
       # Server-side calls over the compose network; the browser never sees the token.
@@ -70,14 +73,19 @@ services:
         condition: service_healthy
 
   mobile:
+    restart: unless-stopped
     build:
       context: ./mobile-app
       args:
-        # The app runs in the browser on this machine, so it reaches the backend on the host port.
-        EXPO_PUBLIC_API_URL: http://localhost:${BACKEND_PORT:-8000}
+        # The public origin of the app; nginx proxies its /v1/ to the backend.
+        EXPO_PUBLIC_API_URL: https://<app-domain>
         EXPO_PUBLIC_API_TOKEN: ${CUSTOMER_TOKEN:?Set CUSTOMER_TOKEN in .env}
     ports:
       - "${MOBILE_PORT:-8082}:80"
+    networks:
+      - app
+    depends_on:
+      - backend
 
 networks:
   db:
