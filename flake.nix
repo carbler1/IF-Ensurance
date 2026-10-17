@@ -46,7 +46,7 @@
           # Backend, DESIGN.md §4. Run: nix develop .#backend
           backend = pkgs.mkShell {
             packages = [
-              (pkgs.python313.withPackages (p: with p; [ fastapi uvicorn python-multipart pypdfium2 httpx jsonschema sqlalchemy ]))
+              (pkgs.python313.withPackages (p: with p; [ fastapi uvicorn python-multipart pypdfium2 httpx jsonschema sqlalchemy psycopg ]))
               pkgs.cloudflared
             ];
           };

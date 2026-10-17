@@ -1,35 +1,61 @@
 import type { Metadata } from "next";
-import { PartnerRow } from "@/components/PartnerRow";
-import { Card, Data, PageHeader } from "@/components/ui";
-import { getPartners } from "@/lib/api";
+import { Star } from "lucide-react";
+import { savePartner } from "@/app/actions";
+import { Data } from "@/components/Data";
+import { Label, SaveForm, Switch, smallInputClass } from "@/components/form";
+import { Card, PageHeader, Pill, humanize } from "@/components/ui";
+import { getPartners } from "@/lib/data";
 
-export const metadata: Metadata = { title: "Partners & prices · If Life Partner Staff" };
+export const metadata: Metadata = { title: "Partners · If Life Partner Staff" };
 
 async function List() {
   const partners = await getPartners();
   return (
-    <Card>
-      <div className="hidden grid-cols-[minmax(0,2.2fr)_repeat(3,minmax(0,0.8fr))_minmax(0,0.9fr)_minmax(0,0.6fr)_minmax(0,1.1fr)] gap-3 border-b border-border px-5 py-3 text-sm font-medium text-muted-foreground lg:grid">
-        <span>Partner</span>
-        <span>Min €</span>
-        <span>Max €</span>
-        <span>If discount %</span>
-        <span>Listing</span>
-        <span>Vetted</span>
-        <span />
-      </div>
-      {partners.map((p) => <PartnerRow key={p.partner_id} partner={p} />)}
-    </Card>
+    <div className="grid gap-4 lg:grid-cols-2">
+      {partners.map((p) => (
+        <Card key={p.partnerId} className={p.ifVetted ? "" : "opacity-80"}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-lg font-semibold">{p.name}</p>
+              <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-warning text-warning" aria-hidden />{p.rating}</span>
+                <span>{p.area}</span>
+                <span>{p.partnerId}</span>
+              </p>
+            </div>
+            {p.ifVetted ? <Pill tone="success">If vetted</Pill> : <Pill>Not vetted</Pill>}
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {p.categories.map((c) => <Pill key={c}>{humanize(c)}</Pill>)}
+          </div>
+          <SaveForm action={savePartner}>
+            <input type="hidden" name="partner_id" value={p.partnerId} />
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Label text="Min €"><input name="price_min" type="number" min={0} required defaultValue={p.priceMin} className={smallInputClass} /></Label>
+              <Label text="Max €"><input name="price_max" type="number" min={0} required defaultValue={p.priceMax} className={smallInputClass} /></Label>
+              <Label text="If discount %"><input name="tier_discount_percent" type="number" min={0} max={100} required defaultValue={p.tierDiscountPercent} className={smallInputClass} /></Label>
+              <Label text="Listing">
+                <select name="listing_fee_tier" defaultValue={p.listingFeeTier} className={smallInputClass}>
+                  <option value="basic">Basic</option>
+                  <option value="plus">Plus</option>
+                </select>
+              </Label>
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              <Switch name="if_vetted" defaultChecked={p.ifVetted} label={`${p.name} is If vetted`} />
+              <span className="font-medium">Show to customers (If vetted)</span>
+            </div>
+          </SaveForm>
+        </Card>
+      ))}
+    </div>
   );
 }
 
 export default function PartnersPage() {
   return (
     <>
-      <PageHeader
-        title="Partners & prices"
-        sub="Customers see the price range and the If discount on each risk. Only vetted partners are shown to customers."
-      />
+      <PageHeader title="Partners" sub="Customers see the price range and the If discount on each risk. Only vetted partners are shown to customers." />
       <Data load={() => List()} />
     </>
   );

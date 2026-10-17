@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { View } from "react-native";
+import { Platform, View, useWindowDimensions } from "react-native";
 import { Link, Stack, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -42,12 +42,23 @@ export default function RootLayout() {
   );
 }
 
+// The web demo (mobile-app/Dockerfile) shows the app inside a phone-sized frame on a wide screen.
+const PHONE = { width: 390, height: 844 };
+
 // On wide screens (web, tablets) the app keeps its 430px phone column on the frame colour.
 function AppFrame() {
   const { onboarded } = useStore();
+  const window = useWindowDimensions();
+  const phoneFrame = Platform.OS === "web" && window.width >= 600;
   return (
-    <View style={{ flex: 1, backgroundColor: colors.frame, alignItems: "center" }}>
-      <View style={{ flex: 1, width: "100%", maxWidth: 430, backgroundColor: colors.background, boxShadow: shadows.soft }}>
+    <View style={{ flex: 1, backgroundColor: colors.frame, alignItems: "center", justifyContent: phoneFrame ? "center" : undefined }}>
+      <View
+        style={
+          phoneFrame
+            ? { width: PHONE.width, height: Math.min(PHONE.height, window.height - 32), borderRadius: 44, borderWidth: 10, borderColor: colors.inverted, overflow: "hidden", backgroundColor: colors.background, boxShadow: "0 30px 60px -20px rgba(36, 21, 12, 0.45)" }
+            : { flex: 1, width: "100%", maxWidth: 430, backgroundColor: colors.background, boxShadow: shadows.soft }
+        }
+      >
         {onboarded ? (
           <>
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>

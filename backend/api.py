@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
-from backend import admin, db, engine, maintenance
+from backend import db, engine, maintenance
 from backend.models import Document, Home, Job, Profile
 
 HOME_ID = "home_01"  # the single demo home
@@ -132,8 +132,6 @@ except ImportError:  # upload.py not written yet
     pass
 
 app.include_router(v1)
-# Admin routes have their own token (X-Admin-Token), not the customer bearer token.
-app.include_router(admin.router, prefix="/v1")
 
 
 @app.get("/health")

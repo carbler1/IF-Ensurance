@@ -49,6 +49,7 @@ Example: `fixtures/api/jobs-running.json`, `fixtures/api/jobs-done.json` and `fi
 ### GET /homes/me/risks
 Example: `fixtures/api/risks.json`.
 Ordered by `severity × probability`, LLM-proposed items last. At most 5 items with `status` `open` or `booked`. Done items are not listed here; they appear in the score breakdown.
+`points_available` and `premium_reduction_eur` (yearly premium cut in euros, added 2026-10-17) come from the fix rules that If staff set in the dashboard: of the fix's active rules whose context matches the home profile, the one with the highest priority wins (`engine.fix_value`). Without a rule, the catalogue points apply and the cut is 0.
 
 ### GET /homes/me/risks/{risk_id}
 The risk object, plus `evidence`, `mitigation` and `partners`.
@@ -81,19 +82,8 @@ Example: `fixtures/api/score.json`.
 Example: `fixtures/api/maintenance.json`.
 `due_at` = base date + `interval_years`, where the base date is the last known evidence for the entry (confirmed work order or profile fact). With no evidence, `due_at` is the profile creation date. `due_at` is never before the profile creation date. `status` is `overdue`, `upcoming` (within 90 days) or `scheduled`. Sorted by `due_at`. The list is computed at each read and nothing is stored. `item_id` is opaque and may change between reads; use `risk_id` as the key.
 
-## Admin (If staff dashboard)
-Added 2026-10-17 for the staff dashboard in `frontend/`. Separate from the customer contract above.
-- Auth: header `X-Admin-Token: <ADMIN_TOKEN>` from `.env`. The customer bearer token does not work here. The dashboard calls these from its server, never from the browser.
-- Partners and tiers live in SQLite (`partners`, `tiers`). The seed copies `fixtures/partners.json` and `fixtures/score-tiers.json` once; after that the database is the source, and `GET /homes/me/risks/{risk_id}` reads partners from it.
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `/admin/overview` | Counts: customers, documents and jobs by status, work orders by status, partners total and vetted |
-| GET | `/admin/customers` | Each home: address, profile fields known of total, documents, last upload, open risks, work orders |
-| GET | `/admin/partners` | All partners, in the `fixtures/partners.json` shape |
-| PATCH | `/admin/partners/{partner_id}` | Any of `price_min`, `price_max`, `tier_discount_percent` (0–100), `if_vetted`, `listing_fee_tier` (`basic`, `plus`). `400` when min is above max |
-| GET | `/admin/tiers` | All tiers, in the `fixtures/score-tiers.json` shape |
-| PATCH | `/admin/tiers/{index}` | Any of `name`, `min_score`, `deductible_reduction_eur`, `partner_discount_percent`, `free_checkups`. `400` when `min_score` does not sit between the tiers below and above |
+## If staff dashboard
+The staff dashboard in `frontend/` reads and writes Postgres directly. It has no API endpoints. `backend/models.py` owns the tables; the dashboard keeps a copy of their shape in `frontend/src/db/schema.ts`.
 
 `GET /health` (no auth, outside `/v1`) returns `{"status": "ok"}` for docker compose.
 

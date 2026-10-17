@@ -7,6 +7,7 @@
   "why": "Your house is from 1975 and the inspection report notes the original screw-fuse panel. Loose screw-fuse holders overheat and char the panel base, and panels from before 1985 usually have no residual-current device.",
   "benefit": "An electrician's check removes the most common cause of electrical fires in houses of this age. It raises your care score by up to 120 points.",
   "points_available": 120,
+  "premium_reduction_eur": 60,
   "partner_category": "electrician",
   "llm_proposed": false,
   "status": "open",

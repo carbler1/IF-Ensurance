@@ -8,7 +8,7 @@ const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], sty
 
 export const metadata: Metadata = {
   title: "If Life Partner Staff",
-  description: "If staff dashboard: customers, partner prices and Care Score rewards.",
+  description: "If staff dashboard: Care Score and premium math, customers, partners and tier rewards.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -16,7 +16,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" className={`${figtree.variable} ${fraunces.variable} antialiased`}>
       <body className="min-h-screen md:flex">
         <Nav />
-        <main className="min-w-0 flex-1 px-4 py-6 md:px-10 md:py-10">
+        <main className="min-w-0 flex-1 px-5 py-6 md:px-10 md:py-10">
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>
       </body>

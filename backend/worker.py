@@ -3,7 +3,7 @@
 import json
 import time
 
-from sqlalchemy import literal_column, select, update
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from backend import db, pipeline
@@ -28,9 +28,9 @@ def _fail(s: Session, job_id, document_id, code, message) -> None:
 
 
 def run_once(s: Session) -> bool:
-    # rowid keeps insertion order, so the oldest queued job runs first.
+    # The oldest queued job runs first.
     row = s.execute(select(Job.job_id, Job.document_id).where(Job.status == "queued")
-                    .order_by(literal_column("jobs.rowid")).limit(1)).first()
+                    .order_by(Job.queued_at, Job.job_id).limit(1)).first()
     if row is None:
         s.rollback()  # end the read so the next poll sees new jobs
         return False

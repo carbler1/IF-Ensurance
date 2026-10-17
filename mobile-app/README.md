@@ -10,6 +10,10 @@ npm install
 npx expo start        # then press i (iOS), a (Android) or w (web), or scan the QR code with Expo Go
 ```
 
+## Web demo (Docker)
+
+`docker compose up mobile` from the repo root serves a web build of the app at http://localhost:8082. On a wide screen the app sits in a phone-sized frame. It shows the look and the flow for a demo; the phone app is the real product.
+
 ## Check
 
 ```sh

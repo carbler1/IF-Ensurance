@@ -1,12 +1,9 @@
-# If Life Partner backend. SQLite stays in this container at /app/var/ilp.sqlite.
+# If Life Partner backend. The database is Postgres (DATABASE_URL); see docker-compose.yml.
+# Uploads stay in this container at /app/var/uploads.
 # Build from the repo root so the image can copy data, fixtures and prompts:
 #   docker build -f backend/Dockerfile -t ilp .
-# Run: docker run --rm -p 8000:8000 --env-file .env ilp
+# Run: docker compose up (or docker run with DATABASE_URL set)
 FROM python:3.13-slim-bookworm
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends sqlite3 \
-    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -17,6 +14,7 @@ RUN pip install --no-cache-dir \
     pypdfium2 \
     httpx \
     sqlalchemy \
+    "psycopg[binary]" \
     jsonschema
 
 COPY backend ./backend

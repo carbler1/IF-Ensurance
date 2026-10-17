@@ -1,51 +1,66 @@
-import { Suspense, type ReactNode } from "react";
-import { BackendError } from "@/lib/api";
+import type { ReactNode } from "react";
+import { Droplets, Flame, Home, Wind, Wrench, Zap, type LucideIcon } from "lucide-react";
 
-export function PageHeader({ title, sub }: { title: string; sub: string }) {
+// Building blocks in the customer app's style (mobile-app/src/components/ui.tsx).
+
+export const categoryIcon: Record<string, LucideIcon> = {
+  electricity: Zap,
+  plumbing: Wrench,
+  moisture: Droplets,
+  roof: Home,
+  heating: Flame,
+  ventilation: Wind,
+};
+
+export const tierColor = ["bg-tier-bronze", "bg-tier-silver", "bg-tier-gold", "bg-tier-platinum"];
+
+export function PageHeader({ title, sub, children }: { title: string; sub: string; children?: ReactNode }) {
   return (
-    <header className="mb-8">
-      <h1 className="text-3xl font-semibold md:text-4xl">{title}</h1>
-      <p className="mt-2 max-w-2xl text-muted-foreground">{sub}</p>
+    <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 className="text-3xl font-semibold">{title}</h1>
+        <p className="mt-2 max-w-2xl text-muted-foreground">{sub}</p>
+      </div>
+      {children}
     </header>
   );
 }
 
 export function Card({ className = "", children }: { className?: string; children?: ReactNode }) {
-  return <div className={`rounded-2xl bg-card shadow-soft ${className}`}>{children}</div>;
+  return <div className={`rounded-2xl bg-card p-5 shadow-soft ${className}`}>{children}</div>;
 }
 
-function Notice({ message }: { message: string }) {
+export function IconTile({ icon: Icon, size = "md" }: { icon: LucideIcon; size?: "md" | "lg" }) {
   return (
-    <Card className="border-l-4 border-destructive p-5">
-      <p className="font-semibold">The data could not load</p>
-      <p className="mt-1 text-sm text-muted-foreground">{message} Check that the backend is running and that ADMIN_TOKEN matches.</p>
-    </Card>
+    <span className={`grid shrink-0 place-items-center bg-secondary ${size === "lg" ? "h-14 w-14 rounded-2xl" : "h-12 w-12 rounded-xl"}`}>
+      <Icon className={size === "lg" ? "h-7 w-7" : "h-6 w-6"} aria-hidden />
+    </span>
   );
 }
 
-function Skeleton() {
-  return <Card className="h-48 animate-pulse bg-card/60" />;
-}
-
-async function Resolve({ load }: { load: () => Promise<ReactNode> }) {
-  try {
-    return await load();
-  } catch (e) {
-    if (e instanceof BackendError) return <Notice message={e.message} />;
-    throw e;
-  }
-}
-
-// Streams backend data behind a skeleton and shows a notice instead of crashing when the backend is down.
-export function Data({ load }: { load: () => Promise<ReactNode> }) {
+/** The app's "+45 points" block. */
+export function Points({ value, label = "points" }: { value: number; label?: string }) {
   return (
-    <Suspense fallback={<Skeleton />}>
-      <Resolve load={load} />
-    </Suspense>
+    <div className="shrink-0 text-center text-primary-light">
+      <span className="block font-display text-3xl font-semibold tabular-nums">+{value}</span>
+      <span className="block text-sm text-muted-foreground">{label}</span>
+    </div>
   );
+}
+
+export function Pill({ children, tone = "secondary" }: { children: ReactNode; tone?: "secondary" | "accent" | "success" | "warning" }) {
+  const tones = {
+    secondary: "bg-secondary text-foreground",
+    accent: "bg-accent text-accent-foreground",
+    success: "bg-success-soft text-success",
+    warning: "bg-warning-soft text-foreground",
+  };
+  return <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium ${tones[tone]}`}>{children}</span>;
 }
 
 export const formatDate = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
-export const sum = (counts: Record<string, number>) => Object.values(counts).reduce((a, b) => a + b, 0);
+export const eur = (n: number) => `${n.toLocaleString("en-GB")} €`;
+
+export const humanize = (s: string) => s.replaceAll("_", " ").replace(/^\w/, (c) => c.toUpperCase());

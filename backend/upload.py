@@ -33,6 +33,6 @@ async def post_document(file: UploadFile = File(...), type: str = Form(...)):
         now = datetime.now(timezone.utc).isoformat()
         s.add(Document(document_id=doc_id, home_id="home_01", type=type, uploaded_at=now, status="queued"))
         s.flush()  # the job references the document
-        s.add(Job(job_id=job_id, document_id=doc_id, status="queued"))
+        s.add(Job(job_id=job_id, document_id=doc_id, status="queued", queued_at=now))
         s.commit()
     return {"document_id": doc_id, "job_id": job_id}

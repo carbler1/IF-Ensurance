@@ -29,6 +29,17 @@ def _load(s, home_id):
     return profile, {e["id"]: e for e in entries}
 
 
+def fix_value(rules, entry: dict, profile: dict) -> dict:
+    """Points, decay and yearly premium cut of one fix for this home. The first rule in priority
+    order whose context matches the profile wins; without one the catalogue points stand."""
+    for r in rules:
+        if r.risk_id == entry["id"] and (r.context is None or matches(json.loads(r.context), profile)):
+            return {"rule_id": r.rule_id, "points": r.points, "half_life_years": r.half_life_years,
+                    "premium_reduction_eur": r.premium_reduction_eur}
+    return {"rule_id": None, "points": entry["points"], "half_life_years": entry.get("half_life_years"),
+            "premium_reduction_eur": 0}
+
+
 def _orders(s, home_id, status) -> set[str]:
     return set(s.scalars(select(WorkOrder.risk_id).where(WorkOrder.home_id == home_id, WorkOrder.status == status)))
 
@@ -39,12 +50,14 @@ def _items(s, home_id) -> list[tuple[dict, dict]]:
     texts = {t.risk_id: t for t in s.scalars(select(RiskText).where(RiskText.home_id == home_id))}
     booked = _orders(s, home_id, "booked")
     done = _orders(s, home_id, "confirmed")
+    rules = db.fix_rules(s)
     out = []
     for rid, e in by_id.items():
         t = texts.get(rid)
         llm = bool(t and t.llm_proposed)
         if not (matches(e["applies_when"], profile) or llm) or rid in done:
             continue
+        value = fix_value(rules, e, profile)
         out.append(({
             "risk_id": rid,
             "category": e["category"],
@@ -53,7 +66,8 @@ def _items(s, home_id) -> list[tuple[dict, dict]]:
             "probability": e["probability"],
             "why": t.why if t else _strip(e["why_hint"]),
             "benefit": t.benefit if t else _strip(e["benefit_hint"]),
-            "points_available": e["points"],
+            "points_available": value["points"],
+            "premium_reduction_eur": value["premium_reduction_eur"],
             "partner_category": e["mitigation"]["partner_category"],
             "llm_proposed": llm,
             "status": "booked" if rid in booked else "open",

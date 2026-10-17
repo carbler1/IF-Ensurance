@@ -19,6 +19,7 @@ export const colors = {
   successSoft: "#e0f0db",
   warning: "#fcc74f",
   warningSoft: "#f9ebc7",
+  inverted: "#24150c",
   frame: "#e8e0d9",
   border: "#e8e0d9",
   input: "#d6cec8",

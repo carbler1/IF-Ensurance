@@ -32,7 +32,7 @@ Sample input: the synthetic reports in `samples/synthetic/`. Everything is in En
 flowchart LR
     app["Customer app (Ege)<br/>Lovable React web app"] -->|JSON over HTTPS| tunnel["cloudflared tunnel"]
     tunnel --> api["api.py<br/>FastAPI"]
-    api --> db[("SQLite")]
+    api --> db[("Postgres")]
     api --> engine["engine.py<br/>risk list, partners, maintenance"]
     engine --> db
     engine --> data["data/catalogue.json<br/>fixtures/partners.json"]
@@ -46,7 +46,7 @@ All backend parts run on pc-btw.
 | Module | Does |
 |---|---|
 | `backend/api.py` | The endpoints, the bearer token check, CORS, the upload |
-| `backend/db.py` + `backend/models.py` | Opens SQLite through SQLAlchemy, creates the tables from the models, seeds `home_01` |
+| `backend/db.py` + `backend/models.py` | Opens the database through SQLAlchemy, creates the tables from the models, seeds `home_01`, the fix rules and the settings |
 | `backend/engine.py` | Builds the risk list, picks the partners, computes the maintenance dates. Later: booking, confirm, score |
 | `backend/pipeline.py` | The Ollama calls and the steps extract → merge → match → write |
 | `backend/worker.py` | Takes the next queued job, runs the pipeline, sets `status` and `stage` |
@@ -58,7 +58,7 @@ All backend parts run on pc-btw.
 |---|---|
 | Customer app | Lovable (React, TypeScript, Tailwind) web app in Chrome on the Pixel. No Supabase. |
 | Backend | Python 3.13, FastAPI, uvicorn, python-multipart |
-| Database | SQLite, one file `var/ilp.sqlite`, through SQLAlchemy 2.0 (models in `backend/models.py`) |
+| Database | Postgres 17 in docker compose, through SQLAlchemy 2.0 (models in `backend/models.py`). `DATABASE_URL` picks it; without it, a SQLite file `var/ilp.sqlite` (local runs, tests). The staff dashboard reads it directly. |
 | Jobs | A `jobs` table. One worker process polls it. No queue server. |
 | PDF text | pypdfium2 |
 | LLM | Ollama on pc-btw, `qwen3.5:9b`, called with httpx |
@@ -69,7 +69,8 @@ All backend parts run on pc-btw.
 
 ## 5. Database
 
-SQLite. One demo customer and one home (`home_01`).
+Postgres (SQLite without `DATABASE_URL`). One demo customer and one home (`home_01`).
+Added 2026-10-17 for the staff dashboard: `fix_rules` (what a fix is worth in which context: points, half-life, yearly premium cut), `insurance_settings` (score start, base premium, cap on premium cuts) and `reference_data` (copies of `data/catalogue.json` and `data/home-profile.schema.json`, refreshed on each start). All numbers are mock data.
 
 | Table | Columns | Written by |
 |---|---|---|
@@ -137,4 +138,4 @@ Auth: one bearer token for the demo customer and one partner token, both from `.
 These points are not specified. The developer decides them while coding. They do not block the demo.
 - A job with no matched risk: the worker may skip the write step. The app shows an empty list.
 - Maintenance base date: the developer picks a simple rule. Fixtures may differ from it.
-- Both processes open SQLite through `db.connect()`, which sets WAL and a busy timeout.
+- Both processes open the database through `db.connect()`. On Postgres an advisory lock lets only one of them create the tables; on SQLite it sets WAL and a busy timeout.
