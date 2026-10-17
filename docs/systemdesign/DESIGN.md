@@ -70,7 +70,7 @@ All backend parts run on pc-btw.
 ## 5. Database
 
 Postgres (SQLite without `DATABASE_URL`). One demo customer and one home (`home_01`).
-Added 2026-10-17 for the staff dashboard and the five insurance classes: `customers` and `insured_objects` (the demo customer owns a house, a summer cottage, a boat, a car and a dog; a house keeps its profile in `profiles`, the others in `insured_objects.profile`), `insurance_classes` (base premium per class), `fix_rules` (points and half-life of a fix in a context), `insurance_settings` (the starting insurance score, the maximum), `discount_bands` (insurance score → percent off that insurance) and `tiers` (aggregate score → bonuses). Score model, seeded from `data/score-model.json`: each insurance starts at 500 and has its own score up to 1000, which sets its discount (500+: 5 %, 700+: 10 %, 900+: 15 %); the Care Score is the average of the insurance scores and sets the tier, whose bonuses are display texts. This replaces the mock model of decisions 26 and 30 for the demo; `fixtures/score-tiers.json` stays for `/homes/me/score`. The house risks come from `data/catalogue.json`; the other classes from the mock `data/insurance-classes.json`, two risks each (`backend/insurance.py`). All numbers are mock data.
+Added 2026-10-17 for the staff dashboard and the five insurance classes: `customers` and `insured_objects` (the demo customer owns a house, a summer cottage, a boat, a car and a dog; a house keeps its profile in `profiles`, the others in `insured_objects.profile`), `insurance_classes` (base premium per class), `fix_rules` (points and half-life of a fix in a context), `insurance_settings` (the starting insurance score, the maximum), `discount_bands` (insurance score → percent off that insurance) and `tiers` (aggregate score → bonuses). Score model, seeded from `data/score-model.json`: each insurance starts at 500 and has its own score up to 1000, which sets its discount (500+: 5 %, 700+: 10 %, 900+: 15 %); the Care Score is the average of the insurance scores and sets the tier, whose bonuses are display texts. This replaces the mock model of decisions 26 and 30 for the demo; `fixtures/score-tiers.json` stays for `/homes/me/score`. The house can have catalogue risks from `data/catalogue.json`, matched against its profile. The demo customer's app risks (13, from `data/demo-person.json`) are `assigned_risks`: they always apply to their object, and their points come from the fix rules (`backend/insurance.py`). All numbers are mock data.
 
 | Table | Columns | Written by |
 |---|---|---|
@@ -83,7 +83,7 @@ Added 2026-10-17 for the staff dashboard and the five insurance classes: `custom
 | `score_events` (maybe) | `event_id`, `home_id`, `at`, `delta`, `reason`, `work_order_id` | api |
 
 - The uploaded PDF is saved as `var/uploads/<document_id>.pdf`.
-- The seed creates `home_01` (Esimerkkikatu 3, 20100 Turku) with every profile field `"unknown"`. The profile creation date is `homes.created_at`.
+- The seed creates `home_01` (Puutarhakatu 12, 20100 Turku, the mobile app's demo home) with every profile field `"unknown"`. The demo customer (`data/demo-person.json`: home facts, five insured objects, 13 assigned risks, partner bids, maintenance tasks) is refreshed from that file on every start; app bookings (`bookings`) and reminders (`reminders`) are runtime state. The profile creation date is `homes.created_at`.
 - The seed also writes the score event `Home profile created` with `delta` 0 (for the score, maybe).
 - To reset: delete `var/` and seed again.
 

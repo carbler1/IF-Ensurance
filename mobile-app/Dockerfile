@@ -7,6 +7,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+# The backend address and the demo token are built into the web app (see .env.example).
+ARG EXPO_PUBLIC_API_URL=http://localhost:8000
+ARG EXPO_PUBLIC_API_TOKEN=
+ENV EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL EXPO_PUBLIC_API_TOKEN=$EXPO_PUBLIC_API_TOKEN
 RUN npx expo export --platform web --output-dir dist
 
 FROM nginx:1.29-alpine

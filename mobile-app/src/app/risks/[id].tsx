@@ -5,13 +5,14 @@ import { CalendarDays, CheckCircle2, HardHat, Search, Star } from "lucide-react-
 import { NotFound } from "@/components/NotFound";
 import { RiskScorePreview } from "@/components/RiskScorePreview";
 import { Button, Card, Heading, PopIn, Screen, Text, areaIcon } from "@/components/ui";
-import { bids, inspectionPriceFactor, partnerDiscountByTier, risks, type Risk } from "@/data/mock";
 import { fmt } from "@/lib/i18n";
-import { getTier, useStore } from "@/lib/store";
+import { useStore } from "@/lib/store";
+import type { Risk } from "@/lib/types";
 import { colors, radius, shadows } from "@/lib/theme";
 
 export default function RiskDetailRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { risks } = useStore();
   const risk = risks.find((r) => r.id === id);
   if (!risk) return <NotFound />;
   return <RiskDetail key={risk.id} risk={risk} />;
@@ -24,13 +25,14 @@ const choice = (selected: boolean) => [
 ];
 
 function RiskDetail({ risk }: { risk: Risk }) {
-  const { t, scores, aggregate, bookJob, jobs, completed } = useStore();
+  const { t, scores, aggregate, bookJob, jobs, completed, bids, model, getTier } = useStore();
+  const inspectionPriceFactor = model.inspectionPriceFactor;
   const [mode, setMode] = useState<"hire" | "diy" | null>(null);
   const [bid, setBid] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const Icon = areaIcon[risk.area];
   // Partner discounts follow the Care Score tier; the preview shows this insurance's own score.
-  const discount = partnerDiscountByTier[getTier(aggregate).tier.id];
+  const discount = getTier(aggregate).tier.partnerDiscount;
   const existing = jobs[risk.id];
   const done = existing?.step === 2;
   const addedPoints = completed.includes(risk.id) ? 0 : risk.points;

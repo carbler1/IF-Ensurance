@@ -14,7 +14,7 @@ import { Fraunces_400Regular_Italic } from "@expo-google-fonts/fraunces/400Regul
 import { Fraunces_600SemiBold } from "@expo-google-fonts/fraunces/600SemiBold";
 import { Onboarding } from "@/components/Onboarding";
 import { TabBar } from "@/components/TabBar";
-import { Button, Heading, Text } from "@/components/ui";
+import { Button, Heading, Spinner, Text } from "@/components/ui";
 import { StoreProvider, useStore } from "@/lib/store";
 import { colors, shadows } from "@/lib/theme";
 
@@ -47,7 +47,7 @@ const PHONE = { width: 390, height: 844 };
 
 // On wide screens (web, tablets) the app keeps its 430px phone column on the frame colour.
 function AppFrame() {
-  const { onboarded } = useStore();
+  const { onboarded, status, error, reload, t } = useStore();
   const window = useWindowDimensions();
   const phoneFrame = Platform.OS === "web" && window.width >= 600;
   return (
@@ -59,7 +59,18 @@ function AppFrame() {
             : { flex: 1, width: "100%", maxWidth: 430, backgroundColor: colors.background, boxShadow: shadows.soft }
         }
       >
-        {onboarded ? (
+        {status === "loading" ? (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 16 }}>
+            <Spinner size={48} color={colors.primary} />
+            <Text color="mutedForeground">{t("app.loading")}</Text>
+          </View>
+        ) : status === "error" ? (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24, gap: 8 }}>
+            <Heading size="2xl" center>{t("app.error")}</Heading>
+            <Text color="mutedForeground" center>{error}</Text>
+            <Button big style={{ marginTop: 16, alignSelf: "stretch" }} onPress={reload}>{t("app.retry")}</Button>
+          </View>
+        ) : onboarded ? (
           <>
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
               <Stack.Screen name="index" options={{ ...tabPage, title: "Home — If Life Partner" }} />

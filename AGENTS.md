@@ -32,6 +32,7 @@ Rules of the design:
 - `docs/`: documentation. `docs/systemdesign/`: the API contract and the decision log.
 - `.plans/`: specs written by the `interview` skill.
 - `backend/`: FastAPI, the worker, the database models (SQLAlchemy) and their Alembic migrations (`backend/migrations/`; after a model change: `alembic -c backend/alembic.ini revision --autogenerate -m "..."`). `mobile-app/`: the customer app (Expo). `frontend/`: the If staff dashboard (Next.js), which goes through the backend's `/v1/admin` API.
+- `data/demo-person.json`: the one demo customer (Aino) that the mobile app and the dashboard show. The backend seeds it into the database; edit it there, not in the app.
 - `docker-compose.yml`: runs Postgres, `backend`, `frontend` and a web demo of `mobile-app` together. Copy `.env.example` to `.env` first.
 - `archive/`: superseded material, ignored by git. Do not read it or build from it unless Antton asks.
 

@@ -2,13 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, View } from "react-native";
 import { useStore } from "@/lib/store";
 import { colors, fontFamily, sizes } from "@/lib/theme";
-import { getBand } from "@/data/mock";
 import { fmt } from "@/lib/i18n";
-import { Heading, RingOverlay, ScoreRing, Text, bandSegments, useReducedMotion } from "./ui";
+import { Heading, RingOverlay, ScoreRing, Text, bandSegmentsOf, useReducedMotion } from "./ui";
 
 /** An insurance score now and after one fix, on the discount band ring. label: "House score" etc. */
 export function RiskScorePreview({ score, addedPoints, label }: { score: number; addedPoints: number; label: string }) {
-  const { t } = useStore();
+  const { t, getBand, bands } = useStore();
   const reducedMotion = useReducedMotion();
   const projectedScore = Math.min(1000, score + addedPoints);
   const [previewScore, setPreviewScore] = useState(score);
@@ -50,7 +49,7 @@ export function RiskScorePreview({ score, addedPoints, label }: { score: number;
     <View accessibilityLabel={label} style={{ alignItems: "center", paddingVertical: 8 }}>
       <Heading size="lg" style={{ alignSelf: "flex-start" }}>{label}</Heading>
       <View style={{ maxWidth: "100%" }}>
-        <ScoreRing score={score} projectedScore={previewScore} thresholdScore={score} showThresholds segments={bandSegments} />
+        <ScoreRing score={score} projectedScore={previewScore} thresholdScore={score} showThresholds segments={bandSegmentsOf(bands)} />
         <RingOverlay>
           <Animated.Text
             style={{

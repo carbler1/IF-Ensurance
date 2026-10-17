@@ -1,13 +1,12 @@
 import { Pressable, View } from "react-native";
 import { Card, Heading, Screen, Switch, Text } from "@/components/ui";
-import { tasks } from "@/data/mock";
 import { useStore } from "@/lib/store";
 import { colors, radius } from "@/lib/theme";
 
 const seasons = ["autumn", "winter", "spring", "summer"] as const;
 
 export default function Maintenance() {
-  const { t, reminders, toggleReminder } = useStore();
+  const { t, reminders, toggleReminder, tasks } = useStore();
   return (
     <Screen title={t("m.title")} sub={t("m.sub")}>
       {seasons.map((s) => (

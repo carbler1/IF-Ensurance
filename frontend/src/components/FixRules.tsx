@@ -125,7 +125,7 @@ function AddRule({ risk, fields, onDone, defaults }: { risk: Risk; fields: Field
         <p className="mt-2 text-sm text-muted-foreground">{condition ? describe(condition).join(" · ") : "Pick a field and a value."}</p>
 
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Label text="Insurance score points"><input name="points" type="number" min={0} max={1000} required defaultValue={defaults?.points ?? risk.points} className={smallInputClass} /></Label>
+          <Label text="Insurance score points"><input name="points" type="number" min={0} max={1000} required defaultValue={defaults?.points ?? risk.points ?? 0} className={smallInputClass} /></Label>
           <Label text="Half-life, years"><input name="half_life_years" type="number" min={1} max={100} required defaultValue={defaults?.half_life_years ?? risk.half_life_years ?? 5} className={smallInputClass} /></Label>
           <Label text="Priority" hint="Higher wins"><input name="priority" type="number" min={1} max={1000} required defaultValue={10} className={smallInputClass} /></Label>
         </div>
@@ -145,10 +145,11 @@ function FixCard({ risk, rules, fields }: { risk: Risk; rules: Rule[]; fields: F
         <IconTile icon={Icon} />
         <div className="min-w-0 flex-1">
           <h3 className="text-xl font-semibold">{risk.title}</h3>
-          <p className="mt-1 text-muted-foreground">{risk.mitigation.action}</p>
+          <p className="mt-1 text-muted-foreground">{risk.assigned ? risk.why : risk.mitigation.action}</p>
           <div className="mt-2 flex flex-wrap gap-2">
+            {risk.assigned && <Pill tone="accent">In the app · {risk.object_name}</Pill>}
             <Pill>{humanize(risk.category)}</Pill>
-            <Pill>Severity {risk.severity} × probability {risk.probability}</Pill>
+            {risk.severity !== undefined && <Pill>Severity {risk.severity} × probability {risk.probability}</Pill>}
           </div>
         </div>
         {def && (
@@ -194,7 +195,8 @@ export function FixRules({ classes, rules }: { classes: InsuranceClass[]; rules:
   const cls = classes.find((c) => c.class_id === classId) ?? classes[0];
   if (!cls) return null;
   const categories = [...new Set(cls.risks.map((r) => r.category))].sort();
-  const shown = cls.risks.filter(
+  // The app's risks first, then the catalogue.
+  const shown = [...cls.risks].sort((a, b) => Number(!!b.assigned) - Number(!!a.assigned)).filter(
     (r) => (category === "all" || r.category === category) && (!query || `${r.title} ${r.id}`.toLowerCase().includes(query.toLowerCase())),
   );
 

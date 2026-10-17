@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { resetDemo } from "@/app/actions";
 import { Data } from "@/components/Data";
 import { Card, PageHeader, classIcon, eur, formatDate, tierColor } from "@/components/ui";
 import { getCustomers } from "@/lib/api";
@@ -85,7 +86,13 @@ async function List() {
 export default function CustomersPage() {
   return (
     <>
-      <PageHeader title="Customers" sub="Every customer with their insurance scores, discounts and Care Score, and what they could still gain." />
+      <PageHeader title="Customers" sub="Every customer with their insurance scores, discounts and Care Score, and what they could still gain. The demo customer is the person in the mobile app; bookings made in the app show up here.">
+        <form action={resetDemo}>
+          <button type="submit" className="h-11 rounded-xl border border-input bg-card px-4 font-medium shadow-sm hover:bg-accent hover:text-accent-foreground">
+            Reset demo
+          </button>
+        </form>
+      </PageHeader>
       <Data load={() => List()} />
     </>
   );

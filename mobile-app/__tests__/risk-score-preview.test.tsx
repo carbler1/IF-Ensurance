@@ -10,7 +10,11 @@ jest.mock("@/components/ui", () => ({
     return null;
   },
 }));
-jest.mock("@/lib/store", () => ({ useStore: () => ({ t: (key: string) => key }) }));
+jest.mock("@/lib/store", () => {
+  const bands = [{ min: 500, percent: 5 }, { min: 700, percent: 10 }, { min: 900, percent: 15 }];
+  const getBand = (score: number) => bands.reduce((p, b) => (score >= b.min ? b.percent : p), 0);
+  return { useStore: () => ({ t: (key: string) => key, bands, getBand }) };
+});
 
 describe("Risk score preview thresholds", () => {
   it("keeps threshold visibility tied to the actual score when animation crosses 700", async () => {

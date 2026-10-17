@@ -147,6 +147,7 @@ class InsuranceSettings(Base):
     settings_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     insurance_score_start: Mapped[int] = mapped_column(Integer)  # score of a new insurance
     max_score: Mapped[int] = mapped_column(Integer)  # an insurance score never goes above this
+    inspection_price_factor: Mapped[float] = mapped_column(REAL, server_default=text("0.45"))  # DIY check vs full fix price
     updated_at: Mapped[str] = mapped_column(Text)
 
 
@@ -193,7 +194,78 @@ class InsuredObject(Base):
     name: Mapped[str] = mapped_column(Text)
     profile: Mapped[str | None] = mapped_column(Text)  # JSON {field: value}; null for a house
     history: Mapped[str] = mapped_column(Text, server_default=text("'[]'"))  # JSON [{label, points}] since insured
+    details: Mapped[str] = mapped_column(Text, server_default=text("'{}'"))  # JSON facts the app shows, e.g. the house size
     created_at: Mapped[str] = mapped_column(Text)
+
+
+# The demo customer's app content (data/demo-person.json), refreshed from that file on every start.
+class AssignedRisk(Base):
+    """A risk assigned to one insured object, with the texts the app shows. It always applies to that
+    object (no catalogue condition). Its points come from the fix rules (default.<risk_id>)."""
+
+    __tablename__ = "assigned_risks"
+
+    risk_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    object_id: Mapped[str] = mapped_column(Text, ForeignKey("insured_objects.object_id"))
+    area: Mapped[str] = mapped_column(Text)  # the app's icon group: electricity, plumbing, frost, ...
+    title: Mapped[str] = mapped_column(Text)
+    why: Mapped[str] = mapped_column(Text)
+    explain: Mapped[str] = mapped_column(Text)
+    fix: Mapped[str] = mapped_column(Text)
+    diy: Mapped[str] = mapped_column(Text)
+    sort_order: Mapped[int] = mapped_column(Integer)
+
+
+class Bid(Base):
+    """A partner offer the app shows on every risk (mock)."""
+
+    __tablename__ = "bids"
+
+    bid_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    name: Mapped[str] = mapped_column(Text)
+    rating: Mapped[float] = mapped_column(REAL)
+    reviews: Mapped[int] = mapped_column(Integer)
+    price: Mapped[int] = mapped_column(Integer)  # euros, before the tier discount
+    earliest: Mapped[str] = mapped_column(Text)  # display text, e.g. "Tue 20 Oct"
+    sort_order: Mapped[int] = mapped_column(Integer)
+
+
+class Booking(Base):
+    """A fix the customer booked in the app. Step 0 booked, 1 in progress, 2 confirmed by the
+    partner; a confirmed booking adds the fix's points to its insurance's score."""
+
+    __tablename__ = "bookings"
+
+    risk_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    customer_id: Mapped[str] = mapped_column(Text, ForeignKey("customers.customer_id"))
+    object_id: Mapped[str] = mapped_column(Text, ForeignKey("insured_objects.object_id"))
+    bid_id: Mapped[str] = mapped_column(Text, ForeignKey("bids.bid_id"))
+    mode: Mapped[str] = mapped_column(Text)  # hire, diy
+    step: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[str] = mapped_column(Text)
+    confirmed_at: Mapped[str | None] = mapped_column(Text)
+
+
+class MaintenanceTask(Base):
+    __tablename__ = "maintenance_tasks"
+
+    task_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    customer_id: Mapped[str] = mapped_column(Text, ForeignKey("customers.customer_id"))
+    season: Mapped[str] = mapped_column(Text)  # autumn, winter, spring, summer
+    title: Mapped[str] = mapped_column(Text)
+    due: Mapped[str] = mapped_column(Text)  # display text
+    reason: Mapped[str] = mapped_column(Text)  # age, partner, weather, law
+    reason_text: Mapped[str] = mapped_column(Text)
+    sort_order: Mapped[int] = mapped_column(Integer)
+
+
+class Reminder(Base):
+    """A maintenance task the customer wants a reminder for."""
+
+    __tablename__ = "reminders"
+
+    customer_id: Mapped[str] = mapped_column(Text, ForeignKey("customers.customer_id"), primary_key=True)
+    task_id: Mapped[str] = mapped_column(Text, ForeignKey("maintenance_tasks.task_id"), primary_key=True)
 
 
 if __name__ == "__main__":

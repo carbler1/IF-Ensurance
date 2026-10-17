@@ -124,6 +124,12 @@ export async function saveTier(_: SaveState, form: FormData): Promise<SaveState>
   );
 }
 
+/** Clear the demo customer's app bookings and reminders before the next demo run. */
+export async function resetDemo(): Promise<void> {
+  await api.resetDemo();
+  ["/", "/customers", "/simulator"].forEach((p) => revalidatePath(p));
+}
+
 export type SimInput = { object_id: string | null; class_id: string; name: string; profile: Record<string, ProfileValue>; history: { label: string; points: number }[] };
 
 /** The simulator asks the backend for the numbers; nothing is saved. */

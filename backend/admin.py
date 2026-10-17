@@ -14,8 +14,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from backend import db, insurance
-from backend.models import (Customer, DiscountBand, Document, FixRule, Home, InsuranceClass, InsuranceSettings,
-                            Partner, Tier, WorkOrder)
+from backend.models import (Booking, Customer, DiscountBand, Document, FixRule, Home, InsuranceClass,
+                            InsuranceSettings, Partner, Tier, WorkOrder)
 
 
 def require_admin(x_admin_token: str = Header(default="")):
@@ -32,8 +32,8 @@ def _session():
         yield s
 
 
-def _rule_dict(r: FixRule) -> dict:
-    return {"rule_id": r.rule_id, "risk_id": r.risk_id, "class_id": insurance.risk_class(r.risk_id), "label": r.label,
+def _rule_dict(r: FixRule, s: Session) -> dict:
+    return {"rule_id": r.rule_id, "risk_id": r.risk_id, "class_id": insurance.risk_class(s, r.risk_id), "label": r.label,
             "context": json.loads(r.context) if r.context else None, "priority": r.priority, "points": r.points,
             "half_life_years": r.half_life_years, "active": bool(r.active), "is_default": r.rule_id.startswith("default.")}
 
@@ -54,6 +54,8 @@ def overview(s: Session = Depends(_session)):
         "homes": s.scalar(select(func.count()).select_from(Home)),
         "documents": by_status(Document),
         "work_orders": by_status(WorkOrder),
+        "bookings": {"open": s.scalar(select(func.count()).select_from(Booking).where(Booking.step < 2)),
+                     "confirmed": s.scalar(select(func.count()).select_from(Booking).where(Booking.step == 2))},
         "active_rules": s.scalar(select(func.count()).select_from(FixRule).where(FixRule.active == 1)),
         "classes": len(insurance.definitions()),
     }
@@ -79,7 +81,8 @@ def customers(s: Session = Depends(_session)):
 @router.get("/classes")
 def classes(s: Session = Depends(_session)):
     rows = {c.class_id: c for c in s.scalars(select(InsuranceClass))}
-    return {"classes": [{**d, **_class_dict(rows[d["class_id"]])} for d in insurance.definitions() if d["class_id"] in rows]}
+    return {"classes": [{**d, "risks": insurance.class_risks(s, d["class_id"]), **_class_dict(rows[d["class_id"]])}
+                        for d in insurance.definitions() if d["class_id"] in rows]}
 
 
 class ClassPatch(BaseModel):
@@ -154,7 +157,7 @@ def put_bands(body: BandsPut, s: Session = Depends(_session)):
 @router.get("/rules")
 def rules(s: Session = Depends(_session)):
     rows = s.scalars(select(FixRule).order_by(FixRule.risk_id, FixRule.priority.desc(), FixRule.rule_id))
-    return {"rules": [_rule_dict(r) for r in rows]}
+    return {"rules": [_rule_dict(r, s) for r in rows]}
 
 
 class RuleNumbers(BaseModel):
@@ -176,7 +179,7 @@ class RuleCreate(RuleNumbers):
 
 @router.post("/rules", status_code=201)
 def create_rule(body: RuleCreate, s: Session = Depends(_session)):
-    class_id = insurance.risk_class(body.risk_id)
+    class_id = insurance.risk_class(s, body.risk_id)
     if class_id is None:
         raise HTTPException(404, f"Risk {body.risk_id} not found.")
     try:
@@ -189,7 +192,7 @@ def create_rule(body: RuleCreate, s: Session = Depends(_session)):
                 updated_at=db.now_iso())
     s.add(r)
     s.commit()
-    return _rule_dict(r)
+    return _rule_dict(r, s)
 
 
 @router.patch("/rules/{rule_id}")
@@ -204,7 +207,7 @@ def patch_rule(rule_id: str, body: RulePatch, s: Session = Depends(_session)):
         r.priority = body.priority
     r.updated_at = db.now_iso()
     s.commit()
-    return _rule_dict(r)
+    return _rule_dict(r, s)
 
 
 @router.delete("/rules/{rule_id}", status_code=204)
@@ -242,6 +245,13 @@ def simulate(body: SimRequest, s: Session = Depends(_session)):
     if any(o.class_id not in valid for o in body.objects):
         raise HTTPException(400, "Unknown insurance class.")
     return insurance.simulate(s, [o.model_dump() for o in body.objects])
+
+
+@router.post("/demo/reset")
+def demo_reset(s: Session = Depends(_session)):
+    """Clear the demo customer's app bookings and reminders, for the next demo run."""
+    db.reset_demo(s)
+    return {"status": "reset"}
 
 
 # --- Partners and tiers -----------------------------------------------------------------------

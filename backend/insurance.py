@@ -18,7 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend import db, engine
-from backend.models import InsuranceClass, InsuredObject, Profile, WorkOrder
+from backend.models import AssignedRisk, Booking, InsuranceClass, InsuredObject, Profile, WorkOrder
 
 ROOT = Path(__file__).resolve().parent.parent
 UNKNOWN = "unknown"
@@ -42,9 +42,28 @@ def definitions() -> list[dict]:
     house = {"class_id": "house", "name": "House", "fields": house_fields,
              "risks": json.loads((ROOT / "data" / "catalogue.json").read_text())["entries"]}
     others = [{"class_id": c["class_id"], "name": c["name"],
-               "fields": [{"options": [], **f} for f in c["fields"]], "risks": c["risks"]}
+               "fields": [{"options": [], **f} for f in c["fields"]], "risks": c.get("risks", [])}
               for c in _other_classes()["classes"]]
     return [house, *others]
+
+
+def assigned_risks(s: Session, object_ids: list[str] | None = None) -> list[dict]:
+    """Risks assigned to insured objects (the demo customer's app risks), in catalogue-entry shape
+    plus the app texts. They always apply to their object."""
+    q = (select(AssignedRisk, InsuredObject).join(InsuredObject, AssignedRisk.object_id == InsuredObject.object_id)
+         .order_by(AssignedRisk.sort_order))
+    if object_ids is not None:
+        q = q.where(AssignedRisk.object_id.in_(object_ids))
+    return [{"id": r.risk_id, "category": r.area, "title": r.title, "points": None, "assigned": True,
+             "object_id": r.object_id, "object_name": o.name, "class_id": o.class_id,
+             "mitigation": {"action": r.fix, "partner_category": ""},
+             "why": r.why, "explain": r.explain, "fix": r.fix, "diy": r.diy, "area": r.area}
+            for r, o in s.execute(q).all()]
+
+
+def class_risks(s: Session, class_id: str) -> list[dict]:
+    """A class's catalogue risks plus every risk assigned to an object of that class."""
+    return [*definition(class_id)["risks"], *(r for r in assigned_risks(s) if r["class_id"] == class_id)]
 
 
 def definition(class_id: str) -> dict:
@@ -54,19 +73,12 @@ def definition(class_id: str) -> dict:
     raise LookupError(class_id)
 
 
-def risk_class(risk_id: str) -> str | None:
+def risk_class(s: Session, risk_id: str) -> str | None:
     for d in definitions():
         if any(r["id"] == risk_id for r in d["risks"]):
             return d["class_id"]
-    return None
-
-
-def demo_customer() -> dict:
-    return _other_classes()["demo_customer"]
-
-
-def base_premiums() -> dict[str, int]:
-    return _other_classes()["base_premiums_eur"]
+    a = s.get(AssignedRisk, risk_id)
+    return s.get(InsuredObject, a.object_id).class_id if a else None
 
 
 def object_profile(s: Session, obj: InsuredObject) -> dict:
@@ -143,8 +155,10 @@ def _next_tier(score: int, tiers: list[dict]) -> dict | None:
 
 
 def _confirmed(s: Session, object_id: str) -> set[str]:
-    """Risk ids with a confirmed work order. Only a house has work orders in phase 1."""
-    return set(s.scalars(select(WorkOrder.risk_id).where(WorkOrder.home_id == object_id, WorkOrder.status == "confirmed")))
+    """Risk ids confirmed for this object: a confirmed work order (house API) or an app booking at step 2."""
+    orders = s.scalars(select(WorkOrder.risk_id).where(WorkOrder.home_id == object_id, WorkOrder.status == "confirmed"))
+    booked = s.scalars(select(Booking.risk_id).where(Booking.object_id == object_id, Booking.step == 2))
+    return {*orders, *booked}
 
 
 def simulate(s: Session, objects: list[dict]) -> dict:
@@ -163,16 +177,18 @@ def simulate(s: Session, objects: list[dict]) -> dict:
         cls = classes[o["class_id"]]
         profile = o.get("profile") or {}
         done = _confirmed(s, o["object_id"]) if o.get("object_id") else set()
+        assigned = assigned_risks(s, [o["object_id"]]) if o.get("object_id") else []
         fixes, done_points = [], 0
-        for e in d["risks"]:
-            if not engine.matches(e["applies_when"], profile):
+        for e in [*d["risks"], *assigned]:
+            # Catalogue risks apply when their condition matches; assigned risks always apply.
+            if not e.get("assigned") and not engine.matches(e["applies_when"], profile):
                 continue
             v = engine.fix_value(rules, e, profile)
             if e["id"] in done:
                 done_points += v["points"]
                 continue
             fixes.append({"risk_id": e["id"], "title": e["title"], "category": e["category"],
-                          "action": e["mitigation"]["action"], **v,
+                          "action": e["mitigation"]["action"], "assigned": bool(e.get("assigned")), **v,
                           "rule_label": next((r.label for r in rules if r.rule_id == v["rule_id"]), None),
                           "rule_context": next((json.loads(r.context) if r.context else None
                                                 for r in rules if r.rule_id == v["rule_id"]), None)})

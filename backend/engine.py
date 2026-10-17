@@ -35,7 +35,8 @@ def fix_value(rules, entry: dict, profile: dict) -> dict:
     for r in rules:
         if r.risk_id == entry["id"] and (r.context is None or matches(json.loads(r.context), profile)):
             return {"rule_id": r.rule_id, "points": r.points, "half_life_years": r.half_life_years}
-    return {"rule_id": None, "points": entry["points"], "half_life_years": entry.get("half_life_years")}
+    # An assigned risk has no points of its own; without an active rule it is worth 0.
+    return {"rule_id": None, "points": entry.get("points") or 0, "half_life_years": entry.get("half_life_years")}
 
 
 def _orders(s, home_id, status) -> set[str]:

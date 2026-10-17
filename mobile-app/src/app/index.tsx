@@ -2,14 +2,13 @@ import { ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronRight, Snowflake } from "lucide-react-native";
-import { Button, Card, Heading, LinkBlock, RingOverlay, ScoreRing, Text, Wordmark, areaIcon, insuranceIcon } from "@/components/ui";
-import { insurances, risks } from "@/data/mock";
+import { Button, Card, Heading, LinkBlock, RingOverlay, ScoreRing, Text, Wordmark, areaIcon, insuranceIcon, tierSegmentsOf } from "@/components/ui";
 import { fmt } from "@/lib/i18n";
-import { getBand, getTier, useStore } from "@/lib/store";
+import { useStore } from "@/lib/store";
 import { colors, radius, tierColors } from "@/lib/theme";
 
 export default function Dashboard() {
-  const { t, scores, aggregate: score, completed } = useStore();
+  const { t, scores, aggregate: score, completed, customer, insurances, risks, tiers, getTier, getBand } = useStore();
   const insets = useSafeAreaInsets();
   const { tier, next } = getTier(score);
   // The open fix worth the most points, across all five insurances.
@@ -21,13 +20,13 @@ export default function Dashboard() {
       {/* The web wordmark is an inline link, so the list spacing never applied below it. */}
       <View>
         <Wordmark />
-        <Text color="mutedForeground">{t("home.hello")}, Aino</Text>
+        <Text color="mutedForeground">{t("home.hello")}, {customer.name}</Text>
       </View>
 
       <LinkBlock href="/score">
         <Card style={{ alignItems: "center" }}>
           <View style={{ maxWidth: "100%" }}>
-            <ScoreRing score={score} showThresholds />
+            <ScoreRing score={score} showThresholds segments={tierSegmentsOf(tiers)} />
             <RingOverlay>
               <Text size="5xl" display weight={600}>{score}</Text>
               <Text size="sm" color="mutedForeground">/ 1000</Text>

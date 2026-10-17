@@ -90,6 +90,18 @@ Added 2026-10-17. The demo customer's five insurances (house, summer cottage, bo
 - `aggregate` (`now`, `after`) is the average of the insurance scores; `tier_now`/`tier_after` carry the tier with its `bonuses` (display texts; they change no price) and `next_tier`.
 - `model` echoes the bands and tiers in use.
 
+### The mobile app: GET /me/app, bookings, reminders
+Added 2026-10-17. The app (`mobile-app/`) loads the demo customer from the backend and saves its changes there. Field names follow the app (`mobile-app/src/lib/types.ts`). Every call answers with the whole app data, so the app needs one round trip.
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/me/app` | The customer, the home facts, the score model (bands, start, max, inspection price factor), the tiers with their rewards, the five insurances with score and band, the Care Score, the 13 risks with points and booking state, the score history, the partner bids, the maintenance tasks, the reminders |
+| POST | `/me/bookings` | `{"risk_id", "bid_id", "mode": "hire" or "diy"}` → step 0. `404` for an unknown risk or bid, `409` when the risk is already booked |
+| POST | `/me/bookings/{risk_id}/advance` | Next step (the demo's "simulate next step"). Step 2 confirms the fix: its points go to its insurance's score |
+| PUT | `/me/reminders/{task_id}` | `{"on": true or false}` |
+
+The demo customer's content comes from `data/demo-person.json`; the backend refreshes it on every start. Bookings and reminders are runtime state; `POST /admin/demo/reset` clears them.
+
 ## Admin (If staff dashboard)
 Added 2026-10-17. The dashboard in `frontend/` calls these from its server and never touches the database. Auth: header `X-Admin-Token: <ADMIN_TOKEN>` from `.env`; the customer token does not work here.
 
@@ -106,6 +118,7 @@ Added 2026-10-17. The dashboard in `frontend/` calls these from its server and n
 | PATCH | `/admin/rules/{rule_id}` | The numbers, `priority` (not for a default rule) and `active` |
 | DELETE | `/admin/rules/{rule_id}` | `204`. `409` for a default rule |
 | POST | `/admin/simulate` | `{"objects": [{"class_id", "profile", "history"}]}` → the `/me/insurances` shape. Nothing is saved |
+| POST | `/admin/demo/reset` | Clear the demo customer's app bookings and reminders |
 | GET, PATCH | `/admin/partners`, `/admin/partners/{partner_id}` | Prices (min ≤ max), If discount, vetting, listing tier |
 | GET, PATCH | `/admin/tiers`, `/admin/tiers/{index}` | Name, minimum aggregate score (between the neighbours), partner discount %, `bonuses` (list of texts) |
 

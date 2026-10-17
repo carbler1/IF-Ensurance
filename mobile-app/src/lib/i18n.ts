@@ -124,6 +124,9 @@ const en = {
   "score.bands": "Discount bands",
   "score.bandsSub": "Each insurance's own score sets the discount on that insurance.",
   "score.below": "Below {min}",
+  "app.loading": "Loading your home…",
+  "app.error": "We could not load your data",
+  "app.retry": "Try again",
 };
 
 type Dict = Record<keyof typeof en, string>;
@@ -252,6 +255,9 @@ const fi: Dict = {
   "score.bands": "Alennusportaat",
   "score.bandsSub": "Kunkin vakuutuksen omat pisteet määräävät sen alennuksen.",
   "score.below": "Alle {min}",
+  "app.loading": "Ladataan kotiasi…",
+  "app.error": "Tietojasi ei voitu ladata",
+  "app.retry": "Yritä uudelleen",
 };
 
 const sv: Dict = {
@@ -378,6 +384,9 @@ const sv: Dict = {
   "score.bands": "Rabattnivåer",
   "score.bandsSub": "Varje försäkrings egna poäng ger rabatten på just den försäkringen.",
   "score.below": "Under {min}",
+  "app.loading": "Laddar ditt hem…",
+  "app.error": "Vi kunde inte ladda dina uppgifter",
+  "app.retry": "Försök igen",
 };
 
 export const dictionaries: Record<Lang, Dict> = { en, fi, sv };

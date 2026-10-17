@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Camera, Check, FileText, MapPin } from "lucide-react-native";
-import { home, questions } from "@/data/mock";
+import { questions } from "@/data/mock";
 import { useStore } from "@/lib/store";
 import { colors, radius } from "@/lib/theme";
 import { Button, Card, Heading, Input, Spinner, Text, Wordmark } from "./ui";
@@ -17,7 +17,7 @@ import { Button, Card, Heading, Input, Spinner, Text, Wordmark } from "./ui";
 const bigBottom = { marginTop: "auto" } as const;
 
 export function Onboarding() {
-  const { t, finishOnboarding } = useStore();
+  const { t, finishOnboarding, home } = useStore();
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState<
     "address" | "found" | "q" | "photos" | "analysing"

@@ -22,7 +22,7 @@ async function Tiles() {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <Tile label="Customers" value={c.customers} sub={`${c.classes} insurance classes`} />
       <Tile label="Documents" value={total(c.documents)} sub={`${c.documents.processed ?? 0} processed · ${c.documents.failed ?? 0} failed`} />
-      <Tile label="Work orders" value={total(c.work_orders)} sub={`${c.work_orders.booked ?? 0} booked · ${c.work_orders.confirmed ?? 0} confirmed`} />
+      <Tile label="App bookings" value={c.bookings.open + c.bookings.confirmed} sub={`${c.bookings.open} in progress · ${c.bookings.confirmed} confirmed`} />
       <Tile label="Base premiums" value={eur(premiums)} sub={`All five classes per year · ${c.active_rules} active fix rules`} />
     </div>
   );

@@ -1,13 +1,12 @@
 import { View } from "react-native";
 import { CheckCircle2 } from "lucide-react-native";
 import { Card, Heading, LinkBlock, Screen, Text, areaIcon, insuranceIcon } from "@/components/ui";
-import { insurances, risks } from "@/data/mock";
 import { fmt } from "@/lib/i18n";
-import { getBand, useStore } from "@/lib/store";
+import { useStore } from "@/lib/store";
 import { colors, radius } from "@/lib/theme";
 
 export default function RiskList() {
-  const { t, completed, scores } = useStore();
+  const { t, completed, scores, insurances, risks, getBand } = useStore();
   return (
     <Screen title={t("risks.title")} sub={t("risks.sub")}>
       {insurances.map(({ id }) => {

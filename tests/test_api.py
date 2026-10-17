@@ -103,29 +103,30 @@ def test_admin_and_insurances(tmp_path, monkeypatch):
 
         cust = c.get("/v1/admin/customers", headers=A).json()["customers"]
         assert len(cust) == 1 and [o["class_id"] for o in cust[0]["objects"]] == ["house", "cottage", "boat", "car", "dog"]
+        assert cust[0]["name"] == "Aino"
         dog = next(o for o in cust[0]["objects"] if o["class_id"] == "dog")
-        assert {f["risk_id"] for f in dog["fixes"]} == {"dog.vaccination.expired", "dog.joints.large_breed_check"}
+        assert {f["risk_id"] for f in dog["fixes"]} == {"dog-vaccine", "dog-joints"}
 
         # A context rule for young dogs does not apply to Ruska (born 2018); one for large dogs does.
-        bad = {"risk_id": "dog.vaccination.expired", "label": "x", "priority": 5, "points": 1,
+        bad = {"risk_id": "dog-vaccine", "label": "x", "priority": 5, "points": 1,
                "half_life_years": 1, "context": {"op": "lt", "field": "building_year", "value": 1}}
         assert c.post("/v1/admin/rules", headers=A, json=bad).status_code == 400  # a house field on a dog risk
         good = {**bad, "label": "Large dogs", "points": 70,
                 "context": {"op": "eq", "field": "breed_size", "value": "large"}}
         rule = c.post("/v1/admin/rules", headers=A, json=good).json()
         sim = c.post("/v1/admin/simulate", headers=A, json={"objects": [
-            {"class_id": "dog", "profile": {"breed_size": "large", "birth_year": 2018, "vaccinations_valid": "no"}}]}).json()
-        vacc = next(f for f in sim["objects"][0]["fixes"] if f["risk_id"] == "dog.vaccination.expired")
+            {"object_id": "obj_dog", "class_id": "dog", "profile": {"breed_size": "large", "birth_year": 2018, "vaccinations_valid": "no"}}]}).json()
+        vacc = next(f for f in sim["objects"][0]["fixes"] if f["risk_id"] == "dog-vaccine")
         assert (vacc["points"], vacc["rule_id"]) == (70, rule["rule_id"])
         assert c.delete(f"/v1/admin/rules/{rule['rule_id']}", headers=A).status_code == 204
-        assert c.delete("/v1/admin/rules/default.dog.vaccination.expired", headers=A).status_code == 409
+        assert c.delete("/v1/admin/rules/default.dog-vaccine", headers=A).status_code == 409
 
         # Each insurance starts at 500 plus its history; the bands set its discount; the aggregate is the average.
         dog_profile = {"breed_size": "large", "birth_year": 2018, "vaccinations_valid": "no"}
 
         def dog_at(history_points):
             r = c.post("/v1/admin/simulate", headers=A, json={"objects": [
-                {"class_id": "dog", "profile": dog_profile, "history": [{"label": "h", "points": history_points}]}]}).json()
+                {"object_id": "obj_dog", "class_id": "dog", "profile": dog_profile, "history": [{"label": "h", "points": history_points}]}]}).json()
             return r["objects"][0]
 
         assert dog_at(-1)["band"]["now"] == 0      # 499: no discount
@@ -152,3 +153,40 @@ def test_admin_and_insurances(tmp_path, monkeypatch):
         assert scores == [555, 520, 470, 690, 760] and mine["aggregate"]["now"] == 599
         assert mine["aggregate"]["tier_now"]["name"] == "Silver"
         assert all({"why", "benefit", "points"} <= set(f) for o in mine["objects"] for f in o["fixes"])
+
+
+def test_app_api(tmp_path, monkeypatch):
+    from backend import db
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "t.sqlite")
+    monkeypatch.setattr(db, "UPLOADS", tmp_path / "up")
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("CUSTOMER_TOKEN", "t")
+    monkeypatch.setenv("ADMIN_TOKEN", "a")
+    from backend.api import app
+    demo = json.loads((ROOT / "data/demo-person.json").read_text())
+    with TestClient(app) as c:
+        assert c.get("/v1/me/app").status_code == 401
+        d = c.get("/v1/me/app", headers=H).json()
+        # The app's person comes back exactly as data/demo-person.json has them.
+        assert d["customer"]["name"] == demo["customer"]["name"] and d["home"]["address"] == demo["home"]["address"]
+        assert [(r["id"], r["points"], r["title"]) for r in d["risks"]] == [(r["risk_id"], r["points"], r["title"]) for r in demo["risks"]]
+        assert [i["score"] for i in d["insurances"]] == [555, 520, 470, 690, 760] and d["aggregate"] == 599
+        assert [t["id"] for t in d["tasks"]] == [t["task_id"] for t in demo["tasks"]] and d["reminders"] == ["t1"]
+
+        # Booking, two steps, and the fix's points land on the house score.
+        assert c.post("/v1/me/bookings", headers=H, json={"risk_id": "pipes", "bid_id": "nope", "mode": "hire"}).status_code == 404
+        c.post("/v1/me/bookings", headers=H, json={"risk_id": "pipes", "bid_id": "b2", "mode": "hire"})
+        assert c.post("/v1/me/bookings", headers=H, json={"risk_id": "pipes", "bid_id": "b2", "mode": "hire"}).status_code == 409
+        c.post("/v1/me/bookings/pipes/advance", headers=H)
+        d = c.post("/v1/me/bookings/pipes/advance", headers=H).json()
+        assert d["insurances"][0]["score"] == 595 and d["aggregate"] == 607
+        assert next(r for r in d["risks"] if r["id"] == "pipes")["job"]["step"] == 2
+        assert c.get("/v1/admin/overview", headers={"X-Admin-Token": "a"}).json()["bookings"] == {"open": 0, "confirmed": 1}
+
+        d = c.put("/v1/me/reminders/t3", headers=H, json={"on": True}).json()
+        assert sorted(d["reminders"]) == ["t1", "t3"]
+
+        # The dashboard's reset brings the demo back to its start.
+        assert c.post("/v1/admin/demo/reset", headers={"X-Admin-Token": "a"}).status_code == 200
+        d = c.get("/v1/me/app", headers=H).json()
+        assert d["aggregate"] == 599 and d["reminders"] == ["t1"] and all(r["job"] is None for r in d["risks"])

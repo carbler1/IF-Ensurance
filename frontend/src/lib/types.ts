@@ -15,9 +15,13 @@ export type Risk = {
   id: string;
   category: string;
   title: string;
-  severity: number;
-  probability: number;
-  points: number;
+  severity?: number;
+  probability?: number;
+  points: number | null;
+  /** Set for a risk assigned to one customer's object (the app's risks). */
+  assigned?: boolean;
+  object_name?: string;
+  why?: string;
   half_life_years?: number;
   mitigation: { action: string; partner_category: string };
 };
@@ -111,6 +115,7 @@ export type Overview = {
   homes: number;
   documents: Record<string, number>;
   work_orders: Record<string, number>;
+  bookings: { open: number; confirmed: number };
   active_rules: number;
   classes: number;
 };

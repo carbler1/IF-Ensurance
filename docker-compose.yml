@@ -35,6 +35,8 @@ services:
       # Ollama runs on the host, outside the container.
       OLLAMA_URL: ${OLLAMA_URL_DOCKER:-http://host.docker.internal:11434}
       ADMIN_TOKEN: ${ADMIN_TOKEN:?Set ADMIN_TOKEN in .env}
+      # The browser origins that may call the API: the app demo below and Expo's web dev server.
+      CORS_ORIGINS: http://localhost:${MOBILE_PORT:-8082},http://localhost:8081
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -68,7 +70,12 @@ services:
         condition: service_healthy
 
   mobile:
-    build: ./mobile-app
+    build:
+      context: ./mobile-app
+      args:
+        # The app runs in the browser on this machine, so it reaches the backend on the host port.
+        EXPO_PUBLIC_API_URL: http://localhost:${BACKEND_PORT:-8000}
+        EXPO_PUBLIC_API_TOKEN: ${CUSTOMER_TOKEN:?Set CUSTOMER_TOKEN in .env}
     ports:
       - "${MOBILE_PORT:-8082}:80"
 

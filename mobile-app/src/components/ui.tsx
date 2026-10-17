@@ -18,7 +18,8 @@ import { Link, router, type Href } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, G, Line, Text as SvgText } from "react-native-svg";
 import { Bone, Car, ChevronLeft, CircleGauge, Cog, Dog, Droplets, Flame, Home as HomeIcon, Layers, Loader2, Sailboat, Snowflake, Syringe, TreePine, Warehouse, Wrench, Zap, type LucideIcon } from "lucide-react-native";
-import { bands, tiers, type InsuranceId, type RiskArea } from "@/data/mock";
+import type { InsuranceId, RiskArea } from "@/data/mock";
+import type { Band, Tier } from "@/lib/types";
 import { useStore } from "@/lib/store";
 import { colors, fontFamily, radius, shadows, sizes, tierColors, type ColorName, type SizeName, type Weight } from "@/lib/theme";
 
@@ -49,13 +50,17 @@ export const insuranceIcon: Record<InsuranceId, LucideIcon> = {
 /** Ring segments: where each starts and its soft colour. */
 export type RingSegment = { key: string; min: number; soft: string };
 
-/** The Care Score ring: the four tiers. */
-export const tierSegments: RingSegment[] = tiers.map((t) => ({ key: t.id, min: t.min, soft: tierColors[t.id].soft }));
+/** The soft ring colours, lowest first: the tier colours. */
+export const softColors = Object.values(tierColors).map((c) => c.soft);
+
+/** The Care Score ring: the tiers. */
+export const tierSegmentsOf = (tiers: Tier[]): RingSegment[] =>
+  tiers.map((t, i) => ({ key: t.id, min: t.min, soft: tierColors[t.id]?.soft ?? softColors[i % softColors.length] }));
 
 /** An insurance's ring: no discount, then each discount band, in the same soft colours as the tiers. */
-export const bandSegments: RingSegment[] = [
-  { key: "none", min: 0, soft: tierColors.bronze.soft },
-  ...bands.map((b, i) => ({ key: `band-${b.min}`, min: b.min, soft: Object.values(tierColors)[i + 1]?.soft ?? tierColors.platinum.soft })),
+export const bandSegmentsOf = (bands: Band[]): RingSegment[] => [
+  { key: "none", min: 0, soft: softColors[0] },
+  ...bands.map((b, i) => ({ key: `band-${b.min}`, min: b.min, soft: softColors[Math.min(i + 1, softColors.length - 1)] })),
 ];
 
 export function useReducedMotion() {
@@ -236,7 +241,7 @@ export function Spinner({ size, color }: { size: number; color: string }) {
   );
 }
 
-export function ScoreRing({ score, max = 1000, size = 200, projectedScore = score, thresholdScore = score, showThresholds = false, segments = tierSegments }: { score: number; max?: number; size?: number; projectedScore?: number; thresholdScore?: number; showThresholds?: boolean; segments?: RingSegment[] }) {
+export function ScoreRing({ score, max = 1000, size = 200, projectedScore = score, thresholdScore = score, showThresholds = false, segments }: { score: number; max?: number; size?: number; projectedScore?: number; thresholdScore?: number; showThresholds?: boolean; segments: RingSegment[] }) {
   const r = size / 2 - 12;
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(1, score / max));

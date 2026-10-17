@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
-from backend import admin, db, engine, insurance, maintenance
+from backend import admin, app_api, db, engine, insurance, maintenance
 from backend.models import Document, Home, Job, Profile, RiskText
 
 HOME_ID = "home_01"  # the single demo home
@@ -20,7 +20,7 @@ app = FastAPI(title="If Life Partner")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()],
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PUT"],
     allow_headers=["Authorization", "Content-Type"],
 )
 
@@ -129,12 +129,16 @@ def get_insurances():
     with db.connect() as s:
         result = insurance.simulate(s, insurance.customer_objects(s, CUSTOMER_ID))
         texts = {t.risk_id: t for t in s.scalars(select(RiskText).where(RiskText.home_id == HOME_ID))}
+        assigned = {r["id"]: r for r in insurance.assigned_risks(s)}
     hints = {r["id"]: r for d in insurance.definitions() for r in d["risks"]}
     for o in result["objects"]:
         for f in o["fixes"]:
-            t, h = texts.get(f["risk_id"]), hints[f["risk_id"]]
-            f["why"] = t.why if t else engine._strip(h["why_hint"])
-            f["benefit"] = t.benefit if t else engine._strip(h["benefit_hint"])
+            t, h, a = texts.get(f["risk_id"]), hints.get(f["risk_id"]), assigned.get(f["risk_id"])
+            if a:  # the app's own texts
+                f["why"], f["benefit"] = a["why"], a["explain"]
+            else:
+                f["why"] = t.why if t else engine._strip(h["why_hint"])
+                f["benefit"] = t.benefit if t else engine._strip(h["benefit_hint"])
             for k in ("rule_id", "rule_label", "rule_context"):
                 f.pop(k, None)
     return result
@@ -152,6 +156,7 @@ try:
 except ImportError:  # upload.py not written yet
     pass
 
+v1.include_router(app_api.router)  # the mobile app: /v1/me/app, bookings, reminders
 app.include_router(v1)
 # The staff dashboard's routes have their own token (X-Admin-Token), not the customer bearer token.
 app.include_router(admin.router, prefix="/v1")

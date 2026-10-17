@@ -1,9 +1,8 @@
 import { View } from "react-native";
 import { Check, TrendingDown, TrendingUp } from "lucide-react-native";
-import { Card, Heading, Screen, Text, insuranceIcon, tierSegments } from "@/components/ui";
-import { MAX_SCORE, bands, insurances, risks, scoreHistory, tiers } from "@/data/mock";
+import { Card, Heading, Screen, Text, insuranceIcon, softColors } from "@/components/ui";
 import { fmt } from "@/lib/i18n";
-import { getBand, getTier, nextBand, useStore } from "@/lib/store";
+import { useStore } from "@/lib/store";
 import { colors, radius, shadows, tierColors } from "@/lib/theme";
 
 function Row({ label, points, first }: { label: string; points: number; first: boolean }) {
@@ -16,7 +15,7 @@ function Row({ label, points, first }: { label: string; points: number; first: b
 }
 
 export default function ScoreBreakdown() {
-  const { t, scores, aggregate, completed } = useStore();
+  const { t, scores, aggregate, completed, insurances, risks, history: scoreHistory, tiers, bands, model, getBand, getTier, nextBand } = useStore();
   const current = getTier(aggregate).tier.id;
   const currentBand = (pct: number) => bands.reduce((m, b) => (b.percent === pct ? b.min : m), 0);
   const items = [
@@ -28,7 +27,7 @@ export default function ScoreBreakdown() {
   const ladder = [{ min: 0, percent: 0 }, ...bands];
 
   return (
-    <Screen back title={t("score.title")} sub={`${aggregate} / ${MAX_SCORE}`}>
+    <Screen back title={t("score.title")} sub={`${aggregate} / ${model.maxScore}`}>
       <Text color="mutedForeground" style={{ marginTop: -8 }}>{t("score.average")}</Text>
 
       <Card>
@@ -68,7 +67,7 @@ export default function ScoreBreakdown() {
             const held = insurances.filter(({ id }) => currentBand(getBand(scores[id])) === b.min).length;
             return (
               // A blue border marks the bands where at least one of your insurances sits now.
-              <View key={b.min} style={{ flex: 1, borderRadius: radius.xl, borderWidth: 2, borderColor: held > 0 ? colors.primary : "transparent", padding: 10, backgroundColor: tierSegments[i]?.soft ?? colors.secondary, alignItems: "center" }}>
+              <View key={b.min} style={{ flex: 1, borderRadius: radius.xl, borderWidth: 2, borderColor: held > 0 ? colors.primary : "transparent", padding: 10, backgroundColor: softColors[i] ?? colors.secondary, alignItems: "center" }}>
                 <Text size="sm" color="mutedForeground">{b.min === 0 ? fmt(t("score.below"), { min: bands[0].min }) : `${b.min}+`}</Text>
                 <Text size="lg" weight={600}>{b.percent ? `${b.percent}%` : "—"}</Text>
               </View>

@@ -53,4 +53,5 @@ export const api = {
   patchPartner: (id: string, body: unknown) => send<Partner>("PATCH", `/partners/${encodeURIComponent(id)}`, body),
   patchTier: (index: number, body: unknown) => send<Tier>("PATCH", `/tiers/${index}`, body),
   simulate: (objects: unknown) => send<Simulation>("POST", "/simulate", { objects }),
+  resetDemo: () => send<{ status: string }>("POST", "/demo/reset"),
 };

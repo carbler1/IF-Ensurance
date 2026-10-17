@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Car, CircleGauge, Cog, Dog, Droplets, Flame, HeartPulse, Home, Sailboat, Snowflake, TreePine, Warehouse, Wind, Wrench, Zap, type LucideIcon } from "lucide-react";
+import { Bone, Car, CircleGauge, Cog, Dog, Droplets, Flame, HeartPulse, Home, Layers, Sailboat, Snowflake, Syringe, TreePine, Warehouse, Wind, Wrench, Zap, type LucideIcon } from "lucide-react";
 
 // Building blocks in the customer app's style (mobile-app/src/components/ui.tsx).
 
@@ -15,6 +15,13 @@ export const categoryIcon: Record<string, LucideIcon> = {
   tyres: Snowflake,
   service: CircleGauge,
   health: HeartPulse,
+  // The app's risk areas (mobile-app/src/components/ui.tsx areaIcon).
+  water: Droplets,
+  insulation: Layers,
+  frost: Snowflake,
+  fire: Flame,
+  vaccine: Syringe,
+  joints: Bone,
 };
 
 export const classIcon: Record<string, LucideIcon> = {

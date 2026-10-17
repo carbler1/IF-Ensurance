@@ -11,11 +11,11 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from sqlalchemy import Engine, create_engine, event, select
+from sqlalchemy import Engine, create_engine, delete, event, select
 from sqlalchemy.orm import Session
 
-from backend.models import (Base, Customer, DiscountBand, FixRule, Home, InsuranceClass, InsuranceSettings, InsuredObject,
-                            Partner, Profile, Tier)
+from backend.models import (AssignedRisk, Base, Bid, Booking, Customer, DiscountBand, FixRule, Home, InsuranceClass,
+                            InsuranceSettings, InsuredObject, MaintenanceTask, Partner, Profile, Reminder, Tier)
 
 ROOT = Path(__file__).resolve().parent.parent
 VAR = ROOT / "var"
@@ -64,22 +64,15 @@ def now_iso() -> str:
 
 
 def seed(s: Session) -> None:
-    """Create home_01 (Esimerkkikatu 3, 20100 Turku) with every profile field "unknown", the demo
-    customer with a house, a cottage, a boat, a car and a dog, and the mock partners, tiers,
-    insurance classes and fix rules. Rows that exist stay as they are."""
+    """Create the static mock data the first time: partners, the score model, the insurance classes
+    and the fix rules. Rows that exist stay as they are, so edits made in the dashboard survive.
+    Then refresh the demo customer from data/demo-person.json (sync_demo_person)."""
     now = now_iso()
-    props = json.loads((ROOT / "data" / "home-profile.schema.json").read_text())["properties"]
-    unknown = {"value": "unknown", "confidence": 0, "source": "none", "evidence": None, "doubt": False}
-    profile = {name: dict(unknown) for name in props}
 
     def add_missing(model, key, row):
         if s.get(model, key) is None:
             s.add(row)
 
-    add_missing(Home, "home_01", Home(home_id="home_01", street="Esimerkkikatu 3", postal_code="20100",
-                                      city="Turku", created_at=now))
-    s.flush()  # the profile references the home
-    add_missing(Profile, "home_01", Profile(home_id="home_01", profile=json.dumps(profile), updated_at=now))
     for p in json.loads((ROOT / "fixtures" / "partners.json").read_text())["partners"]:
         add_missing(Partner, p["partner_id"], Partner(
             partner_id=p["partner_id"], name=p["name"], categories=json.dumps(p["categories"]), area=p["area"],
@@ -94,35 +87,105 @@ def seed(s: Session) -> None:
             partner_discount_percent=t["partner_discount_percent"], bonuses=json.dumps(t["bonuses"]), updated_at=now))
     for b in model["bands"]:
         add_missing(DiscountBand, b["min_score"], DiscountBand(min_score=b["min_score"], percent=b["percent"], updated_at=now))
+    demo = json.loads((ROOT / "data" / "demo-person.json").read_text())
     add_missing(InsuranceSettings, 1, InsuranceSettings(
-        settings_id=1, insurance_score_start=model["insurance_score_start"], max_score=model["max_score"], updated_at=now))
+        settings_id=1, insurance_score_start=model["insurance_score_start"], max_score=model["max_score"],
+        inspection_price_factor=demo["inspection_price_factor"], updated_at=now))
     other = json.loads((ROOT / "data" / "insurance-classes.json").read_text())
     names = {"house": "House", **{c["class_id"]: c["name"] for c in other["classes"]}}
     for class_id, premium in other["base_premiums_eur"].items():
         add_missing(InsuranceClass, class_id, InsuranceClass(
             class_id=class_id, name=names[class_id], base_annual_premium_eur=premium, updated_at=now))
-    cust = other["demo_customer"]
-    add_missing(Customer, cust["customer_id"], Customer(customer_id=cust["customer_id"], name=cust["name"], created_at=now))
-    s.flush()  # objects reference the customer and the classes
-    for o in cust["objects"]:
-        add_missing(InsuredObject, o["object_id"], InsuredObject(
-            object_id=o["object_id"], customer_id=cust["customer_id"], class_id=o["class_id"], name=o["name"],
-            profile=json.dumps(o["profile"]) if "profile" in o else None, history=json.dumps(o.get("history", [])),
-            created_at=now))
+    s.flush()
 
     entries = json.loads((ROOT / "data" / "catalogue.json").read_text())["entries"]
-    entries += [r for c in other["classes"] for r in c["risks"]]
+    entries += [{"id": r["risk_id"], "points": r["points"], "category": r["area"]} for r in demo["risks"]]
     half_lives = json.loads((ROOT / "fixtures" / "half-lives.json").read_text())["defaults"]
     for e in entries:
         add_missing(FixRule, f"default.{e['id']}", FixRule(
             rule_id=f"default.{e['id']}", risk_id=e["id"], label="Default", context=None, priority=0,
             points=e["points"], half_life_years=e.get("half_life_years") or half_lives.get(e["category"], 5),
             active=1, updated_at=now))
+    # Default rules of risks that no longer exist (an older demo data set) would only clutter the dashboard.
+    known = {f"default.{e['id']}" for e in entries}
+    s.execute(delete(FixRule).where(FixRule.rule_id.like("default.%"), FixRule.rule_id.not_in(known)))
     # One example of a context rule, so the dashboard shows how a context changes the value.
     add_missing(FixRule, "example.elec_check_pre1970", FixRule(
         rule_id="example.elec_check_pre1970", risk_id="elec.check.overdue", label="Houses built before 1970",
         context=json.dumps({"op": "lt", "field": "building_year", "value": 1970}), priority=10,
         points=110, half_life_years=10, active=1, updated_at=now))
+    s.commit()
+    sync_demo_person(s, demo)
+
+
+def sync_demo_person(s: Session, demo: dict | None = None) -> None:
+    """Make the demo customer exactly what data/demo-person.json says: who they are, their home,
+    their five insured objects, the risks the app shows, the partner bids and the maintenance tasks.
+    Bookings and reminders are the app's runtime state and stay (reset_demo clears them)."""
+    demo = demo or json.loads((ROOT / "data" / "demo-person.json").read_text())
+    now = now_iso()
+    cust, home = demo["customer"], demo["home"]
+    c = s.get(Customer, cust["customer_id"])
+    new_customer = c is None
+    if new_customer:
+        s.add(Customer(customer_id=cust["customer_id"], name=cust["name"], created_at=now))
+    else:
+        c.name = cust["name"]
+
+    h = s.get(Home, home["home_id"])
+    if h is None:
+        s.add(Home(home_id=home["home_id"], street=home["street"], postal_code=home["postal_code"], city=home["city"], created_at=now))
+    else:
+        h.street, h.postal_code, h.city = home["street"], home["postal_code"], home["city"]
+    s.flush()
+    if s.get(Profile, home["home_id"]) is None:
+        # The pipeline fills the house profile from an uploaded report; it starts all "unknown".
+        props = json.loads((ROOT / "data" / "home-profile.schema.json").read_text())["properties"]
+        unknown = {"value": "unknown", "confidence": 0, "source": "none", "evidence": None, "doubt": False}
+        s.add(Profile(home_id=home["home_id"], profile=json.dumps({n: dict(unknown) for n in props}), updated_at=now))
+
+    details = {"house": {k: home[k] for k in ("address", "type", "year", "size", "heating")}}
+    for o in demo["objects"]:
+        row = s.get(InsuredObject, o["object_id"])
+        values = dict(customer_id=cust["customer_id"], class_id=o["class_id"], name=o["name"],
+                      profile=json.dumps(o["profile"]) if "profile" in o else None,
+                      history=json.dumps(o["history"]), details=json.dumps(details.get(o["class_id"], {})))
+        if row is None:
+            s.add(InsuredObject(object_id=o["object_id"], created_at=now, **values))
+        else:
+            for k, v in values.items():
+                setattr(row, k, v)
+    s.flush()
+
+    def replace_all(model, key: str, rows: list[dict], scope=None):
+        """Upsert these rows and delete the model's other rows (within scope)."""
+        ids = [r[key] for r in rows]
+        q = delete(model).where(getattr(model, key).not_in(ids))
+        s.execute(q.where(scope) if scope is not None else q)
+        for r in rows:
+            s.merge(model(**r))
+
+    object_ids = [o["object_id"] for o in demo["objects"]]
+    replace_all(AssignedRisk, "risk_id", [{k: r[k] for k in ("risk_id", "object_id", "area", "title", "why", "explain", "fix", "diy", "sort_order")}
+                                          for r in demo["risks"]], AssignedRisk.object_id.in_(object_ids))
+    replace_all(Bid, "bid_id", demo["bids"])
+    s.execute(delete(Reminder).where(Reminder.task_id.not_in([t["task_id"] for t in demo["tasks"]])))
+    replace_all(MaintenanceTask, "task_id", [{**t, "customer_id": cust["customer_id"]} for t in demo["tasks"]],
+                MaintenanceTask.customer_id == cust["customer_id"])
+    s.flush()
+    if new_customer:
+        for task_id in demo["reminders"]:
+            s.add(Reminder(customer_id=cust["customer_id"], task_id=task_id))
+    s.commit()
+
+
+def reset_demo(s: Session) -> None:
+    """Clear the demo customer's bookings and reminders, back to the state in data/demo-person.json."""
+    demo = json.loads((ROOT / "data" / "demo-person.json").read_text())
+    cid = demo["customer"]["customer_id"]
+    s.execute(delete(Booking).where(Booking.customer_id == cid))
+    s.execute(delete(Reminder).where(Reminder.customer_id == cid))
+    s.add_all(Reminder(customer_id=cid, task_id=t) for t in demo["reminders"])
     s.commit()
 
 

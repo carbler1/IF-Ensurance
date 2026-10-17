@@ -2,14 +2,13 @@ import { View } from "react-native";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { BadgeCheck, Check, ShieldCheck } from "lucide-react-native";
 import { Button, Card, PopIn, Screen, Text } from "@/components/ui";
-import { bids, risks } from "@/data/mock";
 import { fmt } from "@/lib/i18n";
-import { getBand, getTier, useStore } from "@/lib/store";
+import { useStore } from "@/lib/store";
 import { colors, radius } from "@/lib/theme";
 
 export default function JobStatus() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t, jobs, advanceJob, scores, aggregate } = useStore();
+  const { t, jobs, advanceJob, scores, aggregate, bids, risks, getBand, getTier } = useStore();
   const job = jobs[id];
   const risk = risks.find((r) => r.id === id);
   if (!job || !risk) {
