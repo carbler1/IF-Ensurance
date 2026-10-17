@@ -81,5 +81,21 @@ Example: `fixtures/api/score.json`.
 Example: `fixtures/api/maintenance.json`.
 `due_at` = base date + `interval_years`, where the base date is the last known evidence for the entry (confirmed work order or profile fact). With no evidence, `due_at` is the profile creation date. `due_at` is never before the profile creation date. `status` is `overdue`, `upcoming` (within 90 days) or `scheduled`. Sorted by `due_at`. The list is computed at each read and nothing is stored. `item_id` is opaque and may change between reads; use `risk_id` as the key.
 
+## Admin (If staff dashboard)
+Added 2026-10-17 for the staff dashboard in `frontend/`. Separate from the customer contract above.
+- Auth: header `X-Admin-Token: <ADMIN_TOKEN>` from `.env`. The customer bearer token does not work here. The dashboard calls these from its server, never from the browser.
+- Partners and tiers live in SQLite (`partners`, `tiers`). The seed copies `fixtures/partners.json` and `fixtures/score-tiers.json` once; after that the database is the source, and `GET /homes/me/risks/{risk_id}` reads partners from it.
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/admin/overview` | Counts: customers, documents and jobs by status, work orders by status, partners total and vetted |
+| GET | `/admin/customers` | Each home: address, profile fields known of total, documents, last upload, open risks, work orders |
+| GET | `/admin/partners` | All partners, in the `fixtures/partners.json` shape |
+| PATCH | `/admin/partners/{partner_id}` | Any of `price_min`, `price_max`, `tier_discount_percent` (0–100), `if_vetted`, `listing_fee_tier` (`basic`, `plus`). `400` when min is above max |
+| GET | `/admin/tiers` | All tiers, in the `fixtures/score-tiers.json` shape |
+| PATCH | `/admin/tiers/{index}` | Any of `name`, `min_score`, `deductible_reduction_eur`, `partner_discount_percent`, `free_checkups`. `400` when `min_score` does not sit between the tiers below and above |
+
+`GET /health` (no auth, outside `/v1`) returns `{"status": "ok"}` for docker compose.
+
 ## Not in phase 1
 Photos and other document types as intake, notifications, partner bidding, family access, If staff endpoints, multiple homes per customer, real auth.

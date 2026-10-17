@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts" / "catalogue"))
 from validate import condition_leaves, matches  # noqa: E402
 
+from backend import db  # noqa: E402
+
 DRAFT = "DRAFT: "
 
 
@@ -81,7 +83,8 @@ def risk_detail(conn, home_id: str, risk_id: str) -> dict:
             evidence.append({k: ev[k] for k in ("document_id", "page", "quote")})
     city = conn.execute("SELECT city FROM homes WHERE home_id=?", (home_id,)).fetchone()[0]
     cat = e["mitigation"]["partner_category"]
-    partners = [p for p in json.loads((ROOT / "fixtures" / "partners.json").read_text())["partners"]
+    # Partners live in SQLite so If staff can change prices and vetting in the dashboard.
+    partners = [p for p in db.partners(conn)
                 if cat in p["categories"] and p["area"] == city and p["if_vetted"]]
     partners.sort(key=lambda p: -p["rating"])
     return {

@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+/* Same tokens as the customer app (mobile-app/src/lib/theme.ts). */
+:root {
+  --background: #f6f3f0;
+  --foreground: #331e11;
+  --card: #ffffff;
+  --primary: #0054f0;
+  --primary-pressed: #1241a2;
+  --primary-foreground: #faf9f7;
+  --muted: #f1ece8;
+  --muted-foreground: #6e625e;
+  --accent: #e1e9f6;
+  --accent-foreground: #1241a2;
+  --border: #e8e0d9;
+  --input: #d6cec8;
+  --success: #217331;
+  --success-soft: #e0f0db;
+  --destructive: #bb320c;
+  --danger-soft: #f9e3d4;
+  --sidebar: #24150c;
+  --sidebar-foreground: #faf9f7;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-primary: var(--primary);
+  --color-primary-pressed: var(--primary-pressed);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-destructive: var(--destructive);
+  --color-danger-soft: var(--danger-soft);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --font-sans: var(--font-figtree), system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --shadow-soft: 0 8px 24px -14px rgb(51 30 17 / 0.25);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}

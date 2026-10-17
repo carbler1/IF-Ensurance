@@ -57,3 +57,32 @@ if __name__ == "__main__":
 
     test_routes(Path(tempfile.mkdtemp()), MP())
     print("ok")
+
+
+def test_admin(tmp_path, monkeypatch):
+    from backend import db
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "t.sqlite")
+    monkeypatch.setattr(db, "UPLOADS", tmp_path / "up")
+    monkeypatch.setenv("CUSTOMER_TOKEN", "t")
+    monkeypatch.setenv("ADMIN_TOKEN", "a")
+    from backend.api import app
+    A = {"X-Admin-Token": "a"}
+    with TestClient(app) as c:
+        assert c.get("/health").json() == {"status": "ok"}
+        assert c.get("/v1/admin/partners").status_code == 401
+        assert c.get("/v1/admin/partners", headers=H).status_code == 401  # customer token is not enough
+        assert c.get("/v1/admin/overview", headers=A).json()["customers"] == 1
+        assert c.get("/v1/admin/customers", headers=A).json()["customers"][0]["home_id"] == "home_01"
+
+        partners = c.get("/v1/admin/partners", headers=A).json()["partners"]
+        assert len(partners) == len(json.loads((ROOT / "fixtures/partners.json").read_text())["partners"])
+        pid = partners[0]["partner_id"]
+        p = c.patch(f"/v1/admin/partners/{pid}", headers=A, json={"price_min": 300, "tier_discount_percent": 12}).json()
+        assert p["price_range"]["min"] == 300 and p["tier_discount_percent"] == 12
+        assert c.patch(f"/v1/admin/partners/{pid}", headers=A, json={"price_min": 10**6}).status_code == 400
+        assert c.patch(f"/v1/admin/partners/{pid}", headers=A, json={"tier_discount_percent": 101}).status_code == 400
+        assert c.patch("/v1/admin/partners/nope", headers=A, json={}).status_code == 404
+
+        t = c.patch("/v1/admin/tiers/1", headers=A, json={"deductible_reduction_eur": 75, "free_checkups": ["roof"]}).json()
+        assert t["deductible_reduction_eur"] == 75 and t["free_checkups"] == ["roof"]
+        assert c.patch("/v1/admin/tiers/1", headers=A, json={"min_score": 5000}).status_code == 400

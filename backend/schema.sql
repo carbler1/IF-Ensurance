@@ -61,3 +61,29 @@ CREATE TABLE IF NOT EXISTS score_events (
     reason        TEXT NOT NULL,
     work_order_id TEXT REFERENCES work_orders(work_order_id)
 );
+
+-- Editable by If staff through /v1/admin. Seeded once from fixtures/partners.json
+-- and fixtures/score-tiers.json; after that the database is the source.
+CREATE TABLE IF NOT EXISTS partners (
+    partner_id            TEXT PRIMARY KEY,
+    name                  TEXT NOT NULL,
+    categories            TEXT NOT NULL, -- JSON list of partner categories
+    area                  TEXT NOT NULL,
+    price_min             INTEGER NOT NULL, -- euros
+    price_max             INTEGER NOT NULL, -- euros
+    rating                REAL NOT NULL,
+    if_vetted             INTEGER NOT NULL,
+    tier_discount_percent INTEGER NOT NULL,
+    listing_fee_tier      TEXT NOT NULL,
+    updated_at            TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tiers (
+    tier_index               INTEGER PRIMARY KEY,
+    name                     TEXT NOT NULL,
+    min_score                INTEGER NOT NULL,
+    deductible_reduction_eur INTEGER NOT NULL,
+    free_checkups            TEXT NOT NULL, -- JSON list of checkup kinds
+    partner_discount_percent INTEGER NOT NULL,
+    updated_at               TEXT NOT NULL
+);

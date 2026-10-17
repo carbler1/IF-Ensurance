@@ -31,6 +31,8 @@ Rules of the design:
 - `flake.nix`, `flake.lock`: the dev shell. `.envrc`: loads it through direnv.
 - `docs/`: documentation. `docs/systemdesign/`: the API contract and the decision log.
 - `.plans/`: specs written by the `interview` skill.
+- `backend/`: FastAPI, the worker and SQLite. `mobile-app/`: the customer app (Expo). `frontend/`: the If staff dashboard (Next.js).
+- `docker-compose.yml`: runs `backend` and `frontend` together. Copy `.env.example` to `.env` first.
 - `archive/`: superseded material, ignored by git. Do not read it or build from it unless Antton asks.
 
 ## Writing style

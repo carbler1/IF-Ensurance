@@ -9,7 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from backend import db, engine, maintenance
+from backend import admin, db, engine, maintenance
 
 HOME_ID = "home_01"  # the single demo home
 
@@ -140,6 +140,14 @@ except ImportError:  # upload.py not written yet
     pass
 
 app.include_router(v1)
+# Admin routes have their own token (X-Admin-Token), not the customer bearer token.
+app.include_router(admin.router, prefix="/v1")
+
+
+@app.get("/health")
+def health():
+    """Liveness check for docker compose. No auth, no data."""
+    return {"status": "ok"}
 
 
 @app.on_event("startup")
