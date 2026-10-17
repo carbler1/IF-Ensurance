@@ -23,6 +23,8 @@ export const colors = {
   frame: "#e8e0d9",
   border: "#e8e0d9",
   input: "#d6cec8",
+  // Edges that must stay visible (input border, switch off track): 3:1 on card and background, WCAG 1.4.11.
+  control: "#928680",
   ring: "#0054f0",
 } as const;
 

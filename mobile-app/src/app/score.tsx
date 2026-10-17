@@ -37,20 +37,27 @@ export default function ScoreBreakdown() {
             const Icon = insuranceIcon[id];
             const pct = getBand(scores[id]);
             const next = nextBand(scores[id]);
+            // The bar runs from the start of the current band to the next one: how far this insurance is to its next discount.
+            const from = currentBand(pct);
+            const fill = next ? (scores[id] - from) / (next.min - from) : 1;
             return (
-              <View key={id} style={[{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12 }, n > 0 && { borderTopWidth: 1, borderTopColor: colors.border }]}>
+              <View key={id} style={[{ flexDirection: "row", alignItems: "flex-start", gap: 12, paddingVertical: 16 }, n > 0 && { borderTopWidth: 1, borderTopColor: colors.border }]}>
                 <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: radius.xl, backgroundColor: colors.secondary }}>
                   <Icon size={22} color={colors.secondaryForeground} />
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text weight={600}>{t(`ins.${id}`)}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                    <Text weight={600} numberOfLines={1} style={{ flexShrink: 1 }}>{t(`ins.${id}`)}</Text>
+                    <Text size="2xl" display weight={600} tabular>{scores[id]}</Text>
+                  </View>
                   <Text size="sm" color="mutedForeground" numberOfLines={1}>{object}</Text>
-                  <Text size="sm" color="mutedForeground">{next ? fmt(t("band.toNext"), { n: next.pointsTo, pct: next.percent }) : t("band.top")}</Text>
-                </View>
-                <View style={{ alignItems: "flex-end" }}>
-                  <Text size="2xl" display weight={600} tabular>{scores[id]}</Text>
-                  <View style={{ borderRadius: radius.full, backgroundColor: pct ? colors.successSoft : colors.secondary, paddingHorizontal: 10, paddingVertical: 2 }}>
-                    <Text size="sm" weight={600} color={pct ? "success" : "mutedForeground"}>{pct ? fmt(t("band.off"), { pct }) : t("band.none")}</Text>
+                  <View style={{ marginTop: 10, height: 6, borderRadius: radius.full, backgroundColor: colors.muted, overflow: "hidden" }}>
+                    <View style={{ height: 6, width: `${Math.max(0, Math.min(1, fill)) * 100}%`, borderRadius: radius.full, backgroundColor: next ? colors.primary : colors.success }} />
+                  </View>
+                  <View style={{ marginTop: 6, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", columnGap: 12 }}>
+                    {/* Without a discount the "points to" line already says so. */}
+                    {pct > 0 && <Text size="sm" weight={600} color="success">{fmt(t("band.off"), { pct })}</Text>}
+                    <Text size="sm" color="mutedForeground" tabular>{next ? fmt(t("band.toNext"), { n: next.pointsTo, pct: next.percent }) : t("band.top")}</Text>
                   </View>
                 </View>
               </View>

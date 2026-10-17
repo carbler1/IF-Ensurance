@@ -29,7 +29,7 @@ export function TabBar() {
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             onPress={() => router.navigate(to)}
-            style={{ flex: 1, height: 64, alignItems: "center", justifyContent: "center", gap: 4 }}
+            style={{ flex: 1, minHeight: 64, paddingVertical: 8, alignItems: "center", justifyContent: "center", gap: 4 }}
           >
             <Icon size={24} color={color} />
             <Text size="sm" weight={active ? 600 : 400} color={active ? "primary" : "mutedForeground"}>{t(key)}</Text>

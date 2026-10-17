@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { ChevronRight, Clock, ShieldCheck, UserPlus } from "lucide-react-native";
-import { Button, Card, Heading, Input, LinkBlock, PopIn, Screen, Switch, Text } from "@/components/ui";
+import { Button, Card, Heading, Input, LinkBlock, PopIn, Screen, SwitchRow, Text } from "@/components/ui";
 import type { Lang } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
 import { colors, radius, shadows } from "@/lib/theme";
@@ -38,14 +38,15 @@ export default function Profile() {
       <Card>
         <Heading size="lg">{t("s.notifications")}</Heading>
         {notifKeys.map((k, i) => (
-          <Pressable
+          <SwitchRow
             key={k}
-            onPress={() => setNotif({ ...notif, [k]: !notif[k] })}
-            style={[{ height: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, i < notifKeys.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}
+            label={t(`s.${k}`)}
+            value={notif[k]}
+            onValueChange={(v) => setNotif({ ...notif, [k]: v })}
+            style={[{ minHeight: 56 }, i < notifKeys.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}
           >
             <Text>{t(`s.${k}`)}</Text>
-            <Switch label={t(`s.${k}`)} value={notif[k]} onValueChange={(v) => setNotif({ ...notif, [k]: v })} />
-          </Pressable>
+          </SwitchRow>
         ))}
       </Card>
 

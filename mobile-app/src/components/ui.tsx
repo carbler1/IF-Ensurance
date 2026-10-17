@@ -107,7 +107,7 @@ export function Screen({ title, sub, back, children }: { title?: string; sub?: s
   const { t } = useStore();
   const insets = useSafeAreaInsets();
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 + insets.top, paddingBottom: 48 }}>
+    <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 + insets.top, paddingBottom: 48 }}>
       {back && (
         <Pressable
           accessibilityRole="button"
@@ -161,7 +161,7 @@ export function Button({ children, onPress, variant = "default", big, disabled, 
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
-        { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingHorizontal: 16, height: big ? 56 : 36, borderRadius: big ? radius["2xl"] : radius.md },
+        { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingHorizontal: 16, paddingVertical: 8, minHeight: big ? 56 : 44, borderRadius: big ? radius["2xl"] : radius.md },
         variant === "default" && { backgroundColor: pressed ? colors.primaryPressed : colors.primary, boxShadow: shadows.button },
         variant === "outline" && { borderWidth: 1, borderColor: colors.input, backgroundColor: pressed ? colors.accent : colors.background, boxShadow: shadows.sm },
         variant === "ghost" && pressed && { backgroundColor: colors.accent },
@@ -174,7 +174,7 @@ export function Button({ children, onPress, variant = "default", big, disabled, 
         return (
           <>
             {Icon && <Icon size={16} color={colors[color]} />}
-            <Text size={big ? "lg" : "sm"} weight={500} color={color} numberOfLines={1}>{children}</Text>
+            <Text size={big ? "lg" : "sm"} weight={500} color={color} center style={{ flexShrink: 1 }}>{children}</Text>
           </>
         );
       }}
@@ -191,7 +191,7 @@ export function Input({ style, ...props }: TextInputProps) {
       onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
       onBlur={(e) => { setFocused(false); props.onBlur?.(e); }}
       style={[
-        { height: 56, borderRadius: radius["2xl"], borderWidth: 1, borderColor: colors.input, paddingHorizontal: 12, fontFamily: fontFamily(false, 400), fontSize: 18, color: colors.foreground },
+        { minHeight: 56, borderRadius: radius["2xl"], borderWidth: 1, borderColor: colors.control, paddingHorizontal: 12, paddingVertical: 12, fontFamily: fontFamily(false, 400), fontSize: 18, color: colors.foreground },
         { boxShadow: focused ? `0 0 0 1px ${colors.ring}, ${shadows.sm}` : shadows.sm },
         style as StyleProp<TextStyle>,
       ]}
@@ -199,7 +199,9 @@ export function Input({ style, ...props }: TextInputProps) {
   );
 }
 
-export function Switch({ value, onValueChange, label }: { value: boolean; onValueChange: (v: boolean) => void; label?: string }) {
+// A settings row that is one switch: a screen reader gets one element with its role, label and state.
+// The track is only drawn; the whole row takes the tap.
+export function SwitchRow({ value, onValueChange, label, style, children }: { value: boolean; onValueChange: (v: boolean) => void; label: string; style?: StyleProp<ViewStyle>; children: ReactNode }) {
   const x = useRef(new Animated.Value(value ? 16 : 0)).current;
   useEffect(() => {
     Animated.timing(x, { toValue: value ? 16 : 0, duration: 150, easing: Easing.bezier(0.4, 0, 0.2, 1), useNativeDriver: true }).start();
@@ -208,12 +210,14 @@ export function Switch({ value, onValueChange, label }: { value: boolean; onValu
     <Pressable
       accessibilityRole="switch"
       accessibilityLabel={label}
-      accessibilityState={{ checked: value }}
+      aria-checked={value}
       onPress={() => onValueChange(!value)}
-      hitSlop={12}
-      style={{ height: 20, width: 36, borderRadius: radius.full, borderWidth: 2, borderColor: "transparent", justifyContent: "center", backgroundColor: value ? colors.primary : colors.input, boxShadow: shadows.sm }}
+      style={({ pressed }) => [{ minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, pressed && { opacity: 0.7 }, style]}
     >
-      <Animated.View style={{ height: 16, width: 16, borderRadius: radius.full, backgroundColor: colors.background, boxShadow: shadows.lg, transform: [{ translateX: x }] }} />
+      <View style={{ flexShrink: 1 }}>{children}</View>
+      <View style={{ height: 20, width: 36, borderRadius: radius.full, justifyContent: "center", paddingHorizontal: 2, backgroundColor: value ? colors.primary : colors.control, boxShadow: shadows.sm }}>
+        <Animated.View style={{ height: 16, width: 16, borderRadius: radius.full, backgroundColor: colors.background, boxShadow: shadows.lg, transform: [{ translateX: x }] }} />
+      </View>
     </Pressable>
   );
 }

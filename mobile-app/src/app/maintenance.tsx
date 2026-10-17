@@ -1,5 +1,5 @@
-import { Pressable, View } from "react-native";
-import { Card, Heading, Screen, Switch, Text } from "@/components/ui";
+import { View } from "react-native";
+import { Card, Heading, Screen, SwitchRow, Text } from "@/components/ui";
 import { useStore } from "@/lib/store";
 import { colors, radius } from "@/lib/theme";
 
@@ -24,13 +24,14 @@ export default function Maintenance() {
                 </View>
               </View>
               <Text size="sm" color="mutedForeground" style={{ marginTop: 8 }}>{task.reasonText}</Text>
-              <Pressable
-                onPress={() => toggleReminder(task.id)}
-                style={{ marginTop: 12, height: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 12 }}
+              <SwitchRow
+                label={`${t("m.remind")}: ${task.title}`}
+                value={reminders.includes(task.id)}
+                onValueChange={() => toggleReminder(task.id)}
+                style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 4 }}
               >
                 <Text weight={500}>{t("m.remind")}</Text>
-                <Switch label={`${t("m.remind")}: ${task.title}`} value={reminders.includes(task.id)} onValueChange={() => toggleReminder(task.id)} />
-              </Pressable>
+              </SwitchRow>
             </Card>
           ))}
         </View>
