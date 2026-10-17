@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>If Life Partner: submission</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --ink: #1c2530;
+    --muted: #5b6672;
+    --line: #d9dfe5;
+    --accent: #0b5cad;
+    --accent-soft: #e8f1fa;
+    --warm: #b4570a;
+    --warm-soft: #fbf0e4;
+    --ok: #1f7a4d;
+    --ok-soft: #e6f4ec;
+    --paper: #ffffff;
+  }
+  @page { size: A4; margin: 15mm 16mm 16mm 16mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.45;
+  }
+  h1, h2, h3 { line-height: 1.2; margin: 0; }
+  h1 { font-size: 27pt; letter-spacing: -0.5px; }
+  h2 { font-size: 15pt; color: var(--accent); margin: 0 0 3mm; }
+  h3 { font-size: 10.5pt; margin: 4mm 0 1.5mm; }
+  p { margin: 0 0 2.5mm; }
+  ul { margin: 0 0 2.5mm; padding-left: 5mm; }
+  li { margin-bottom: 1mm; }
+  .page { page-break-after: always; break-after: page; }
+  .page:last-child { page-break-after: auto; break-after: auto; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 1.4px; font-size: 8pt; color: var(--muted); margin-bottom: 2mm; }
+  .tag { display: inline-block; font-size: 8pt; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 0.6mm 2.4mm; border-radius: 3mm; margin-right: 1.5mm; }
+  .lead { font-size: 12.5pt; line-height: 1.4; margin: 3mm 0 4mm; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
+  .card { border: 0.3mm solid var(--line); border-radius: 2mm; padding: 3.5mm 4mm; background: #fff; break-inside: avoid; }
+  .card.accent { background: var(--accent-soft); border-color: #c4dcf2; }
+  .card.warm { background: var(--warm-soft); border-color: #efd5b7; }
+  .card.ok { background: var(--ok-soft); border-color: #bfe0cd; }
+  .card h3 { margin-top: 0; }
+  .stat { text-align: center; }
+  .stat b { display: block; font-size: 19pt; color: var(--accent); line-height: 1.1; }
+  .stat span { font-size: 8.5pt; color: var(--muted); }
+  .flow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2mm; margin: 3mm 0; }
+  .step { border: 0.3mm solid var(--line); border-radius: 2mm; padding: 2.5mm; font-size: 8.5pt; position: relative; background: #fff; break-inside: avoid; }
+  .step .n { display: inline-block; width: 5mm; height: 5mm; line-height: 5mm; text-align: center; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 8pt; margin-bottom: 1.5mm; }
+  .step b { display: block; margin-bottom: 0.8mm; font-size: 9pt; }
+  table { border-collapse: collapse; width: 100%; margin: 2mm 0 3.5mm; font-size: 9pt; }
+  th, td { text-align: left; vertical-align: top; padding: 1.8mm 2.2mm; border-bottom: 0.25mm solid var(--line); }
+  th { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); border-bottom: 0.4mm solid var(--ink); }
+  tr { break-inside: avoid; }
+  .quote { border-left: 1mm solid var(--accent); padding: 1mm 0 1mm 3.5mm; color: var(--ink); font-style: italic; margin: 2mm 0 3mm; }
+  .ladder { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm; margin: 2mm 0 3mm; }
+  .tier { border-radius: 2mm; padding: 2.5mm; font-size: 8.5pt; border: 0.3mm solid var(--line); break-inside: avoid; }
+  .tier b { display: block; font-size: 10.5pt; margin-bottom: 0.5mm; }
+  .t0 { background: #f3e9df; }
+  .t1 { background: #eceff2; }
+  .t2 { background: #f8eed0; }
+  .t3 { background: #e6edf3; }
+  .bar { position: relative; height: 4mm; border-radius: 2mm; background: linear-gradient(90deg, #f3e9df 0 50%, #eceff2 50% 75%, #f8eed0 75% 85%, #e6edf3 85% 100%); border: 0.3mm solid var(--line); margin: 3mm 0 1mm; }
+  .bar i { position: absolute; top: -1mm; width: 1mm; height: 6mm; background: var(--accent); border-radius: 0.5mm; }
+  .barlabels { position: relative; height: 5mm; font-size: 8pt; color: var(--muted); }
+  .barlabels span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+  .small { font-size: 8.5pt; color: var(--muted); }
+  .foot { margin-top: 4mm; padding-top: 2mm; border-top: 0.3mm solid var(--line); font-size: 8pt; color: var(--muted); }
+  .mock { display: inline-block; font-size: 7.5pt; font-weight: 700; color: var(--warm); background: var(--warm-soft); border-radius: 2mm; padding: 0.3mm 1.8mm; }
+  .real { display: inline-block; font-size: 7.5pt; font-weight: 700; color: var(--ok); background: var(--ok-soft); border-radius: 2mm; padding: 0.3mm 1.8mm; }
+  .phone { border: 0.5mm solid var(--ink); border-radius: 4mm; padding: 3mm; background: #fff; font-size: 8.5pt; }
+  .phone .risk { border: 0.3mm solid var(--line); border-radius: 2mm; padding: 2mm; margin-bottom: 2mm; }
+  .sev { display: inline-block; font-weight: 700; font-size: 7.5pt; color: #fff; background: #b3261e; border-radius: 1.5mm; padding: 0.3mm 1.8mm; margin-right: 1.5mm; }
+  .sev.h { background: #c75a00; }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1: THE IDEA -->
+<section class="page">
+  <div class="eyebrow">JunctionX Turku 2026 &middot; Challenge: If Insurance Could Do More</div>
+  <h1>If Life Partner</h1>
+  <p class="lead">An app that helps people take care of their home before something goes wrong, and gives them a reason to stay with If while they do it.</p>
+
+  <div class="grid3" style="margin-bottom:4mm">
+    <div class="card stat"><b>58</b><span>risks in the catalogue, built from If's own home insurance terms</span></div>
+    <div class="card stat"><b>14</b><span>types of vetted partner who can fix them</span></div>
+    <div class="card stat"><b>0&ndash;1000</b><span>one care score, four tiers, real rewards</span></div>
+  </div>
+
+  <h2>The moment</h2>
+  <p>Owning an older home is a life event that many people meet without a guide. They buy a house, plan to sell it, or read an inspection report that says <i>"much to repair"</i> (paljon korjattavaa). The report is long and written for experts. The owner does not know what matters, whom to call, or what waiting will cost.</p>
+  <p>Insurance is often visible only after the damage. A fire from an old fuse box or a water damage from old pipes is the moment the customer meets If. We want If to be there <b>before</b>.</p>
+
+  <h2 style="margin-top:4mm">The idea</h2>
+  <p>The customer uploads a home inspection report. The app turns it into a short list of risks, each with a reason in plain words, a benefit, and a quote from the customer's own report. The customer books an If-vetted partner. The partner confirms the fix. The care score rises and unlocks rewards.</p>
+
+  <div class="flow">
+    <div class="step"><span class="n">1</span><b>Upload</b>The customer uploads an inspection report (kuntotarkastus).</div>
+    <div class="step"><span class="n">2</span><b>Read</b>A model reads the facts. Code, not the model, decides the risks.</div>
+    <div class="step"><span class="n">3</span><b>See</b>A short list: up to 5 risks, most serious first, with proof from the report.</div>
+    <div class="step"><span class="n">4</span><b>Book</b>One tap to book an If-vetted partner. Price range and discount are visible.</div>
+    <div class="step"><span class="n">5</span><b>Confirm</b>The partner confirms the work. Only outside proof counts.</div>
+    <div class="step"><span class="n">6</span><b>Reward</b>The score rises. Tiers give discounts, offers and a lower deductible.</div>
+  </div>
+
+  <div class="card accent">
+    <h3>The demo in one line</h3>
+    <p style="margin:0">A 68-year-old owner of a 1975 house in Turku uploads a report that says "much to repair". The app shows 5 risks. The owner books an electrician for the old screw-fuse panel. The electrician confirms. The score goes from <b>486 to 546</b> and unlocks <b>Silver</b>: 5% off the next job and offers on If products.</p>
+  </div>
+
+  <div class="foot">Team: Antton (system design, backend, model pipeline), Ege (app design), Rasi (risk analysis and service design). All partners, prices and score numbers in the demo are mock data. The mechanism is real.</div>
+</section>
+
+<!-- PAGE 2: CRITERION 1 -->
+<section class="page">
+  <span class="tag">Criterion 1</span>
+  <h2>Customer value and relevance</h2>
+  <p><b>The need is real and easy to state:</b> "Tell me what to fix first, who can do it, and what I gain." An owner of an older house should not need to read a long technical report or search for a contractor.</p>
+
+  <div class="grid2">
+    <div>
+      <h3>What the customer gets</h3>
+      <ul>
+        <li><b>A short list.</b> Up to 5 risks. The app ranks them by severity &times; probability, so the most serious come first.</li>
+        <li><b>A reason in plain words.</b> Each risk says why it matters and what the customer gains. No expert terms.</li>
+        <li><b>Proof.</b> Each risk shows the sentence from the customer's own report, with the page number.</li>
+        <li><b>Partners that If has vetted.</b> Rating, price range, If-vetted badge and the customer's discount on one card.</li>
+        <li><b>A reward ladder.</b> Four tiers: Bronze, Silver, Gold, Platinum.</li>
+        <li><b>A maintenance list.</b> Each check has a due date and a state: overdue, due soon or scheduled.</li>
+        <li><b>Family help.</b> A relative can act for the customer, with the customer's permission.</li>
+      </ul>
+      <h3>Built for the average Finn, including older people</h3>
+      <p>A native app, simple screens, plain words. Finnish, Swedish and English. The customer never has to learn insurance terms.</p>
+    </div>
+    <div>
+      <div class="phone">
+        <div class="small" style="margin-bottom:1.5mm">Your home &middot; Esimerkkikatu 3, Turku</div>
+        <div class="risk"><span class="sev">Critical</span><b>Steel oil tank over 30 years old</b><br><span class="small">A leak puts oil in the ground. Cleaning it costs a lot.</span></div>
+        <div class="risk" style="border-color:#0b5cad;background:#e8f1fa"><span class="sev h">High</span><b>Old screw-fuse panel</b><br><span class="small"><b>Why it matters.</b> Your fuse box is old. The fuse holders can come loose and get hot. A hot holder can start a fire.</span><br><span class="small"><b>What you gain.</b> An electrician checks the panel and can replace it. You get modern fuses and a safety switch.</span><div class="quote" style="font-size:8pt;margin:1.5mm 0 0">"Sähkökeskus on alkuperäinen tulppasulakekeskus." <span class="small">(report, page 16)</span></div></div>
+        <div class="risk" style="margin-bottom:0"><b>Book:</b> Sähköasennus Aurasilta Oy &middot; 4.7 &#9733; &middot; If-vetted &middot; 350&ndash;900 EUR</div>
+      </div>
+      <p class="small" style="margin-top:2mm">The screen is a sketch of one risk. The real app is designed in Lovable.</p>
+    </div>
+  </div>
+
+  <h3>The value is easy to see</h3>
+  <table>
+    <tr><th>Before</th><th>With If Life Partner</th></tr>
+    <tr><td>A long report in Finnish technical language. Many findings. No order.</td><td>5 risks in order. Each with a reason, a benefit and a quote.</td></tr>
+    <tr><td>The owner searches for a contractor and cannot compare.</td><td>Vetted partners on one card, with price range and discount.</td></tr>
+    <tr><td>The owner does not know if the work was done well.</td><td>The partner confirms. The owner and the family see the record.</td></tr>
+    <tr><td>No reason to keep going after one repair.</td><td>A score, tiers, rewards and a maintenance list bring the owner back.</td></tr>
+  </table>
+
+  <div class="card ok">
+    <h3>What the customer protects</h3>
+    <p style="margin:0">Their safety, because fire, oil leaks and water damage are the risks that matter most. Their money, because a fix costs less than the damage. Their insurance position, because the If terms ask for repaired electrical faults and approved installers, and cut payments by the age of old electrical equipment. A new panel restarts that age.</p>
+  </div>
+</section>
+
+<!-- PAGE 3: CRITERION 2 -->
+<section class="page">
+  <span class="tag">Criterion 2</span>
+  <h2>Business value for If</h2>
+  <p>Every mechanism below is built into the service. None depends on the customer making a claim.</p>
+
+  <table>
+    <tr><th style="width:24%">What If gains</th><th>How the service delivers it</th></tr>
+    <tr><td><b>Fewer claims</b></td><td>Each confirmed fix removes a cause of damage. The risk list covers the protection rules and the excluded events in If's own home insurance terms (OMA 200.27). A fire from an old fuse box or a water damage from old pipes is a claim that does not happen.</td></tr>
+    <tr><td><b>Verified risk data</b></td><td>A partner's confirmation turns a guess into a verified fact about the home. Underwriters see the real state of the house, with its source: report, partner or customer.</td></tr>
+    <tr><td><b>Faster, better claims</b></td><td>When a claim comes, the maintenance history and the proof of work are ready. Claims handlers see what was done and when.</td></tr>
+    <tr><td><b>Retention</b></td><td>Seasonal reminders, the maintenance list and the score progress bring the customer back. If appears in a positive moment, every year, not only after a loss.</td></tr>
+    <tr><td><b>Acquisition</b></td><td>The report upload and offers at Silver reach people who are not If customers yet. They arrive with verified data and a low risk profile.</td></tr>
+    <tr><td><b>New income</b></td><td>Partners pay to be listed and fund the customer's discount in return for volume. That reward costs If nothing.</td></tr>
+    <tr><td><b>Customer insight</b></td><td>If staff see which risks customers have and which products fit them. Sales and product teams get a real signal.</td></tr>
+  </table>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>What the rewards cost If</h3>
+      <table style="margin:0">
+        <tr><th>Reward</th><th>Who pays</th></tr>
+        <tr><td>Partner discount (5%, 10%, 15%)</td><td>The partner</td></tr>
+        <tr><td>Lower deductible (Gold 100 EUR, Platinum 200 EUR)</td><td>If, only when a claim happens</td></tr>
+        <tr><td>Offers on If products</td><td>Nothing up front</td></tr>
+        <tr><td>Better premium</td><td>Never automatic. If decides case by case.</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>The score and the tiers</h3>
+      <div class="ladder" style="grid-template-columns:repeat(2,1fr)">
+        <div class="tier t0"><b>Bronze</b>0 &ndash; 499</div>
+        <div class="tier t1"><b>Silver</b>500+ &middot; 5% off, offers</div>
+        <div class="tier t2"><b>Gold</b>750+ &middot; 10% off, &minus;100 EUR</div>
+        <div class="tier t3"><b>Platinum</b>850+ &middot; 15% off, &minus;200 EUR</div>
+      </div>
+      <p class="small" style="margin:0">Only outside proof moves the score. A customer's answers alone cannot take them past Bronze (about 450). False information sets the benefit score to 0. Old fixes fade, so the customer keeps up the care.</p>
+    </div>
+  </div>
+
+  <div class="card accent" style="margin-top:4mm">
+    <h3>Why this is credible</h3>
+    <ul style="margin:0">
+      <li>If already runs a related programme, Kunnon Koti: a partner inspects detached houses every four years. It gives a one-off report with no effect on the premium. If Life Partner makes this continuous, scored and rewarded.</li>
+      <li>Press coverage of If's own inspections reports that about one in five houses has no subsoil drains, or nobody knows if they exist (Taloustaito). That is a risk If can see and reduce.</li>
+      <li>The mechanism does not need new insurance products. It works on top of the existing home insurance and its terms.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- PAGE 4: CRITERION 3 -->
+<section class="page">
+  <span class="tag">Criterion 3</span>
+  <h2>Feasibility and scalability</h2>
+  <p>The backend is built and the app is in design. The design rule keeps it safe to scale: <b>code decides, models read and write.</b></p>
+
+  <div class="grid2">
+    <div>
+      <h3>How it works in practice</h3>
+      <ul>
+        <li><b>Input:</b> a standard Finnish inspection report (kuntotarkastus, KH 90-00394). The format is the same across inspectors, so one reader works for all.</li>
+        <li><b>A model extracts the facts:</b> year, heating, panel, pipes, roof. Every fact keeps its source, a quote and a confidence.</li>
+        <li><b>Code matches the facts to a risk catalogue.</b> The catalogue holds severity, probability, points, partner type and re-check interval. A model cannot change them. It may only choose catalogue ids.</li>
+        <li><b>A model writes the customer text</b> from catalogue hints. A person can review every text.</li>
+        <li><b>Code picks the partners</b> and builds the maintenance list.</li>
+      </ul>
+      <p class="small">The model runs on local hardware. This keeps customer documents private and keeps the cost low.</p>
+    </div>
+    <div>
+      <h3>What is built now</h3>
+      <table style="margin-top:0">
+        <tr><th>Part</th><th>State</th></tr>
+        <tr><td>Backend, jobs and risk list</td><td><span class="real">Code in place</span></td></tr>
+        <tr><td>Reading synthetic reports</td><td><span class="real">Code in place</span></td></tr>
+        <tr><td>Risk catalogue</td><td><span class="real">20 in code, 58 designed</span></td></tr>
+        <tr><td>App design</td><td><span class="real">In design</span></td></tr>
+        <tr><td>Partner confirmation</td><td><span class="mock">Mock</span></td></tr>
+        <tr><td>Partner network and prices</td><td><span class="mock">Mock</span></td></tr>
+        <tr><td>Score numbers, tiers, rewards</td><td><span class="mock">Mock</span></td></tr>
+        <tr><td>Strong e-ID, ownership check</td><td><span class="mock">Not built</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h3>How it scales</h3>
+  <ul>
+    <li><b>More risks, no new engine.</b> A risk is one catalogue entry. The 38 new risks we designed from If's terms need new entries and a few new house facts, not new code.</li>
+    <li><b>More possessions.</b> A car or a life event, for example a marriage or a new child, is a new catalogue and a new score. The care score combines them.</li>
+    <li><b>More partners.</b> A partner joins by vetting and listing. We defined 14 partner types and the proof each one gives.</li>
+    <li><b>More data.</b> Public data, for example the building register and weather alerts, feeds the maintenance list.</li>
+    <li><b>More languages.</b> The catalogue text is plain and short, so it translates well into Finnish and Swedish.</li>
+  </ul>
+
+  <h3>What must happen before launch</h3>
+  <table>
+    <tr><th>Gap</th><th>Plan</th></tr>
+    <tr><td>Severity, probability and points are expert estimates</td><td>Calibrate against If claim data.</td></tr>
+    <tr><td>Partner vetting and confirmation</td><td>Onboard a first set of partners. Add a secure confirmation step.</td></tr>
+    <tr><td>Ownership and identity</td><td>Strong electronic identification and delegated access for family helpers.</td></tr>
+    <tr><td>Premium and deductible rules</td><td>Check Finnish insurance rules. Keep price decisions with If.</td></tr>
+    <tr><td>Data sharing</td><td>Share only what a booked job needs, and only with consent.</td></tr>
+  </table>
+</section>
+
+<!-- PAGE 5: CRITERION 4 + CLOSE -->
+<section class="page">
+  <span class="tag">Criterion 4</span>
+  <h2>Innovation and experience</h2>
+  <p>Most insurance apps show policies and claims. If Life Partner does not. <b>Insurance is not the centre of the experience. The customer's home is.</b></p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>From claim time to care time</h3>
+      <p style="margin:0">The service meets the customer when they take responsibility for an ageing home. It helps with the work itself: what to fix, who does it, what it gives back. If becomes a partner in the home, not a bill and a claim form.</p>
+    </div>
+    <div class="card">
+      <h3>Proof, not promises</h3>
+      <p style="margin:0">The care score moves only when an outside source confirms a fix: a partner, an inspector or a document. The customer cannot fake it. That makes the score useful to If and trustworthy to the customer.</p>
+    </div>
+    <div class="card">
+      <h3>Insurance terms as a to-do list</h3>
+      <p style="margin:0">The home insurance terms hold protection rules: sweep the chimney, test smoke alarms, close the main valve after a week away. Few customers read them. We turn each rule into a risk and a task, so the terms protect the customer in practice.</p>
+    </div>
+    <div class="card">
+      <h3>Every risk traces to the customer's own document</h3>
+      <p style="margin:0">The app shows the quote and the page. The customer sees that the risk is not invented. Facts show their source, and unknown facts are marked as unknown.</p>
+    </div>
+  </div>
+
+  <h3>The experience</h3>
+  <ul>
+    <li><b>Short and calm.</b> Five risks, not fifty. Plain words, no alarm.</li>
+    <li><b>Gamified with real rewards.</b> A score from 0 to 1000, four metal tiers, and a bar that shows the next reward.</li>
+    <li><b>A reason to return.</b> Seasonal reminders, a maintenance list, and a score that fades without upkeep.</li>
+    <li><b>Family-ready.</b> A relative can follow and act, so the oldest customers are not left out.</li>
+  </ul>
+
+  <div class="bar"><i style="left:48.7%"></i><i style="left:54.6%; background:#1f7a4d"></i></div>
+  <div class="barlabels">
+    <span style="left:0%; transform:none">0</span>
+    <span style="left:48.7%">486 (demo start)</span>
+    <span style="left:54.6%; margin-top:3.2mm">546 (after the panel fix)</span>
+    <span style="left:75%">750 Gold</span>
+    <span style="left:100%; transform:translateX(-100%)">1000</span>
+  </div>
+  <p class="small" style="margin-top:5mm">Silver starts at 500. The demo fix moves the customer from Bronze to Silver.</p>
+
+  <h3>Versus other options</h3>
+  <table>
+    <tr><th></th><th>Generic insurance app</th><th>Kunnon Koti today</th><th>If Life Partner</th></tr>
+    <tr><td>When</td><td>At purchase and at a claim</td><td>Every 4 years</td><td>Continuous</td></tr>
+    <tr><td>What the customer gets</td><td>Policy and claim forms</td><td>A report</td><td>A ranked risk list, partners, reminders</td></tr>
+    <tr><td>Proof of care</td><td>None</td><td>One report</td><td>Confirmed fixes with dates</td></tr>
+    <tr><td>Reward</td><td>None</td><td>None on the premium</td><td>Score, tiers, discounts, offers</td></tr>
+  </table>
+
+  <h3>Next steps</h3>
+  <p>Phase 1 (now): a working house service. Phase 2: full functionality, partner network, and a view for If staff. Phase 3: Finnish and Swedish, then the car and life events such as marriage or a new child.</p>
+
+  <div class="foot">Honest scope: the partners, prices, score numbers, tiers and discounts are mock data for the demo. The risk catalogue values are first estimates and need calibration with If claim data. The mechanism is real: read the customer's document, match it to a catalogue, reward outside-confirmed fixes. The backend code for it is in place.</div>
+</section>
+
+</body>
+</html>
