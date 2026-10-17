@@ -1,6 +1,8 @@
 """Opens SQLite, creates the tables, seeds home_01. DESIGN.md §5."""
 
+import json
 import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -22,4 +24,16 @@ def connect() -> sqlite3.Connection:
 
 def seed(conn) -> None:
     """Create home_01 (Esimerkkikatu 3, 20100 Turku) with every profile field "unknown"."""
-    raise NotImplementedError
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+    props = json.loads((ROOT / "data" / "home-profile.schema.json").read_text())["properties"]
+    unknown = {"value": "unknown", "confidence": 0, "source": "none", "evidence": None, "doubt": False}
+    profile = {name: dict(unknown) for name in props}
+    with conn:
+        conn.execute(
+            "INSERT OR IGNORE INTO homes VALUES ('home_01', 'Esimerkkikatu 3', '20100', 'Turku', ?)", (now,))
+        conn.execute(
+            "INSERT OR IGNORE INTO profiles VALUES ('home_01', ?, ?)", (json.dumps(profile), now))
+
+
+if __name__ == "__main__":
+    seed(connect())
