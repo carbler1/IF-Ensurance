@@ -4,7 +4,8 @@ import { Nav } from "@/components/Nav";
 import "./globals.css";
 
 const figtree = Figtree({ variable: "--font-figtree", subsets: ["latin"] });
-const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], style: ["normal", "italic"] });
+// Fraunces sets only the page titles (h1, weight 500), so load that one static face, not the variable font with italics.
+const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], weight: "500" });
 
 export const metadata: Metadata = {
   title: "If Ensurance Staff",
