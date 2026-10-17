@@ -14,7 +14,7 @@ export function Label({ text, hint, children, className = "" }: { text: string; 
   );
 }
 
-/** The app's switch (36 × 20, blue when on). Posts "on" through a hidden input when checked.
+/** The app's switch (a 36 × 20 track, blue when on, inside a 44 × 24 target). Posts "on" through a hidden input when checked.
  * `label` is the accessible name; `children` is the visible text, which also toggles the switch. */
 export function Switch({ name, defaultChecked, label, onChange, children }: { name?: string; defaultChecked?: boolean; label: string; onChange?: (v: boolean) => void; children?: ReactNode }) {
   const [on, setOn] = useState(!!defaultChecked);
@@ -31,9 +31,11 @@ export function Switch({ name, defaultChecked, label, onChange, children }: { na
           onChange?.(!on);
           e.currentTarget.form?.dispatchEvent(new Event("input", { bubbles: true }));
         }}
-        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border-2 border-transparent transition-colors ${on ? "bg-primary" : "bg-input"}`}
+        className="grid h-6 w-11 shrink-0 place-items-center rounded-full"
       >
-        <span className={`block h-4 w-4 rounded-full bg-card shadow-sm transition-transform ${on ? "translate-x-4" : "translate-x-0"}`} />
+        <span className={`inline-flex h-5 w-9 items-center rounded-full border-2 border-transparent transition-colors ${on ? "bg-primary" : "bg-input"}`}>
+          <span className={`block h-4 w-4 rounded-full bg-card shadow-sm transition-transform ${on ? "translate-x-4" : "translate-x-0"}`} />
+        </span>
       </button>
       {children && <span className="text-[0.9375rem] font-medium">{children}</span>}
     </label>
@@ -44,15 +46,18 @@ export function Switch({ name, defaultChecked, label, onChange, children }: { na
 export function ConfirmSubmit({ children, confirm, label, className, armedClassName }: { children: ReactNode; confirm: string; label?: string; className: string; armedClassName: string }) {
   const [armed, setArmed] = useState(false);
   return (
-    <button
-      type={armed ? "submit" : "button"}
-      aria-label={armed ? confirm : label}
-      onClick={() => setArmed(true)}
-      onBlur={() => setArmed(false)}
-      className={armed ? armedClassName : className}
-    >
-      {armed ? confirm : children}
-    </button>
+    <>
+      <button
+        type={armed ? "submit" : "button"}
+        aria-label={armed ? confirm : label}
+        onClick={() => setArmed(true)}
+        onBlur={() => setArmed(false)}
+        className={armed ? armedClassName : className}
+      >
+        {armed ? confirm : children}
+      </button>
+      <span role="status" className="sr-only">{armed ? `${confirm}: press again to confirm.` : ""}</span>
+    </>
   );
 }
 

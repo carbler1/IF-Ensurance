@@ -9,6 +9,7 @@ export const metadata: Metadata = { title: "Tiers & rewards · If Ensurance Staf
 
 async function Ladder() {
   const tiers = await getTiers();
+  if (tiers.length === 0) return <Card className="text-sm text-muted-foreground">No tiers yet.</Card>;
   return (
     <div className="space-y-4">
       {[...tiers].reverse().map((t) => (
@@ -28,7 +29,7 @@ async function Ladder() {
               <Label text="Partner discount %"><input name="partner_discount_percent" type="number" min={0} max={100} required defaultValue={t.partner_discount_percent} className={inputClass} /></Label>
               <Label text="Bonuses" hint="One per line. The app shows them in the tier ladder; they change no price." className="md:col-span-3">
                 <textarea name="bonuses" rows={Math.max(3, t.bonuses.length + 1)} defaultValue={t.bonuses.join("\n")}
-                  className={`${inputClass} h-auto py-2.5`} />
+                  className={`${inputClass} h-auto! py-2.5`} />
               </Label>
             </div>
           </SaveForm>

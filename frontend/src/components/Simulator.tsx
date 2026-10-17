@@ -80,6 +80,8 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
   const agg = sim?.aggregate;
   const max = sim?.model.max_score ?? 1000;
 
+  if (customers.length === 0) return <Card className="text-sm text-muted-foreground">No customers yet. The simulator starts from a customer&apos;s insured objects.</Card>;
+
   return (
     // Container queries: the layout follows the content width, which the side nav narrows from md up.
     <div className="@container space-y-4">

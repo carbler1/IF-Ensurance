@@ -14,7 +14,7 @@ export function ScoreRing({ score, projected, max, tierMins, size = 220 }: { sco
   const mins = [...tierMins].sort((a, b) => a - b);
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`Care Score ${score}${projected > score ? ` → ${projected}` : ""}`}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`Care Score ${score}${projected > score ? `, ${projected} with every fix` : ""}`}>
         <g transform={`rotate(-90 ${center} ${center})`}>
           {mins.map((start, i) => {
             const from = i === 0 ? 0 : start;

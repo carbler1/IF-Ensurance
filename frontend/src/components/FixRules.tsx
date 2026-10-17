@@ -6,11 +6,11 @@ import { addRule, deleteRule, saveClass, saveRule } from "@/app/actions";
 import { describe, fieldLabel, rowsToCondition, type FieldInfo, type Row } from "@/lib/context";
 import type { InsuranceClass, Risk, Rule } from "@/lib/types";
 import { Button, ConfirmSubmit, Label, SaveForm, Switch } from "./form";
-import { IconTile, Pill, Segmented, categoryIcon, classIcon, humanize, inputClass } from "./ui";
+import { Card, IconTile, Pill, Segmented, categoryIcon, classIcon, humanize, inputClass } from "./ui";
 
 function RuleEditor({ rule }: { rule: Rule }) {
   return (
-    <div className={`rounded-lg border p-4 ${rule.active ? "bg-background" : "border-dashed bg-card opacity-70"}`}>
+    <div className={`rounded-lg border p-4 ${rule.active ? "bg-background" : "border-dashed border-input bg-card"}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-semibold">{rule.label}</p>
@@ -90,12 +90,12 @@ function AddRule({ risk, fields, onDone, defaults }: { risk: Risk; fields: Field
             const f = fields.find((x) => x.name === row.field);
             return (
               <div key={i} className="flex flex-wrap items-start gap-2 rounded-lg border bg-card p-2">
-                <select aria-label="Profile field" value={row.field} onChange={(e) => { const nf = fields.find((x) => x.name === e.target.value); update(i, { field: e.target.value, op: nf ? opsFor(nf.kind)[0].op : "in", value: "", values: [] }); }} className={`${inputClass} w-56`}>
+                <select aria-label="Profile field" value={row.field} onChange={(e) => { const nf = fields.find((x) => x.name === e.target.value); update(i, { field: e.target.value, op: nf ? opsFor(nf.kind)[0].op : "in", value: "", values: [] }); }} className={`${inputClass} w-56!`}>
                   <option value="">Choose a field…</option>
                   {fields.map((x) => <option key={x.name} value={x.name}>{fieldLabel(x.name)}</option>)}
                 </select>
                 {f && (
-                  <select aria-label="Test" value={row.op} onChange={(e) => update(i, { op: e.target.value as Row["op"] })} className={`${inputClass} w-36`}>
+                  <select aria-label="Test" value={row.op} onChange={(e) => update(i, { op: e.target.value as Row["op"] })} className={`${inputClass} w-36!`}>
                     {opsFor(f.kind).map((o) => <option key={o.op} value={o.op}>{o.label}</option>)}
                   </select>
                 )}
@@ -113,7 +113,7 @@ function AddRule({ risk, fields, onDone, defaults }: { risk: Risk; fields: Field
                   </div>
                 )}
                 {f && ["lt", "gt", "eq"].includes(row.op) && (
-                  <input aria-label="Value" type={f.kind === "date" ? "date" : "number"} value={row.value} onChange={(e) => update(i, { value: e.target.value })} placeholder={f.kind === "year" ? "1970" : ""} className={`${inputClass} w-40`} />
+                  <input aria-label="Value" type={f.kind === "date" ? "date" : "number"} value={row.value} onChange={(e) => update(i, { value: e.target.value })} placeholder={f.kind === "year" ? "1970" : ""} className={`${inputClass} w-40!`} />
                 )}
                 {rows.length > 1 && (
                   <button type="button" aria-label="Remove condition" onClick={() => setRows(rows.filter((_, j) => j !== i))} className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-danger-soft hover:text-destructive"><X className="h-4 w-4" aria-hidden /></button>
@@ -194,7 +194,7 @@ export function FixRules({ classes, rules }: { classes: InsuranceClass[]; rules:
   const [category, setCategory] = useState("all");
   const [query, setQuery] = useState("");
   const cls = classes.find((c) => c.class_id === classId) ?? classes[0];
-  if (!cls) return null;
+  if (!cls) return <Card className="text-sm text-muted-foreground">No insurance classes yet.</Card>;
   const categories = [...new Set(cls.risks.map((r) => r.category))].sort();
   // The app's risks first, then the catalogue.
   const shown = [...cls.risks].sort((a, b) => Number(!!b.assigned) - Number(!!a.assigned)).filter(

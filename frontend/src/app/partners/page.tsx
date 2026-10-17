@@ -10,10 +10,11 @@ export const metadata: Metadata = { title: "Partners · If Ensurance Staff" };
 
 async function List() {
   const partners = await getPartners();
+  if (partners.length === 0) return <Card className="text-sm text-muted-foreground">No partners yet.</Card>;
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       {partners.map((p) => (
-        <Card key={p.partner_id} className={p.if_vetted ? "" : "opacity-80"}>
+        <Card key={p.partner_id} className={p.if_vetted ? "" : "border-dashed border-input"}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2 className="font-semibold">{p.name}</h2>
