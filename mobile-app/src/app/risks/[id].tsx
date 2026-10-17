@@ -6,6 +6,7 @@ import { NotFound } from "@/components/NotFound";
 import { RiskScorePreview } from "@/components/RiskScorePreview";
 import { Button, Card, Heading, PopIn, Screen, Text, areaIcon } from "@/components/ui";
 import { bids, inspectionPriceFactor, partnerDiscountByTier, risks, type Risk } from "@/data/mock";
+import { fmt } from "@/lib/i18n";
 import { getTier, useStore } from "@/lib/store";
 import { colors, radius, shadows } from "@/lib/theme";
 
@@ -23,16 +24,17 @@ const choice = (selected: boolean) => [
 ];
 
 function RiskDetail({ risk }: { risk: Risk }) {
-  const { t, score, bookJob, jobs, completed } = useStore();
+  const { t, scores, aggregate, bookJob, jobs, completed } = useStore();
   const [mode, setMode] = useState<"hire" | "diy" | null>(null);
   const [bid, setBid] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const Icon = areaIcon[risk.area];
-  const discount = partnerDiscountByTier[getTier(score).tier.id];
+  // Partner discounts follow the Care Score tier; the preview shows this insurance's own score.
+  const discount = partnerDiscountByTier[getTier(aggregate).tier.id];
   const existing = jobs[risk.id];
   const done = existing?.step === 2;
   const addedPoints = completed.includes(risk.id) ? 0 : risk.points;
-  const scoreProgress = <RiskScorePreview key={risk.id} score={score} addedPoints={addedPoints} />;
+  const scoreProgress = <RiskScorePreview key={risk.id} score={scores[risk.insurance]} addedPoints={addedPoints} label={fmt(t("rd.safetyScore"), { name: t(`ins.${risk.insurance}`) })} />;
 
   // A finished job leaves nothing but the handled note: no score preview, no explainer, no booking.
   if (done) {

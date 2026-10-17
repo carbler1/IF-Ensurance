@@ -6,7 +6,7 @@ import { addRule, deleteRule, saveClass, saveRule } from "@/app/actions";
 import { describe, fieldLabel, rowsToCondition, type FieldInfo, type Row } from "@/lib/context";
 import type { InsuranceClass, Risk, Rule } from "@/lib/types";
 import { Button, Label, SaveForm, Switch, smallInputClass } from "./form";
-import { IconTile, Pill, categoryIcon, classIcon, eur, humanize } from "./ui";
+import { IconTile, Pill, categoryIcon, classIcon, humanize } from "./ui";
 
 function RuleEditor({ rule }: { rule: Rule }) {
   return (
@@ -29,12 +29,9 @@ function RuleEditor({ rule }: { rule: Rule }) {
       </div>
       <SaveForm action={saveRule} className="mt-3">
         <input type="hidden" name="rule_id" value={rule.rule_id} />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Label text="Care Score points">
-            <input name="points" type="number" min={0} required defaultValue={rule.points} className={smallInputClass} />
-          </Label>
-          <Label text="Premium cut € / year">
-            <input name="premium_reduction_eur" type="number" min={0} required defaultValue={rule.premium_reduction_eur} className={smallInputClass} />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <Label text="Insurance score points">
+            <input name="points" type="number" min={0} max={1000} required defaultValue={rule.points} className={smallInputClass} />
           </Label>
           <Label text="Half-life, years">
             <input name="half_life_years" type="number" min={1} max={100} required defaultValue={rule.half_life_years} className={smallInputClass} />
@@ -127,9 +124,8 @@ function AddRule({ risk, fields, onDone, defaults }: { risk: Risk; fields: Field
         <Button type="button" variant="ghost" big={false} className="mt-2" onClick={() => setRows([...rows, emptyRow()])}><Plus className="h-4 w-4" />Add condition</Button>
         <p className="mt-2 text-sm text-muted-foreground">{condition ? describe(condition).join(" · ") : "Pick a field and a value."}</p>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Label text="Care Score points"><input name="points" type="number" min={0} required defaultValue={defaults?.points ?? risk.points} className={smallInputClass} /></Label>
-          <Label text="Premium cut € / year"><input name="premium_reduction_eur" type="number" min={0} required defaultValue={defaults?.premium_reduction_eur ?? 0} className={smallInputClass} /></Label>
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <Label text="Insurance score points"><input name="points" type="number" min={0} max={1000} required defaultValue={defaults?.points ?? risk.points} className={smallInputClass} /></Label>
           <Label text="Half-life, years"><input name="half_life_years" type="number" min={1} max={100} required defaultValue={defaults?.half_life_years ?? risk.half_life_years ?? 5} className={smallInputClass} /></Label>
           <Label text="Priority" hint="Higher wins"><input name="priority" type="number" min={1} max={1000} required defaultValue={10} className={smallInputClass} /></Label>
         </div>
@@ -158,7 +154,7 @@ function FixCard({ risk, rules, fields }: { risk: Risk; rules: Rule[]; fields: F
         {def && (
           <div className="hidden shrink-0 text-right sm:block">
             <p className="font-display text-3xl font-semibold text-primary-light tabular-nums">+{def.points}</p>
-            <p className="text-sm text-muted-foreground">−{eur(def.premium_reduction_eur)} / year</p>
+            <p className="text-sm text-muted-foreground">points by default</p>
           </div>
         )}
       </div>
@@ -181,12 +177,9 @@ function ClassPremium({ cls }: { cls: InsuranceClass }) {
       <h3 className="text-xl font-semibold">{cls.name} insurance premium</h3>
       <SaveForm action={saveClass}>
         <input type="hidden" name="class_id" value={cls.class_id} />
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <Label text="Base premium € / year" hint="Before any fix is confirmed.">
+        <div className="mt-3 max-w-sm">
+          <Label text="Base premium € / year" hint="Before the discount band of the insurance's score.">
             <input name="base_annual_premium_eur" type="number" min={0} required defaultValue={cls.base_annual_premium_eur} className={smallInputClass} />
-          </Label>
-          <Label text="Maximum premium cut %" hint="Cap on the sum of this class's fix cuts.">
-            <input name="max_reduction_percent" type="number" min={0} max={100} required defaultValue={cls.max_reduction_percent} className={smallInputClass} />
           </Label>
         </div>
       </SaveForm>

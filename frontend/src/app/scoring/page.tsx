@@ -1,26 +1,35 @@
 import type { Metadata } from "next";
 import { saveSettings } from "@/app/actions";
+import { BandsEditor } from "@/components/Bands";
 import { Data } from "@/components/Data";
 import { FixRules } from "@/components/FixRules";
 import { Label, SaveForm, inputClass } from "@/components/form";
 import { Card, PageHeader } from "@/components/ui";
-import { getClasses, getRules, getSettings } from "@/lib/api";
+import { getBands, getClasses, getRules, getSettings } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Score & pricing · If Life Partner Staff" };
 
-async function Settings() {
-  const s = await getSettings();
+async function Model() {
+  const [s, b] = await Promise.all([getSettings(), getBands()]);
   return (
-    <Card>
-      <h2 className="text-xl font-semibold">Care Score</h2>
-      <SaveForm action={saveSettings}>
-        <div className="mt-3 max-w-sm">
-          <Label text="Care Score of a new customer" hint="Every customer starts here. Confirmed fixes on any insured object add to it.">
-            <input name="score_start" type="number" min={0} required defaultValue={s.score_start} className={inputClass} />
-          </Label>
-        </div>
-      </SaveForm>
-    </Card>
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
+      <Card>
+        <h2 className="text-xl font-semibold">Insurance score</h2>
+        <p className="mt-1 text-muted-foreground">Every insurance has its own score from 0 to {s.max_score}. Confirmed fixes add points to it.</p>
+        <SaveForm action={saveSettings}>
+          <div className="mt-3">
+            <Label text="Score of a new insurance" hint={`Between 0 and ${s.max_score}.`}>
+              <input name="insurance_score_start" type="number" min={0} max={s.max_score} required defaultValue={s.insurance_score_start} className={inputClass} />
+            </Label>
+          </div>
+        </SaveForm>
+      </Card>
+      <Card>
+        <h2 className="text-xl font-semibold">Discount bands</h2>
+        <p className="mt-1 text-muted-foreground">An insurance&apos;s own score sets the discount on that insurance only.</p>
+        <BandsEditor bands={b.bands} max={b.max_score} />
+      </Card>
+    </div>
   );
 }
 
@@ -34,20 +43,18 @@ export default function ScoringPage() {
     <>
       <PageHeader
         title="Score & pricing"
-        sub="Set what each fix is worth for each insurance class. A fix can have a different value in a different context, for example in old houses or for large dogs. The backend uses these numbers for every customer."
+        sub="Set how insurance scores work, which discount each score earns, and how many points each fix is worth in each context."
       />
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-        <Data load={() => Settings()} />
-        <Card className="bg-accent shadow-none">
-          <h2 className="text-lg font-semibold text-accent-foreground">How a fix gets its value</h2>
-          <ol className="mt-2 list-decimal space-y-1 pl-5 text-accent-foreground">
-            <li>The fix must apply to the insured object (its risk condition).</li>
-            <li>Of its active contexts that match the object, the highest priority wins; else the default rule.</li>
-            <li>Confirmed points add to the customer&apos;s Care Score and halve every half-life.</li>
-            <li>Premium cuts add up per insurance, up to that insurance&apos;s cap.</li>
-          </ol>
-        </Card>
-      </div>
+      <Data load={() => Model()} />
+      <Card className="mt-4 bg-accent shadow-none">
+        <h2 className="text-lg font-semibold text-accent-foreground">How it adds up</h2>
+        <ol className="mt-2 list-decimal space-y-1 pl-5 text-accent-foreground">
+          <li>Each insurance starts at the new-insurance score. A confirmed fix adds its points to that insurance&apos;s score.</li>
+          <li>A fix&apos;s points come from its active context with the highest priority that matches the object, else its default rule.</li>
+          <li>The insurance&apos;s score picks its discount band: that percent comes off that insurance&apos;s premium.</li>
+          <li>The Care Score is the average of all the customer&apos;s insurance scores. It sets the tier and its bonuses (Tiers &amp; rewards).</li>
+        </ol>
+      </Card>
       <h2 className="mt-8 mb-4 text-2xl font-semibold">Insurances and their fixes</h2>
       <Data load={() => Rules()} />
     </>

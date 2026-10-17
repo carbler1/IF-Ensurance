@@ -17,8 +17,8 @@ import {
 import { Link, router, type Href } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, G, Line, Text as SvgText } from "react-native-svg";
-import { ChevronLeft, Droplets, Home as HomeIcon, Layers, Loader2, Wrench, Zap, type LucideIcon } from "lucide-react-native";
-import { tiers, type RiskArea } from "@/data/mock";
+import { Bone, Car, ChevronLeft, CircleGauge, Cog, Dog, Droplets, Flame, Home as HomeIcon, Layers, Loader2, Sailboat, Snowflake, Syringe, TreePine, Warehouse, Wrench, Zap, type LucideIcon } from "lucide-react-native";
+import { bands, tiers, type InsuranceId, type RiskArea } from "@/data/mock";
 import { useStore } from "@/lib/store";
 import { colors, fontFamily, radius, shadows, sizes, tierColors, type ColorName, type SizeName, type Weight } from "@/lib/theme";
 
@@ -28,7 +28,35 @@ export const areaIcon: Record<RiskArea, LucideIcon> = {
   water: Droplets,
   roof: HomeIcon,
   insulation: Layers,
+  frost: Snowflake,
+  fire: Flame,
+  engine: Cog,
+  storage: Warehouse,
+  tyres: CircleGauge,
+  service: Wrench,
+  vaccine: Syringe,
+  joints: Bone,
 };
+
+export const insuranceIcon: Record<InsuranceId, LucideIcon> = {
+  house: HomeIcon,
+  cottage: TreePine,
+  boat: Sailboat,
+  car: Car,
+  dog: Dog,
+};
+
+/** Ring segments: where each starts and its soft colour. */
+export type RingSegment = { key: string; min: number; soft: string };
+
+/** The Care Score ring: the four tiers. */
+export const tierSegments: RingSegment[] = tiers.map((t) => ({ key: t.id, min: t.min, soft: tierColors[t.id].soft }));
+
+/** An insurance's ring: no discount, then each discount band, in the same soft colours as the tiers. */
+export const bandSegments: RingSegment[] = [
+  { key: "none", min: 0, soft: tierColors.bronze.soft },
+  ...bands.map((b, i) => ({ key: `band-${b.min}`, min: b.min, soft: Object.values(tierColors)[i + 1]?.soft ?? tierColors.platinum.soft })),
+];
 
 export function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -208,7 +236,7 @@ export function Spinner({ size, color }: { size: number; color: string }) {
   );
 }
 
-export function ScoreRing({ score, max = 1000, size = 200, projectedScore = score, thresholdScore = score, showThresholds = false }: { score: number; max?: number; size?: number; projectedScore?: number; thresholdScore?: number; showThresholds?: boolean }) {
+export function ScoreRing({ score, max = 1000, size = 200, projectedScore = score, thresholdScore = score, showThresholds = false, segments = tierSegments }: { score: number; max?: number; size?: number; projectedScore?: number; thresholdScore?: number; showThresholds?: boolean; segments?: RingSegment[] }) {
   const r = size / 2 - 12;
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(1, score / max));
@@ -233,12 +261,12 @@ export function ScoreRing({ score, max = 1000, size = 200, projectedScore = scor
     <View accessible accessibilityRole="image" accessibilityLabel={`${score} / ${max}${projectedScore > score ? ` → ${projectedScore}` : ""}`} style={{ width: outerSize, maxWidth: "100%", aspectRatio: 1 }}>
       <Svg width="100%" height="100%" viewBox={`0 0 ${outerSize} ${outerSize}`}>
         <G transform={`rotate(-90 ${center} ${center})`}>
-          {tiers.map((tier, i) => {
-            const start = tier.min;
-            const end = tiers[i + 1]?.min ?? max;
+          {segments.map((seg, i) => {
+            const start = seg.min;
+            const end = segments[i + 1]?.min ?? max;
             return (
               <Circle
-                key={tier.id}
+                key={seg.key}
                 cx={center}
                 cy={center}
                 r={r}
@@ -246,24 +274,24 @@ export function ScoreRing({ score, max = 1000, size = 200, projectedScore = scor
                 strokeWidth={14}
                 strokeDasharray={`${c * ((end - start) / max)} ${c}`}
                 strokeDashoffset={-c * (start / max)}
-                stroke={tierColors[tier.id].soft}
+                stroke={seg.soft}
               />
             );
           })}
           <Circle cx={center} cy={center} r={r} fill="none" strokeWidth={14} strokeLinecap="round" strokeDasharray={`${c}`} strokeDashoffset={offset} stroke={colors.primary} />
           {projectedPct > pct && <Circle cx={center} cy={center} r={r} fill="none" strokeWidth={14} strokeDasharray={`${c * (projectedPct - pct)} ${c}`} strokeDashoffset={-c * pct} stroke={colors.primaryLight} />}
         </G>
-        {showThresholds && tiers.filter((tier) => tier.min > thresholdScore).map((tier) => {
-          const angle = tier.min / max * 2 * Math.PI - Math.PI / 2;
+        {showThresholds && segments.filter((seg) => seg.min > thresholdScore).map((seg) => {
+          const angle = seg.min / max * 2 * Math.PI - Math.PI / 2;
           const x = Math.cos(angle);
           const y = Math.sin(angle);
           const labelX = center + x * (r + 22);
           const labelY = center + y * (r + 22);
           return (
-            <G key={tier.id}>
+            <G key={seg.key}>
               <Line x1={center + x * (r - 10)} y1={center + y * (r - 10)} x2={center + x * (r + 10)} y2={center + y * (r + 10)} strokeWidth={2} stroke={colors.foreground} />
               <SvgText x={labelX} y={labelY + 4} textAnchor={x < -0.3 ? "end" : x > 0.3 ? "start" : "middle"} fill={colors.mutedForeground} fontFamily={fontFamily(false, 600)} fontSize={11}>
-                {tier.min}
+                {seg.min}
               </SvgText>
             </G>
           );

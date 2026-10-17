@@ -4,7 +4,7 @@ Owner: Antton (integration). Design: `docs/systemdesign/DESIGN.md`.
 For Ege: build the app against these shapes. Each response example is a file in `fixtures/api/`. Use them as fixtures until the backend runs. Do not store app data in Supabase.
 For the backend: contract tests check every endpoint against these shapes.
 
-Version: 0.2, 2026-10-17 (audit fixes). Changes go through Antton. Field additions are allowed without a version bump; renames and removals are not.
+Version: 0.3, 2026-10-17 (removed `premium_reduction_eur` from risks, which no client used; earlier: 0.2 audit fixes). Changes go through Antton. Field additions are allowed without a version bump; renames and removals are not.
 
 ## Conventions
 - Base URL: `{BASE}/v1` over HTTPS. The value of `BASE` comes later.
@@ -49,7 +49,7 @@ Example: `fixtures/api/jobs-running.json`, `fixtures/api/jobs-done.json` and `fi
 ### GET /homes/me/risks
 Example: `fixtures/api/risks.json`.
 Ordered by `severity × probability`, LLM-proposed items last. At most 5 items with `status` `open` or `booked`. Done items are not listed here; they appear in the score breakdown.
-`points_available` and `premium_reduction_eur` (yearly premium cut in euros, added 2026-10-17) come from the fix rules that If staff set in the dashboard: of the fix's active rules whose context matches the home profile, the one with the highest priority wins (`engine.fix_value`). Without a rule, the catalogue points apply and the cut is 0.
+`points_available` comes from the fix rules that If staff set in the dashboard: of the fix's active rules whose context matches the home profile, the one with the highest priority wins (`engine.fix_value`). Without a rule, the catalogue points apply. The points go to the house insurance's score (see `/me/insurances`).
 
 ### GET /homes/me/risks/{risk_id}
 The risk object, plus `evidence`, `mitigation` and `partners`.
@@ -83,7 +83,12 @@ Example: `fixtures/api/maintenance.json`.
 `due_at` = base date + `interval_years`, where the base date is the last known evidence for the entry (confirmed work order or profile fact). With no evidence, `due_at` is the profile creation date. `due_at` is never before the profile creation date. `status` is `overdue`, `upcoming` (within 90 days) or `scheduled`. Sorted by `due_at`. The list is computed at each read and nothing is stored. `item_id` is opaque and may change between reads; use `risk_id` as the key.
 
 ### GET /me/insurances
-Added 2026-10-17. Every insured object of the demo customer (house, summer cottage, boat, car, dog) with the fixes that apply to it, each with `points`, `premium_reduction_eur`, `half_life_years`, `why` and `benefit`, the object's premium (`base`, `cut`, `after`), and the customer's Care Score if every fix is confirmed. The house uses the catalogue; the other four classes use the mock `data/insurance-classes.json` (two risks each).
+Added 2026-10-17. The demo customer's five insurances (house, summer cottage, boat, car, dog) under the score model in `data/score-model.json`:
+- Each object has its own `score` (`now`, `after` every open fix, `next_band`), from 0 to `max_score`. A new insurance starts at `insurance_score_start` (500); `history` and confirmed fixes move it.
+- `band` (`now`, `after`) is the percent off that insurance's own premium; `premium` has `base`, `now`, `after` in euros a year.
+- `fixes` lists each open fix with `points`, `half_life_years`, `why` and `benefit`.
+- `aggregate` (`now`, `after`) is the average of the insurance scores; `tier_now`/`tier_after` carry the tier with its `bonuses` (display texts; they change no price) and `next_tier`.
+- `model` echoes the bands and tiers in use.
 
 ## Admin (If staff dashboard)
 Added 2026-10-17. The dashboard in `frontend/` calls these from its server and never touches the database. Auth: header `X-Admin-Token: <ADMIN_TOKEN>` from `.env`; the customer token does not work here.
@@ -93,17 +98,18 @@ Added 2026-10-17. The dashboard in `frontend/` calls these from its server and n
 | GET | `/admin/overview` | Counts: customers, homes, documents and work orders by status, active rules, classes |
 | GET | `/admin/customers` | Each customer with their objects, profiles, open fixes, premiums and Care Score with every fix done |
 | GET | `/admin/classes` | The five insurance classes: profile fields, risks, base premium, cap |
-| PATCH | `/admin/classes/{class_id}` | `base_annual_premium_eur`, `max_reduction_percent` (0–100) |
-| GET, PATCH | `/admin/settings` | `score_start`: the Care Score of a new customer |
+| PATCH | `/admin/classes/{class_id}` | `base_annual_premium_eur` |
+| GET, PATCH | `/admin/settings` | `insurance_score_start` (score of a new insurance, ≤ `max_score`); `max_score` is read-only |
+| GET, PUT | `/admin/bands` | The discount bands `[{min_score, percent}]`. PUT replaces them all; scores and percents must both rise. `400` otherwise |
 | GET | `/admin/rules` | All fix rules |
-| POST | `/admin/rules` | A context rule: `risk_id`, `label`, `context` (applies_when grammar over the class's fields), `priority`, `points`, `half_life_years`, `premium_reduction_eur`. `400` on a bad context |
+| POST | `/admin/rules` | A context rule: `risk_id`, `label`, `context` (applies_when grammar over the class's fields), `priority`, `points`, `half_life_years`. `400` on a bad context |
 | PATCH | `/admin/rules/{rule_id}` | The numbers, `priority` (not for a default rule) and `active` |
 | DELETE | `/admin/rules/{rule_id}` | `204`. `409` for a default rule |
-| POST | `/admin/simulate` | `{"objects": [{"class_id", "profile"}]}` → fixes, points and premiums per object, and the totals. Nothing is saved |
+| POST | `/admin/simulate` | `{"objects": [{"class_id", "profile", "history"}]}` → the `/me/insurances` shape. Nothing is saved |
 | GET, PATCH | `/admin/partners`, `/admin/partners/{partner_id}` | Prices (min ≤ max), If discount, vetting, listing tier |
-| GET, PATCH | `/admin/tiers`, `/admin/tiers/{index}` | Name, minimum score (between the neighbours), rewards |
+| GET, PATCH | `/admin/tiers`, `/admin/tiers/{index}` | Name, minimum aggregate score (between the neighbours), partner discount %, `bonuses` (list of texts) |
 
-Rule choice (`engine.fix_value`): of a fix's active rules whose context matches the object's profile, the highest priority wins; the default rule (priority 0, no context) is the fallback. A class's premium cuts add up to its cap.
+Rule choice (`engine.fix_value`): of a fix's active rules whose context matches the object's profile, the highest priority wins; the default rule (priority 0, no context) is the fallback. The points go to that insurance's score.
 
 `GET /health` (no auth, outside `/v1`) returns `{"status": "ok"}` for docker compose.
 

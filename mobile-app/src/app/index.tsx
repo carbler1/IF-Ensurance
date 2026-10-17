@@ -1,17 +1,20 @@
 import { ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Car, ChevronRight, Lock, Snowflake } from "lucide-react-native";
-import { Button, Card, Heading, LinkBlock, RingOverlay, ScoreRing, Text, Wordmark, areaIcon } from "@/components/ui";
-import { risks } from "@/data/mock";
-import { getTier, useStore } from "@/lib/store";
+import { ChevronRight, Snowflake } from "lucide-react-native";
+import { Button, Card, Heading, LinkBlock, RingOverlay, ScoreRing, Text, Wordmark, areaIcon, insuranceIcon } from "@/components/ui";
+import { insurances, risks } from "@/data/mock";
+import { fmt } from "@/lib/i18n";
+import { getBand, getTier, useStore } from "@/lib/store";
 import { colors, radius, tierColors } from "@/lib/theme";
 
 export default function Dashboard() {
-  const { t, score, completed } = useStore();
+  const { t, scores, aggregate: score, completed } = useStore();
   const insets = useSafeAreaInsets();
   const { tier, next } = getTier(score);
-  const nextRisk = risks.find((r) => !completed.includes(r.id));
+  // The open fix worth the most points, across all five insurances.
+  const nextRisk = [...risks].sort((a, b) => b.points - a.points).find((r) => !completed.includes(r.id));
+  const rows = [insurances.slice(0, 2), insurances.slice(2, 4), insurances.slice(4)];
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 + insets.top, paddingBottom: 48, gap: 16 }}>
@@ -40,21 +43,31 @@ export default function Dashboard() {
         </Card>
       </LinkBlock>
 
-      <View style={{ flexDirection: "row", gap: 12 }}>
-        <Card style={{ flex: 1, padding: 16 }}>
-          <Text size="sm" color="mutedForeground">{t("home.house")}</Text>
-          <Text size="3xl" display weight={600}>{score}</Text>
-        </Card>
-        <Card flat style={{ flex: 1, padding: 16, backgroundColor: colors.muted }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-            <Car size={16} color={colors.mutedForeground} />
-            <Text size="sm" color="mutedForeground">{t("home.car")}</Text>
+      {/* One small card per insurance: its own score and the discount that score earns. */}
+      <View style={{ gap: 12 }}>
+        {rows.map((row, i) => (
+          <View key={i} style={{ flexDirection: "row", gap: 12 }}>
+            {row.map(({ id }) => {
+              const Icon = insuranceIcon[id];
+              const pct = getBand(scores[id]);
+              return (
+                <LinkBlock key={id} href="/score" style={{ flex: 1 }}>
+                  <Card style={{ padding: 16 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                      <Icon size={16} color={colors.mutedForeground} />
+                      <Text size="sm" color="mutedForeground">{t(`ins.${id}`)}</Text>
+                    </View>
+                    <Text size="3xl" display weight={600} tabular>{scores[id]}</Text>
+                    <Text size="sm" weight={pct ? 600 : 400} color={pct ? "success" : "mutedForeground"}>
+                      {pct ? fmt(t("band.off"), { pct }) : t("band.none")}
+                    </Text>
+                  </Card>
+                </LinkBlock>
+              );
+            })}
+            {row.length === 1 && <View style={{ flex: 1 }} />}
           </View>
-          <View style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 4 }}>
-            <Lock size={16} color={colors.mutedForeground} />
-            <Text weight={500} color="mutedForeground">{t("home.carSub")}</Text>
-          </View>
-        </Card>
+        ))}
       </View>
 
       {nextRisk && (() => {

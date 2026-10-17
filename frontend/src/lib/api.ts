@@ -1,6 +1,6 @@
 import "server-only";
 import { connection } from "next/server";
-import type { Customer, InsuranceClass, Overview, Partner, Rule, Simulation, Tier } from "./types";
+import type { Band, Customer, InsuranceClass, Overview, Partner, Rule, Settings, Simulation, Tier } from "./types";
 
 // Every read and write goes through the backend's /v1/admin API; the dashboard never touches the
 // database. Calls run on the dashboard's server, so the admin token never reaches the browser.
@@ -35,16 +35,18 @@ export const getOverview = () => read<Overview>("/overview");
 export const getCustomers = () => read<{ customers: Customer[] }>("/customers").then((r) => r.customers);
 export const getClasses = () => read<{ classes: InsuranceClass[] }>("/classes").then((r) => r.classes);
 export const getRules = () => read<{ rules: Rule[] }>("/rules").then((r) => r.rules);
-export const getSettings = () => read<{ score_start: number }>("/settings");
+export const getSettings = () => read<Settings>("/settings");
+export const getBands = () => read<{ bands: Band[]; max_score: number }>("/bands");
 export const getPartners = () => read<{ partners: Partner[] }>("/partners").then((r) => r.partners);
 export const getTiers = () => read<{ tiers: Tier[] }>("/tiers").then((r) => r.tiers);
 
-const send = <T>(method: "POST" | "PATCH" | "DELETE", path: string, body?: unknown) =>
+const send = <T>(method: "POST" | "PATCH" | "PUT" | "DELETE", path: string, body?: unknown) =>
   call<T>(path, { method, body: body === undefined ? undefined : JSON.stringify(body) });
 
 export const api = {
-  patchSettings: (body: { score_start: number }) => send("PATCH", "/settings", body),
-  patchClass: (id: string, body: { base_annual_premium_eur: number; max_reduction_percent: number }) => send("PATCH", `/classes/${encodeURIComponent(id)}`, body),
+  patchSettings: (body: { insurance_score_start: number }) => send("PATCH", "/settings", body),
+  putBands: (bands: Band[]) => send("PUT", "/bands", { bands }),
+  patchClass: (id: string, body: { base_annual_premium_eur: number }) => send("PATCH", `/classes/${encodeURIComponent(id)}`, body),
   createRule: (body: unknown) => send<Rule>("POST", "/rules", body),
   patchRule: (id: string, body: unknown) => send<Rule>("PATCH", `/rules/${encodeURIComponent(id)}`, body),
   deleteRule: (id: string) => send<void>("DELETE", `/rules/${encodeURIComponent(id)}`),

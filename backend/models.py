@@ -113,10 +113,9 @@ class Tier(Base):
 
     tier_index: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     name: Mapped[str] = mapped_column(Text)
-    min_score: Mapped[int] = mapped_column(Integer)
-    deductible_reduction_eur: Mapped[int] = mapped_column(Integer)
-    free_checkups: Mapped[str] = mapped_column(Text)  # JSON list of checkup kinds
+    min_score: Mapped[int] = mapped_column(Integer)  # aggregate score (average of the insurance scores)
     partner_discount_percent: Mapped[int] = mapped_column(Integer)
+    bonuses: Mapped[str] = mapped_column(Text)  # JSON list of display texts; they change no price
     updated_at: Mapped[str] = mapped_column(Text)
 
 
@@ -133,20 +132,31 @@ class FixRule(Base):
     label: Mapped[str] = mapped_column(Text)
     context: Mapped[str | None] = mapped_column(Text)  # JSON condition, or null for any home
     priority: Mapped[int] = mapped_column(Integer)  # higher wins; the default rule is 0
-    points: Mapped[int] = mapped_column(Integer)  # Care Score points when the fix is confirmed
+    points: Mapped[int] = mapped_column(Integer)  # added to the insurance's score when the fix is confirmed
     half_life_years: Mapped[int] = mapped_column(Integer)  # the points halve every this many years
-    premium_reduction_eur: Mapped[int] = mapped_column(Integer)  # yearly premium cut, euros
     active: Mapped[int] = mapped_column(Integer)
     updated_at: Mapped[str] = mapped_column(Text)
 
 
 class InsuranceSettings(Base):
-    """One row (settings_id 1): the global numbers of the Care Score."""
+    """One row (settings_id 1): the global numbers of the insurance scores."""
 
     __tablename__ = "insurance_settings"
 
     settings_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
-    score_start: Mapped[int] = mapped_column(Integer)  # Care Score of a new customer
+    insurance_score_start: Mapped[int] = mapped_column(Integer)  # score of a new insurance
+    max_score: Mapped[int] = mapped_column(Integer)  # an insurance score never goes above this
+    updated_at: Mapped[str] = mapped_column(Text)
+
+
+class DiscountBand(Base):
+    """From min_score up to the next band, an insurance gets percent off its own premium.
+    Below the lowest band there is no discount."""
+
+    __tablename__ = "discount_bands"
+
+    min_score: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    percent: Mapped[int] = mapped_column(Integer)
     updated_at: Mapped[str] = mapped_column(Text)
 
 
@@ -159,7 +169,6 @@ class InsuranceClass(Base):
     class_id: Mapped[str] = mapped_column(Text, primary_key=True)
     name: Mapped[str] = mapped_column(Text)
     base_annual_premium_eur: Mapped[int] = mapped_column(Integer)
-    max_reduction_percent: Mapped[int] = mapped_column(Integer)  # cap on the sum of fix reductions
     updated_at: Mapped[str] = mapped_column(Text)
 
 
@@ -182,6 +191,7 @@ class InsuredObject(Base):
     class_id: Mapped[str] = mapped_column(Text, ForeignKey("insurance_classes.class_id"))
     name: Mapped[str] = mapped_column(Text)
     profile: Mapped[str | None] = mapped_column(Text)  # JSON {field: value}; null for a house
+    history: Mapped[str] = mapped_column(Text, server_default=text("'[]'"))  # JSON [{label, points}] since insured
     created_at: Mapped[str] = mapped_column(Text)
 
 

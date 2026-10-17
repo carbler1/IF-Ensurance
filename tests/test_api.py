@@ -75,14 +75,13 @@ def test_fix_rules(tmp_path, monkeypatch):
 
         def check_value(year):
             prof["building_year"]["value"] = year
-            v = engine.fix_value(db.fix_rules(s), entry, prof)
-            return v["points"], v["premium_reduction_eur"]
+            return engine.fix_value(db.fix_rules(s), entry, prof)["points"]
 
-        assert check_value(1965) == (110, 60)  # the "before 1970" context rule wins over the default
-        assert check_value(1985) == (80, 40)   # outside that context the default rule applies
+        assert check_value(1965) == 110  # the "before 1970" context rule wins over the default
+        assert check_value(1985) == 80   # outside that context the default rule applies
         s.get(FixRule, "example.elec_check_pre1970").active = 0
         s.commit()
-        assert check_value(1965) == (80, 40)   # an inactive rule never applies
+        assert check_value(1965) == 80   # an inactive rule never applies
 
 
 def test_admin_and_insurances(tmp_path, monkeypatch):
@@ -109,24 +108,47 @@ def test_admin_and_insurances(tmp_path, monkeypatch):
 
         # A context rule for young dogs does not apply to Ruska (born 2018); one for large dogs does.
         bad = {"risk_id": "dog.vaccination.expired", "label": "x", "priority": 5, "points": 1,
-               "half_life_years": 1, "premium_reduction_eur": 1, "context": {"op": "lt", "field": "building_year", "value": 1}}
+               "half_life_years": 1, "context": {"op": "lt", "field": "building_year", "value": 1}}
         assert c.post("/v1/admin/rules", headers=A, json=bad).status_code == 400  # a house field on a dog risk
-        good = {**bad, "label": "Large dogs", "points": 70, "premium_reduction_eur": 45,
+        good = {**bad, "label": "Large dogs", "points": 70,
                 "context": {"op": "eq", "field": "breed_size", "value": "large"}}
         rule = c.post("/v1/admin/rules", headers=A, json=good).json()
         sim = c.post("/v1/admin/simulate", headers=A, json={"objects": [
             {"class_id": "dog", "profile": {"breed_size": "large", "birth_year": 2018, "vaccinations_valid": "no"}}]}).json()
         vacc = next(f for f in sim["objects"][0]["fixes"] if f["risk_id"] == "dog.vaccination.expired")
-        assert (vacc["points"], vacc["premium_reduction_eur"], vacc["rule_id"]) == (70, 45, rule["rule_id"])
+        assert (vacc["points"], vacc["rule_id"]) == (70, rule["rule_id"])
         assert c.delete(f"/v1/admin/rules/{rule['rule_id']}", headers=A).status_code == 204
         assert c.delete("/v1/admin/rules/default.dog.vaccination.expired", headers=A).status_code == 409
 
-        # The premium cut of a class stops at its cap.
-        c.patch("/v1/admin/classes/dog", headers=A, json={"base_annual_premium_eur": 100, "max_reduction_percent": 10})
-        sim = c.post("/v1/admin/simulate", headers=A, json={"objects": [
-            {"class_id": "dog", "profile": {"breed_size": "large", "birth_year": 2018, "vaccinations_valid": "no"}}]}).json()
-        assert sim["objects"][0]["premium"]["cut"] == 10 and sim["objects"][0]["premium"]["capped"]
+        # Each insurance starts at 500 plus its history; the bands set its discount; the aggregate is the average.
+        dog_profile = {"breed_size": "large", "birth_year": 2018, "vaccinations_valid": "no"}
+
+        def dog_at(history_points):
+            r = c.post("/v1/admin/simulate", headers=A, json={"objects": [
+                {"class_id": "dog", "profile": dog_profile, "history": [{"label": "h", "points": history_points}]}]}).json()
+            return r["objects"][0]
+
+        assert dog_at(-1)["band"]["now"] == 0      # 499: no discount
+        assert dog_at(0)["band"]["now"] == 5       # 500
+        assert dog_at(260)["score"] == {"now": 760, "after": 850, "next_band": {"min_score": 900, "percent": 15, "points_to": 140}}
+        assert dog_at(260)["band"] == {"now": 10, "after": 10}
+        assert dog_at(400)["band"]["now"] == 15    # 900
+        assert dog_at(2000)["score"]["now"] == 1000  # capped at the maximum
+        c.patch("/v1/admin/classes/dog", headers=A, json={"base_annual_premium_eur": 400})
+        assert dog_at(260)["premium"] == {"base": 400, "now": 360, "after": 360}
+
+        assert c.put("/v1/admin/bands", headers=A, json={"bands": [{"min_score": 500, "percent": 10}, {"min_score": 700, "percent": 5}]}).status_code == 400
+        assert c.put("/v1/admin/bands", headers=A, json={"bands": [{"min_score": 600, "percent": 8}]}).status_code == 200
+        assert dog_at(0)["band"]["now"] == 0 and dog_at(260)["band"]["now"] == 8
+        c.put("/v1/admin/bands", headers=A, json={"bands": [{"min_score": 500, "percent": 5}, {"min_score": 700, "percent": 10}, {"min_score": 900, "percent": 15}]})
+
+        tiers = c.get("/v1/admin/tiers", headers=A).json()["tiers"]
+        assert "One month off one insurance" in tiers[2]["bonuses"]
+        assert c.patch("/v1/admin/tiers/2", headers=A, json={"name": "Gold", "min_score": 700, "partner_discount_percent": 15,
+                                                            "bonuses": ["One month off one insurance", "A holiday trip"]}).json()["bonuses"][-1] == "A holiday trip"
 
         mine = c.get("/v1/me/insurances", headers=H).json()
-        assert len(mine["objects"]) == 5 and mine["score"]["start"] == 1000
-        assert all({"why", "benefit", "points", "premium_reduction_eur"} <= set(f) for o in mine["objects"] for f in o["fixes"])
+        scores = [o["score"]["now"] for o in mine["objects"]]
+        assert scores == [555, 520, 470, 690, 760] and mine["aggregate"]["now"] == 599
+        assert mine["aggregate"]["tier_now"]["name"] == "Silver"
+        assert all({"why", "benefit", "points"} <= set(f) for o in mine["objects"] for f in o["fixes"])

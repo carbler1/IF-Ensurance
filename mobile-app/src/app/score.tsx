@@ -1,8 +1,9 @@
 import { View } from "react-native";
 import { Check, TrendingDown, TrendingUp } from "lucide-react-native";
-import { Card, Heading, Screen, Text } from "@/components/ui";
-import { risks, scoreHistory, tiers } from "@/data/mock";
-import { getTier, useStore } from "@/lib/store";
+import { Card, Heading, Screen, Text, insuranceIcon, tierSegments } from "@/components/ui";
+import { MAX_SCORE, bands, insurances, risks, scoreHistory, tiers } from "@/data/mock";
+import { fmt } from "@/lib/i18n";
+import { getBand, getTier, nextBand, useStore } from "@/lib/store";
 import { colors, radius, shadows, tierColors } from "@/lib/theme";
 
 function Row({ label, points, first }: { label: string; points: number; first: boolean }) {
@@ -15,14 +16,67 @@ function Row({ label, points, first }: { label: string; points: number; first: b
 }
 
 export default function ScoreBreakdown() {
-  const { t, score, completed } = useStore();
-  const current = getTier(score).tier.id;
-  const items = [...scoreHistory, ...risks.filter((r) => completed.includes(r.id)).map((r) => ({ label: `${r.title} — ${t("job.verified")}`, points: r.points }))];
+  const { t, scores, aggregate, completed } = useStore();
+  const current = getTier(aggregate).tier.id;
+  const currentBand = (pct: number) => bands.reduce((m, b) => (b.percent === pct ? b.min : m), 0);
+  const items = [
+    ...scoreHistory.map((h) => ({ label: `${t(`ins.${h.insurance}`)} · ${h.label}`, points: h.points })),
+    ...risks.filter((r) => completed.includes(r.id)).map((r) => ({ label: `${t(`ins.${r.insurance}`)} · ${r.title} — ${t("job.verified")}`, points: r.points })),
+  ];
   const up = items.filter((i) => i.points > 0);
   const down = items.filter((i) => i.points < 0);
+  const ladder = [{ min: 0, percent: 0 }, ...bands];
 
   return (
-    <Screen back title={t("score.title")} sub={`${score} / 1000`}>
+    <Screen back title={t("score.title")} sub={`${aggregate} / ${MAX_SCORE}`}>
+      <Text color="mutedForeground" style={{ marginTop: -8 }}>{t("score.average")}</Text>
+
+      <Card>
+        <Heading size="lg">{t("score.insurances")}</Heading>
+        <View style={{ marginTop: 8 }}>
+          {insurances.map(({ id, object }, n) => {
+            const Icon = insuranceIcon[id];
+            const pct = getBand(scores[id]);
+            const next = nextBand(scores[id]);
+            return (
+              <View key={id} style={[{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12 }, n > 0 && { borderTopWidth: 1, borderTopColor: colors.border }]}>
+                <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: radius.xl, backgroundColor: colors.secondary }}>
+                  <Icon size={22} color={colors.secondaryForeground} />
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text weight={600}>{t(`ins.${id}`)}</Text>
+                  <Text size="sm" color="mutedForeground" numberOfLines={1}>{object}</Text>
+                  <Text size="sm" color="mutedForeground">{next ? fmt(t("band.toNext"), { n: next.pointsTo, pct: next.percent }) : t("band.top")}</Text>
+                </View>
+                <View style={{ alignItems: "flex-end" }}>
+                  <Text size="2xl" display weight={600} tabular>{scores[id]}</Text>
+                  <View style={{ borderRadius: radius.full, backgroundColor: pct ? colors.successSoft : colors.secondary, paddingHorizontal: 10, paddingVertical: 2 }}>
+                    <Text size="sm" weight={600} color={pct ? "success" : "mutedForeground"}>{pct ? fmt(t("band.off"), { pct }) : t("band.none")}</Text>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </Card>
+
+      <Card>
+        <Heading size="lg">{t("score.bands")}</Heading>
+        <Text color="mutedForeground" style={{ marginTop: 4 }}>{t("score.bandsSub")}</Text>
+        <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
+          {ladder.map((b, i) => {
+            const held = insurances.filter(({ id }) => currentBand(getBand(scores[id])) === b.min).length;
+            return (
+              // A blue border marks the bands where at least one of your insurances sits now.
+              <View key={b.min} style={{ flex: 1, borderRadius: radius.xl, borderWidth: 2, borderColor: held > 0 ? colors.primary : "transparent", padding: 10, backgroundColor: tierSegments[i]?.soft ?? colors.secondary, alignItems: "center" }}>
+                <Text size="sm" color="mutedForeground">{b.min === 0 ? fmt(t("score.below"), { min: bands[0].min }) : `${b.min}+`}</Text>
+                <Text size="lg" weight={600}>{b.percent ? `${b.percent}%` : "—"}</Text>
+              </View>
+            );
+          })}
+        </View>
+      </Card>
+
       <Card>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <TrendingUp size={20} color={colors.success} />

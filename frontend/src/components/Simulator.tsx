@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { RotateCcw } from "lucide-react";
+import { Check, RotateCcw } from "lucide-react";
 import { runSimulation, type SimInput } from "@/app/actions";
 import { describe, fieldLabel } from "@/lib/context";
 import type { Customer, Field, InsuranceClass, ProfileValue, Simulation } from "@/lib/types";
+import { BandBar } from "./Bands";
 import { smallInputClass } from "./form";
 import { ScoreRing } from "./ScoreRing";
 import { Card, IconTile, Pill, categoryIcon, classIcon, eur, humanize, tierColor } from "./ui";
@@ -35,10 +36,15 @@ function FieldControl({ field, value, onChange }: { field: Field; value: Profile
 const inputsOf = (c: Customer | undefined, classes: InsuranceClass[]): SimInput[] =>
   (c?.objects ?? []).map((o) => {
     const fields = classes.find((k) => k.class_id === o.class_id)?.fields ?? [];
-    return { object_id: o.object_id, class_id: o.class_id, name: o.name, profile: Object.fromEntries(fields.map((f) => [f.name, o.profile[f.name] ?? UNKNOWN])) };
+    return {
+      object_id: o.object_id, class_id: o.class_id, name: o.name, history: o.history,
+      profile: Object.fromEntries(fields.map((f) => [f.name, o.profile[f.name] ?? UNKNOWN])),
+    };
   });
 
-export function Simulator({ customers, classes, tierMins }: { customers: Customer[]; classes: InsuranceClass[]; tierMins: number[] }) {
+const off = (pct: number) => (pct ? `${pct} % off` : "No discount");
+
+export function Simulator({ customers, classes }: { customers: Customer[]; classes: InsuranceClass[] }) {
   const [customerId, setCustomerId] = useState(customers[0]?.customer_id ?? "");
   const customer = customers.find((c) => c.customer_id === customerId);
   const [inputs, setInputs] = useState<SimInput[]>(() => inputsOf(customer, classes));
@@ -69,12 +75,13 @@ export function Simulator({ customers, classes, tierMins }: { customers: Custome
   const obj = inputs[active];
   const cls = classes.find((c) => c.class_id === obj?.class_id);
   const result = sim?.objects[active];
-  const ringMax = Math.round(Math.max(...tierMins, sim?.score.start ?? 1000) * 1.25);
+  const agg = sim?.aggregate;
+  const max = sim?.model.max_score ?? 1000;
 
   return (
     <div className="space-y-4">
       <Card className="flex flex-col items-center gap-6 text-center md:flex-row md:text-left">
-        {sim && <ScoreRing score={sim.score.start} projected={sim.score.after} max={ringMax} tierMins={tierMins} />}
+        {sim && agg && <ScoreRing score={agg.now} projected={agg.after} max={max} tierMins={sim.model.tiers.map((t) => t.min_score)} />}
         <div className="grid w-full flex-1 gap-4 sm:grid-cols-3">
           <label className="block sm:col-span-3">
             <span className="mb-1 block font-medium">Customer</span>
@@ -83,25 +90,29 @@ export function Simulator({ customers, classes, tierMins }: { customers: Custome
             </select>
           </label>
           <div>
-            <p className="text-sm text-muted-foreground">Tier after every fix</p>
+            <p className="text-sm text-muted-foreground">Tier · now {agg?.tier_now?.name ?? "—"}</p>
             <p className="mt-1 flex items-center justify-center gap-2 text-xl font-semibold md:justify-start">
-              {sim?.score.tier_after && <span className={`h-3 w-3 rounded-full ${tierColor[sim.score.tier_after.index] ?? "bg-primary"}`} />}
-              {sim?.score.tier_after?.name ?? "—"}
+              {agg?.tier_after && <span className={`h-3 w-3 rounded-full ${tierColor[agg.tier_after.index] ?? "bg-primary"}`} />}
+              {agg?.tier_after?.name ?? "—"} <span className="text-sm font-normal text-muted-foreground">after every fix</span>
             </p>
-            <p className="text-sm text-muted-foreground">Now {sim?.score.tier_before?.name ?? "—"} · deductible −{eur(sim?.score.tier_after?.deductible_reduction_eur ?? 0)}</p>
+            <ul className="mt-1 space-y-0.5 text-sm text-muted-foreground">
+              {agg?.tier_after?.bonuses.map((b) => <li key={b} className="flex justify-center gap-1 md:justify-start"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />{b}</li>)}
+            </ul>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">All premiums per year</p>
             <p className="mt-1 font-display text-3xl font-semibold tabular-nums">{eur(sim?.premium.after ?? 0)}</p>
-            <p className="text-sm text-muted-foreground"><span className="line-through">{eur(sim?.premium.base ?? 0)}</span> · <span className="font-semibold text-success">−{eur(sim?.premium.cut ?? 0)}</span></p>
+            <p className="text-sm text-muted-foreground">
+              Base {eur(sim?.premium.base ?? 0)} · now {eur(sim?.premium.now ?? 0)}
+            </p>
           </div>
           <div aria-live="polite" className="text-sm text-muted-foreground">
-            {pending ? "Calculating…" : error ? <span className="font-semibold text-destructive">{error}</span> : "Numbers from the backend with the current rules. Nothing is saved."}
+            {pending ? "Calculating…" : error ? <span className="font-semibold text-destructive">{error}</span> : "The Care Score is the average of the five insurance scores. Numbers come from the backend; nothing is saved."}
           </div>
         </div>
       </Card>
 
-      <div role="tablist" aria-label="Insured object" className="grid gap-3 sm:grid-cols-5">
+      <div role="tablist" aria-label="Insurance" className="grid gap-3 sm:grid-cols-5">
         {inputs.map((o, i) => {
           const Icon = classIcon[o.class_id] ?? classIcon.house;
           const r = sim?.objects[i];
@@ -111,14 +122,18 @@ export function Simulator({ customers, classes, tierMins }: { customers: Custome
               className={`rounded-2xl border-2 bg-card p-4 text-left ${on ? "border-primary bg-accent" : "border-transparent shadow-soft"}`}>
               <span className="flex items-center gap-2 font-semibold"><Icon className="h-5 w-5 text-primary" aria-hidden />{r?.class_name ?? o.class_id}</span>
               <span className="mt-1 block truncate text-sm text-muted-foreground">{o.name}</span>
-              <span className="mt-2 block font-display text-2xl font-semibold text-primary-light tabular-nums">+{r?.points ?? 0}</span>
-              <span className="block text-sm font-semibold text-success">−{eur(r?.premium.cut ?? 0)} / year</span>
+              <span className="mt-2 block font-display text-2xl font-semibold tabular-nums">
+                {r?.score.now ?? "—"}{r && r.score.after > r.score.now && <span className="text-primary-light"> → {r.score.after}</span>}
+              </span>
+              <span className={`block text-sm font-semibold ${r?.band.after ? "text-success" : "text-muted-foreground"}`}>
+                {r ? (r.band.after > r.band.now ? `${off(r.band.now)} → ${off(r.band.after)}` : off(r.band.now)) : ""}
+              </span>
             </button>
           );
         })}
       </div>
 
-      {obj && cls && (
+      {obj && cls && result && sim && (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <Card className="h-fit">
             <div className="flex items-center justify-between gap-2">
@@ -139,23 +154,47 @@ export function Simulator({ customers, classes, tierMins }: { customers: Custome
           </Card>
 
           <div className="space-y-4">
-            {result && (
-              <Card className="flex flex-wrap items-center justify-between gap-4">
+            <Card>
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">{cls.name} premium per year</p>
-                  <p className="font-display text-3xl font-semibold tabular-nums">{eur(result.premium.after)}</p>
-                  <p className="text-sm text-muted-foreground"><span className="line-through">{eur(result.premium.base)}</span> · <span className="font-semibold text-success">−{eur(result.premium.cut)}</span>
-                    {result.premium.capped && ` · capped at ${result.premium.max_reduction_percent} % (fixes add up to ${eur(result.premium.cut_raw)})`}</p>
+                  <p className="text-sm text-muted-foreground">{cls.name} score</p>
+                  <p className="font-display text-4xl font-semibold tabular-nums">
+                    {result.score.now}{result.score.after > result.score.now && <span className="text-primary-light"> → {result.score.after}</span>}
+                    <span className="ml-1 font-sans text-base font-normal text-muted-foreground">/ {max}</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {result.score.next_band ? `${result.score.next_band.points_to} points to ${result.score.next_band.percent} % off` : "Top discount band"}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-display text-3xl font-semibold text-primary-light tabular-nums">+{result.points}</p>
-                  <p className="text-sm text-muted-foreground">Care Score points</p>
+                  <p className="text-sm text-muted-foreground">{cls.name} premium per year</p>
+                  <p className="font-display text-3xl font-semibold tabular-nums">{eur(result.premium.after)}</p>
+                  <p className="text-sm text-muted-foreground">
+                    <span className="line-through">{eur(result.premium.base)}</span> · now {off(result.band.now)}
+                    {result.band.after > result.band.now && <span className="font-semibold text-success"> → {off(result.band.after)}</span>}
+                  </p>
                 </div>
+              </div>
+              <div className="mt-4"><BandBar bands={sim.model.bands} max={max} score={result.score.after} /></div>
+            </Card>
+
+            {result.history.length > 0 && (
+              <Card>
+                <h3 className="text-lg font-semibold">Since insured ({sim.model.insurance_score_start})</h3>
+                <ul className="mt-2">
+                  {result.history.map((h, n) => (
+                    <li key={h.label} className={`flex justify-between gap-3 py-2 ${n ? "border-t" : ""}`}>
+                      <span>{h.label}</span>
+                      <span className={`font-semibold ${h.points >= 0 ? "text-success" : "text-destructive"}`}>{h.points >= 0 ? `+${h.points}` : `−${Math.abs(h.points)}`}</span>
+                    </li>
+                  ))}
+                </ul>
               </Card>
             )}
-            <h2 className="pt-2 text-xl font-semibold">{result?.fixes.length ?? 0} {result?.fixes.length === 1 ? "fix applies" : "fixes apply"}</h2>
-            {result?.fixes.length === 0 && <Card className="text-muted-foreground">No fix applies. Fill in more of the profile.</Card>}
-            {result?.fixes.map((f) => {
+
+            <h2 className="pt-2 text-xl font-semibold">{result.fixes.length} {result.fixes.length === 1 ? "fix applies" : "fixes apply"}</h2>
+            {result.fixes.length === 0 && <Card className="text-muted-foreground">No fix applies. Fill in more of the profile.</Card>}
+            {result.fixes.map((f) => {
               const Icon = categoryIcon[f.category] ?? categoryIcon.roof;
               return (
                 <Card key={f.risk_id}>
@@ -167,14 +206,14 @@ export function Simulator({ customers, classes, tierMins }: { customers: Custome
                         {f.rule_id ? (
                           <Pill tone={f.rule_context ? "accent" : "secondary"}>{f.rule_context ? `${f.rule_label}: ${describe(f.rule_context).join(", ")}` : "Default rule"}</Pill>
                         ) : (
-                          <Pill tone="warning">No active rule · base points, no premium cut</Pill>
+                          <Pill tone="warning">No active rule · catalogue points</Pill>
                         )}
                         {f.half_life_years && <Pill>Halves every {f.half_life_years} years</Pill>}
                       </div>
                     </div>
-                    <div className="shrink-0 text-right">
-                      <p className="font-display text-3xl font-semibold text-primary-light tabular-nums">+{f.points}</p>
-                      <p className="text-sm font-semibold text-success">−{eur(f.premium_reduction_eur)} / year</p>
+                    <div className="shrink-0 text-center text-primary-light">
+                      <p className="font-display text-3xl font-semibold tabular-nums">+{f.points}</p>
+                      <p className="text-sm text-muted-foreground">points</p>
                     </div>
                   </div>
                 </Card>

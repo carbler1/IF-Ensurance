@@ -28,7 +28,6 @@ export type InsuranceClass = {
   fields: Field[];
   risks: Risk[];
   base_annual_premium_eur: number;
-  max_reduction_percent: number;
 };
 
 export type Rule = {
@@ -40,7 +39,6 @@ export type Rule = {
   priority: number;
   points: number;
   half_life_years: number;
-  premium_reduction_eur: number;
   active: boolean;
   is_default: boolean;
 };
@@ -57,25 +55,36 @@ export type SimFix = {
   rule_context: Condition | null;
   points: number;
   half_life_years: number | null;
-  premium_reduction_eur: number;
 };
 
-export type TierRef = { index: number; name: string; min_score: number; deductible_reduction_eur: number } | null;
+export type Band = { min_score: number; percent: number };
+
+export type TierRow = { index: number; name: string; min_score: number; partner_discount_percent: number; bonuses: string[] };
 
 export type SimObject = {
   object_id: string | null;
   class_id: string;
   class_name: string;
   name: string;
+  history: { label: string; points: number }[];
   fixes: SimFix[];
   points: number;
-  premium: { base: number; cut_raw: number; cut: number; capped: boolean; max_reduction_percent: number; after: number };
+  score: { now: number; after: number; next_band: (Band & { points_to: number }) | null };
+  band: { now: number; after: number };
+  premium: { base: number; now: number; after: number };
 };
 
 export type Simulation = {
   objects: SimObject[];
-  score: { start: number; points: number; after: number; tier_before: TierRef; tier_after: TierRef };
-  premium: { base: number; cut: number; after: number };
+  aggregate: {
+    now: number;
+    after: number;
+    tier_now: TierRow | null;
+    tier_after: TierRow | null;
+    next_tier: { name: string; min_score: number; points_to: number } | null;
+  };
+  premium: { base: number; now: number; after: number };
+  model: { insurance_score_start: number; max_score: number; bands: Band[]; tiers: TierRow[] };
 };
 
 export type CustomerObject = SimObject & { profile: Record<string, ProfileValue>; profile_known: number; profile_total: number };
@@ -93,14 +102,9 @@ export type Partner = {
   listing_fee_tier: "basic" | "plus";
 };
 
-export type Tier = {
-  index: number;
-  name: string;
-  min_score: number;
-  deductible_reduction_eur: number;
-  free_checkups: string[];
-  partner_discount_percent: number;
-};
+export type Tier = TierRow;
+
+export type Settings = { insurance_score_start: number; max_score: number };
 
 export type Overview = {
   customers: number;

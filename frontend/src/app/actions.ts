@@ -28,24 +28,39 @@ async function save(run: () => Promise<unknown>, ...paths: string[]): Promise<Sa
   return { ok: true, message: "Saved" };
 }
 
+const SCORE_PAGES = ["/scoring", "/simulator", "/customers", "/tiers"];
+
 export async function saveSettings(_: SaveState, form: FormData): Promise<SaveState> {
-  return save(() => api.patchSettings({ score_start: int(form, "score_start") }), "/scoring", "/simulator", "/customers");
+  return save(() => api.patchSettings({ insurance_score_start: int(form, "insurance_score_start") }), ...SCORE_PAGES);
+}
+
+export async function saveBands(_: SaveState, form: FormData): Promise<SaveState> {
+  return save(async () => {
+    const mins = form.getAll("min_score").map(String);
+    const pcts = form.getAll("percent").map(String);
+    const bands = mins
+      .map((m, i) => ({ min: m.trim(), pct: (pcts[i] ?? "").trim() }))
+      .filter((b) => b.min !== "" || b.pct !== "")
+      .map((b) => {
+        const min_score = Number(b.min), percent = Number(b.pct);
+        if (!Number.isInteger(min_score) || !Number.isInteger(percent)) throw new Invalid("Enter whole numbers only.");
+        return { min_score, percent };
+      });
+    if (bands.length === 0) throw new Invalid("Keep at least one band.");
+    await api.putBands(bands);
+  }, ...SCORE_PAGES);
 }
 
 export async function saveClass(_: SaveState, form: FormData): Promise<SaveState> {
   return save(
-    () => api.patchClass(String(form.get("class_id")), {
-      base_annual_premium_eur: int(form, "base_annual_premium_eur"),
-      max_reduction_percent: int(form, "max_reduction_percent"),
-    }),
-    "/scoring", "/simulator", "/customers",
+    () => api.patchClass(String(form.get("class_id")), { base_annual_premium_eur: int(form, "base_annual_premium_eur") }),
+    ...SCORE_PAGES,
   );
 }
 
 const ruleNumbers = (form: FormData) => ({
   points: int(form, "points"),
   half_life_years: int(form, "half_life_years"),
-  premium_reduction_eur: int(form, "premium_reduction_eur"),
 });
 
 export async function saveRule(_: SaveState, form: FormData): Promise<SaveState> {
@@ -102,15 +117,14 @@ export async function saveTier(_: SaveState, form: FormData): Promise<SaveState>
     () => api.patchTier(int(form, "index"), {
       name: String(form.get("name") ?? "").trim(),
       min_score: int(form, "min_score"),
-      deductible_reduction_eur: int(form, "deductible_reduction_eur"),
       partner_discount_percent: int(form, "partner_discount_percent"),
-      free_checkups: String(form.get("free_checkups") ?? "").split(","),
+      bonuses: String(form.get("bonuses") ?? "").split("\n"),
     }),
     "/tiers", "/simulator", "/customers",
   );
 }
 
-export type SimInput = { object_id: string | null; class_id: string; name: string; profile: Record<string, ProfileValue> };
+export type SimInput = { object_id: string | null; class_id: string; name: string; profile: Record<string, ProfileValue>; history: { label: string; points: number }[] };
 
 /** The simulator asks the backend for the numbers; nothing is saved. */
 export async function runSimulation(objects: SimInput[]): Promise<{ ok: true; result: Simulation } | { ok: false; message: string }> {

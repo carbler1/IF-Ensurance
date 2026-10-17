@@ -14,8 +14,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from backend import db, insurance
-from backend.models import (Customer, Document, FixRule, Home, InsuranceClass, InsuranceSettings, Partner,
-                            Tier, WorkOrder)
+from backend.models import (Customer, DiscountBand, Document, FixRule, Home, InsuranceClass, InsuranceSettings,
+                            Partner, Tier, WorkOrder)
 
 
 def require_admin(x_admin_token: str = Header(default="")):
@@ -35,12 +35,11 @@ def _session():
 def _rule_dict(r: FixRule) -> dict:
     return {"rule_id": r.rule_id, "risk_id": r.risk_id, "class_id": insurance.risk_class(r.risk_id), "label": r.label,
             "context": json.loads(r.context) if r.context else None, "priority": r.priority, "points": r.points,
-            "half_life_years": r.half_life_years, "premium_reduction_eur": r.premium_reduction_eur,
-            "active": bool(r.active), "is_default": r.rule_id.startswith("default.")}
+            "half_life_years": r.half_life_years, "active": bool(r.active), "is_default": r.rule_id.startswith("default.")}
 
 
 def _class_dict(c: InsuranceClass) -> dict:
-    return {"base_annual_premium_eur": c.base_annual_premium_eur, "max_reduction_percent": c.max_reduction_percent}
+    return {"base_annual_premium_eur": c.base_annual_premium_eur}
 
 
 # --- Overview and customers -------------------------------------------------------------------
@@ -85,7 +84,6 @@ def classes(s: Session = Depends(_session)):
 
 class ClassPatch(BaseModel):
     base_annual_premium_eur: int = Field(ge=0, le=1_000_000)
-    max_reduction_percent: int = Field(ge=0, le=100)
 
 
 @router.patch("/classes/{class_id}")
@@ -93,27 +91,64 @@ def patch_class(class_id: str, body: ClassPatch, s: Session = Depends(_session))
     c = s.get(InsuranceClass, class_id)
     if c is None:
         raise HTTPException(404, f"Insurance class {class_id} not found.")
-    c.base_annual_premium_eur, c.max_reduction_percent = body.base_annual_premium_eur, body.max_reduction_percent
+    c.base_annual_premium_eur = body.base_annual_premium_eur
     c.updated_at = db.now_iso()
     s.commit()
     return _class_dict(c)
 
 
+def _settings_dict(st: InsuranceSettings) -> dict:
+    return {"insurance_score_start": st.insurance_score_start, "max_score": st.max_score}
+
+
 @router.get("/settings")
 def get_settings(s: Session = Depends(_session)):
-    return {"score_start": db.settings(s).score_start}
+    return _settings_dict(db.settings(s))
 
 
 class SettingsPatch(BaseModel):
-    score_start: int = Field(ge=0, le=1_000_000)
+    insurance_score_start: int = Field(ge=0, le=100_000)
 
 
 @router.patch("/settings")
 def patch_settings(body: SettingsPatch, s: Session = Depends(_session)):
     st = s.get(InsuranceSettings, 1)
-    st.score_start, st.updated_at = body.score_start, db.now_iso()
+    if body.insurance_score_start > st.max_score:
+        raise HTTPException(400, f"The starting score must be at most {st.max_score}.")
+    st.insurance_score_start, st.updated_at = body.insurance_score_start, db.now_iso()
     s.commit()
-    return {"score_start": st.score_start}
+    return _settings_dict(st)
+
+
+@router.get("/bands")
+def get_bands(s: Session = Depends(_session)):
+    return {"bands": db.bands(s), "max_score": db.settings(s).max_score}
+
+
+class Band(BaseModel):
+    min_score: int = Field(ge=1)
+    percent: int = Field(ge=0, le=100)
+
+
+class BandsPut(BaseModel):
+    bands: list[Band] = Field(min_length=1, max_length=10)
+
+
+@router.put("/bands")
+def put_bands(body: BandsPut, s: Session = Depends(_session)):
+    """Replace every discount band. Scores and percents must both rise from band to band."""
+    max_score = db.settings(s).max_score
+    bands = sorted(body.bands, key=lambda b: b.min_score)
+    if any(b.min_score > max_score for b in bands):
+        raise HTTPException(400, f"A band starts above the maximum score {max_score}.")
+    for lo, hi in zip(bands, bands[1:]):
+        if lo.min_score == hi.min_score or lo.percent >= hi.percent:
+            raise HTTPException(400, "Each band must start at a higher score and give a higher percent than the one below.")
+    s.query(DiscountBand).delete()
+    now = db.now_iso()
+    s.add_all(DiscountBand(min_score=b.min_score, percent=b.percent, updated_at=now) for b in bands)
+    s.commit()
+    return {"bands": db.bands(s), "max_score": max_score}
 
 
 @router.get("/rules")
@@ -123,9 +158,8 @@ def rules(s: Session = Depends(_session)):
 
 
 class RuleNumbers(BaseModel):
-    points: int = Field(ge=0, le=10_000)
+    points: int = Field(ge=0, le=1000)
     half_life_years: int = Field(ge=1, le=100)
-    premium_reduction_eur: int = Field(ge=0, le=100_000)
 
 
 class RulePatch(RuleNumbers):
@@ -151,7 +185,7 @@ def create_rule(body: RuleCreate, s: Session = Depends(_session)):
         raise HTTPException(400, str(e))
     r = FixRule(rule_id=f"rule_{secrets.token_hex(4)}", risk_id=body.risk_id, label=body.label.strip(),
                 context=json.dumps(body.context), priority=body.priority, points=body.points,
-                half_life_years=body.half_life_years, premium_reduction_eur=body.premium_reduction_eur, active=1,
+                half_life_years=body.half_life_years, active=1,
                 updated_at=db.now_iso())
     s.add(r)
     s.commit()
@@ -163,7 +197,7 @@ def patch_rule(rule_id: str, body: RulePatch, s: Session = Depends(_session)):
     r = s.get(FixRule, rule_id)
     if r is None:
         raise HTTPException(404, f"Rule {rule_id} not found.")
-    r.points, r.half_life_years, r.premium_reduction_eur = body.points, body.half_life_years, body.premium_reduction_eur
+    r.points, r.half_life_years = body.points, body.half_life_years
     r.active = int(body.active)
     # The default rule is the fallback, so its priority stays 0.
     if body.priority is not None and not rule_id.startswith("default."):
@@ -185,11 +219,17 @@ def delete_rule(rule_id: str, s: Session = Depends(_session)):
     return Response(status_code=204)
 
 
+class HistoryItem(BaseModel):
+    label: str
+    points: int
+
+
 class SimObject(BaseModel):
     object_id: str | None = None
     class_id: str
     name: str | None = None
     profile: dict[str, int | str] = {}
+    history: list[HistoryItem] = []
 
 
 class SimRequest(BaseModel):
@@ -240,9 +280,8 @@ def list_tiers(s: Session = Depends(_session)):
 class TierPatch(BaseModel):
     name: str = Field(min_length=1, max_length=40)
     min_score: int = Field(ge=0)
-    deductible_reduction_eur: int = Field(ge=0)
     partner_discount_percent: int = Field(ge=0, le=100)
-    free_checkups: list[str] = []
+    bonuses: list[str] = Field(default=[], max_length=12)
 
 
 @router.patch("/tiers/{tier_index}")
@@ -256,9 +295,8 @@ def patch_tier(tier_index: int, body: TierPatch, s: Session = Depends(_session))
     above = [x.min_score for x in tiers if x.tier_index > tier_index]
     if (below and body.min_score <= max(below)) or (above and body.min_score >= min(above)):
         raise HTTPException(400, "The minimum score must sit between the tiers below and above.")
-    t.name, t.min_score = body.name.strip(), body.min_score
-    t.deductible_reduction_eur, t.partner_discount_percent = body.deductible_reduction_eur, body.partner_discount_percent
-    t.free_checkups = json.dumps([c.strip() for c in body.free_checkups if c.strip()])
+    t.name, t.min_score, t.partner_discount_percent = body.name.strip(), body.min_score, body.partner_discount_percent
+    t.bonuses = json.dumps([b.strip() for b in body.bonuses if b.strip()])
     t.updated_at = db.now_iso()
     s.commit()
     return db.tier_dict(t)

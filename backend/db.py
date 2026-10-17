@@ -13,8 +13,8 @@ from pathlib import Path
 from sqlalchemy import Engine, create_engine, event, select, text
 from sqlalchemy.orm import Session
 
-from backend.models import (Base, Customer, FixRule, Home, InsuranceClass, InsuranceSettings, InsuredObject, Partner,
-                            Profile, Tier)
+from backend.models import (Base, Customer, DiscountBand, FixRule, Home, InsuranceClass, InsuranceSettings, InsuredObject,
+                            Partner, Profile, Tier)
 
 ROOT = Path(__file__).resolve().parent.parent
 VAR = ROOT / "var"
@@ -87,27 +87,29 @@ def seed(s: Session) -> None:
             price_min=p["price_range"]["min"], price_max=p["price_range"]["max"], rating=p["rating"],
             if_vetted=int(p["if_vetted"]), tier_discount_percent=p["tier_discount_percent"],
             listing_fee_tier=p["listing_fee_tier"], updated_at=now))
-    for t in (tiers_file := json.loads((ROOT / "fixtures" / "score-tiers.json").read_text()))["tiers"]:
+    # The score model (data/score-model.json): insurance scores, discount bands, aggregate tiers. Mock numbers.
+    model = json.loads((ROOT / "data" / "score-model.json").read_text())
+    for t in model["tiers"]:
         add_missing(Tier, t["index"], Tier(
             tier_index=t["index"], name=t["name"], min_score=t["min_score"],
-            deductible_reduction_eur=t["deductible_reduction_eur"], free_checkups=json.dumps(t["free_checkups"]),
-            partner_discount_percent=t["partner_discount_percent"], updated_at=now))
-
-    # Mock numbers (decision 8): premiums, caps and the euro value of a fix are placeholders.
-    add_missing(InsuranceSettings, 1, InsuranceSettings(settings_id=1, score_start=tiers_file["score_start"], updated_at=now))
+            partner_discount_percent=t["partner_discount_percent"], bonuses=json.dumps(t["bonuses"]), updated_at=now))
+    for b in model["bands"]:
+        add_missing(DiscountBand, b["min_score"], DiscountBand(min_score=b["min_score"], percent=b["percent"], updated_at=now))
+    add_missing(InsuranceSettings, 1, InsuranceSettings(
+        settings_id=1, insurance_score_start=model["insurance_score_start"], max_score=model["max_score"], updated_at=now))
     other = json.loads((ROOT / "data" / "insurance-classes.json").read_text())
     names = {"house": "House", **{c["class_id"]: c["name"] for c in other["classes"]}}
     for class_id, premium in other["base_premiums_eur"].items():
         add_missing(InsuranceClass, class_id, InsuranceClass(
-            class_id=class_id, name=names[class_id], base_annual_premium_eur=premium, max_reduction_percent=25,
-            updated_at=now))
+            class_id=class_id, name=names[class_id], base_annual_premium_eur=premium, updated_at=now))
     cust = other["demo_customer"]
     add_missing(Customer, cust["customer_id"], Customer(customer_id=cust["customer_id"], name=cust["name"], created_at=now))
     s.flush()  # objects reference the customer and the classes
     for o in cust["objects"]:
         add_missing(InsuredObject, o["object_id"], InsuredObject(
             object_id=o["object_id"], customer_id=cust["customer_id"], class_id=o["class_id"], name=o["name"],
-            profile=json.dumps(o["profile"]) if "profile" in o else None, created_at=now))
+            profile=json.dumps(o["profile"]) if "profile" in o else None, history=json.dumps(o.get("history", [])),
+            created_at=now))
 
     entries = json.loads((ROOT / "data" / "catalogue.json").read_text())["entries"]
     entries += [r for c in other["classes"] for r in c["risks"]]
@@ -116,12 +118,12 @@ def seed(s: Session) -> None:
         add_missing(FixRule, f"default.{e['id']}", FixRule(
             rule_id=f"default.{e['id']}", risk_id=e["id"], label="Default", context=None, priority=0,
             points=e["points"], half_life_years=e.get("half_life_years") or half_lives.get(e["category"], 5),
-            premium_reduction_eur=e["points"] // 2, active=1, updated_at=now))
+            active=1, updated_at=now))
     # One example of a context rule, so the dashboard shows how a context changes the value.
     add_missing(FixRule, "example.elec_check_pre1970", FixRule(
         rule_id="example.elec_check_pre1970", risk_id="elec.check.overdue", label="Houses built before 1970",
         context=json.dumps({"op": "lt", "field": "building_year", "value": 1970}), priority=10,
-        points=110, half_life_years=10, premium_reduction_eur=60, active=1, updated_at=now))
+        points=110, half_life_years=10, active=1, updated_at=now))
     s.commit()
 
 
@@ -141,14 +143,13 @@ def partner_dict(p: Partner) -> dict:
 
 
 def tier_dict(t: Tier) -> dict:
-    """A tier in the fixtures/score-tiers.json shape."""
+    """A tier in the data/score-model.json shape."""
     return {
         "index": t.tier_index,
         "name": t.name,
         "min_score": t.min_score,
-        "deductible_reduction_eur": t.deductible_reduction_eur,
-        "free_checkups": json.loads(t.free_checkups),
         "partner_discount_percent": t.partner_discount_percent,
+        "bonuses": json.loads(t.bonuses),
     }
 
 
@@ -168,8 +169,14 @@ def partners(s: Session) -> list[dict]:
 
 
 def tiers(s: Session) -> list[dict]:
-    """All tiers in the fixtures/score-tiers.json shape."""
+    """All tiers in the data/score-model.json shape, lowest first."""
     return [tier_dict(t) for t in s.scalars(select(Tier).order_by(Tier.tier_index))]
+
+
+def bands(s: Session) -> list[dict]:
+    """The discount bands, lowest first: [{min_score, percent}]."""
+    return [{"min_score": b.min_score, "percent": b.percent}
+            for b in s.scalars(select(DiscountBand).order_by(DiscountBand.min_score))]
 
 
 if __name__ == "__main__":

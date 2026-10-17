@@ -30,14 +30,12 @@ def _load(s, home_id):
 
 
 def fix_value(rules, entry: dict, profile: dict) -> dict:
-    """Points, decay and yearly premium cut of one fix for this home. The first rule in priority
+    """Points and decay of one fix for this home. The first rule in priority
     order whose context matches the profile wins; without one the catalogue points stand."""
     for r in rules:
         if r.risk_id == entry["id"] and (r.context is None or matches(json.loads(r.context), profile)):
-            return {"rule_id": r.rule_id, "points": r.points, "half_life_years": r.half_life_years,
-                    "premium_reduction_eur": r.premium_reduction_eur}
-    return {"rule_id": None, "points": entry["points"], "half_life_years": entry.get("half_life_years"),
-            "premium_reduction_eur": 0}
+            return {"rule_id": r.rule_id, "points": r.points, "half_life_years": r.half_life_years}
+    return {"rule_id": None, "points": entry["points"], "half_life_years": entry.get("half_life_years")}
 
 
 def _orders(s, home_id, status) -> set[str]:
@@ -67,7 +65,6 @@ def _items(s, home_id) -> list[tuple[dict, dict]]:
             "why": t.why if t else _strip(e["why_hint"]),
             "benefit": t.benefit if t else _strip(e["benefit_hint"]),
             "points_available": value["points"],
-            "premium_reduction_eur": value["premium_reduction_eur"],
             "partner_category": e["mitigation"]["partner_category"],
             "llm_proposed": llm,
             "status": "booked" if rid in booked else "open",

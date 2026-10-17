@@ -29,8 +29,8 @@ async function Tiles() {
 }
 
 const sections = [
-  { href: "/scoring", title: "Score & pricing", text: "Set the Care Score points and the premium cut of each fix, per insurance class and context." },
-  { href: "/simulator", title: "Simulator", text: "Try a customer's house, cottage, boat, car and dog and see their score and premiums with every fix confirmed." },
+  { href: "/scoring", title: "Score & pricing", text: "Set the insurance scores, the discount bands and the points of each fix, per insurance and context." },
+  { href: "/simulator", title: "Simulator", text: "Try a customer and see each insurance score, discount and premium, and their Care Score tier, with every fix confirmed." },
   { href: "/customers", title: "Customers", text: "Each customer, their insured objects and what they could still gain." },
   { href: "/partners", title: "Partners", text: "Price ranges, the If discount and vetting for each partner." },
   { href: "/tiers", title: "Tiers & rewards", text: "Care Score thresholds and the reward of each tier." },

@@ -35,7 +35,7 @@ describe("handled risk page", () => {
 
     await press("Simulate next step");
     await press("Simulate next step");
-    expect(await screen.findByText("Your Care Score went up")).toBeOnTheScreen();
+    expect(await screen.findByText("Your insurance score went up")).toBeOnTheScreen();
 
     await act(() => router.navigate({ pathname: "/risks/[id]", params: { id: "pipes" } }));
 

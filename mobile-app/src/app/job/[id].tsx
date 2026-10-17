@@ -3,12 +3,13 @@ import { Link, router, useLocalSearchParams } from "expo-router";
 import { BadgeCheck, Check, ShieldCheck } from "lucide-react-native";
 import { Button, Card, PopIn, Screen, Text } from "@/components/ui";
 import { bids, risks } from "@/data/mock";
-import { getTier, useStore } from "@/lib/store";
+import { fmt } from "@/lib/i18n";
+import { getBand, getTier, useStore } from "@/lib/store";
 import { colors, radius } from "@/lib/theme";
 
 export default function JobStatus() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t, jobs, advanceJob, score } = useStore();
+  const { t, jobs, advanceJob, scores, aggregate } = useStore();
   const job = jobs[id];
   const risk = risks.find((r) => r.id === id);
   if (!job || !risk) {
@@ -52,7 +53,10 @@ export default function JobStatus() {
           <Card style={{ alignItems: "center" }}>
             <Text color="mutedForeground" center>{t("job.up")}</Text>
             <Text size="6xl" display weight={600} color="primaryLight" center>+{risk.points}</Text>
-            <Text size="lg" center style={{ marginTop: 4 }}>{score} / 1000 · {getTier(score).tier.name}</Text>
+            <Text size="lg" center style={{ marginTop: 4 }}>
+              {t(`ins.${risk.insurance}`)} {scores[risk.insurance]} / 1000 · {getBand(scores[risk.insurance]) ? fmt(t("band.off"), { pct: getBand(scores[risk.insurance]) }) : t("band.none")}
+            </Text>
+            <Text color="mutedForeground" center>{t("score.title")} {aggregate} · {getTier(aggregate).tier.name}</Text>
             <View style={{ marginTop: 16, alignSelf: "stretch", flexDirection: "row", alignItems: "center", gap: 8, borderRadius: radius.xl, backgroundColor: colors.successSoft, padding: 12 }}>
               <BadgeCheck size={24} color={colors.success} />
               <Text style={{ flex: 1 }}>{risk.title} — {t("job.verified")}</Text>

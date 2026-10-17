@@ -1,27 +1,62 @@
 {
-  "_note": "Mock insurance classes besides the house, for the hackathon demo. The house uses data/catalogue.json and data/home-profile.schema.json instead. Each class has a few profile fields and two risks. Conditions use the catalogue's applies_when grammar (scripts/catalogue/validate.py). Every number is a placeholder.",
+  "_note": "Mock insurance classes besides the house, for the hackathon demo. The house uses data/catalogue.json and data/home-profile.schema.json instead. Each class has a few profile fields and two risks. Conditions use the catalogue's applies_when grammar (scripts/catalogue/validate.py). Every number is a placeholder. Each demo object has a history of score changes since it was insured; a new insurance starts at data/score-model.json insurance_score_start.",
   "classes": [
     {
       "class_id": "cottage",
       "name": "Summer cottage",
       "fields": [
-        {"name": "building_year", "kind": "year", "description": "Year the cottage was built."},
-        {"name": "heating", "kind": "enum", "options": ["wood", "electric", "none"], "description": "Main heating."},
-        {"name": "water_winterized", "kind": "enum", "options": ["yes", "no"], "description": "Whether the water pipes are drained for the winter."},
-        {"name": "last_chimney_sweep", "kind": "date", "description": "Date of the last chimney sweep."}
+        {
+          "name": "building_year",
+          "kind": "year",
+          "description": "Year the cottage was built."
+        },
+        {
+          "name": "heating",
+          "kind": "enum",
+          "options": [
+            "wood",
+            "electric",
+            "none"
+          ],
+          "description": "Main heating."
+        },
+        {
+          "name": "water_winterized",
+          "kind": "enum",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "description": "Whether the water pipes are drained for the winter."
+        },
+        {
+          "name": "last_chimney_sweep",
+          "kind": "date",
+          "description": "Date of the last chimney sweep."
+        }
       ],
       "risks": [
         {
           "id": "cottage.pipes.winter_freeze",
           "category": "plumbing",
           "title": "Water pipes not drained for the winter",
-          "applies_when": {"op": "in", "field": "water_winterized", "value": ["no", "unknown"]},
+          "applies_when": {
+            "op": "in",
+            "field": "water_winterized",
+            "value": [
+              "no",
+              "unknown"
+            ]
+          },
           "severity": 4,
           "probability": 3,
           "points": 60,
           "half_life_years": 1,
           "check_interval_years": 1,
-          "mitigation": {"action": "A plumber drains the pipes and the water heater and closes the main valve before the frost", "partner_category": "plumber"},
+          "mitigation": {
+            "action": "A plumber drains the pipes and the water heater and closes the main valve before the frost",
+            "partner_category": "plumber"
+          },
           "why_hint": "Water left in the pipes of an empty cottage freezes, bursts the pipes and floods the floor when it thaws.",
           "benefit_hint": "Draining the pipes each autumn prevents the most common winter damage in summer cottages."
         },
@@ -29,19 +64,47 @@
           "id": "cottage.chimney.sweep_overdue",
           "category": "heating",
           "title": "Fireplace chimney not swept",
-          "applies_when": {"op": "and", "args": [
-            {"op": "in", "field": "heating", "value": ["wood", "unknown"]},
-            {"op": "or", "args": [
-              {"op": "not", "args": [{"op": "exists", "field": "last_chimney_sweep"}]},
-              {"op": "lt", "field": "last_chimney_sweep", "value": "2025-01-01"}
-            ]}
-          ]},
+          "applies_when": {
+            "op": "and",
+            "args": [
+              {
+                "op": "in",
+                "field": "heating",
+                "value": [
+                  "wood",
+                  "unknown"
+                ]
+              },
+              {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "not",
+                    "args": [
+                      {
+                        "op": "exists",
+                        "field": "last_chimney_sweep"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "lt",
+                    "field": "last_chimney_sweep",
+                    "value": "2025-01-01"
+                  }
+                ]
+              }
+            ]
+          },
           "severity": 5,
           "probability": 2,
           "points": 40,
           "half_life_years": 1,
           "check_interval_years": 1,
-          "mitigation": {"action": "A chimney sweep cleans the flue and checks the fireplace", "partner_category": "chimney_sweep"},
+          "mitigation": {
+            "action": "A chimney sweep cleans the flue and checks the fireplace",
+            "partner_category": "chimney_sweep"
+          },
           "why_hint": "Soot builds up in a flue that is not swept every year and can catch fire.",
           "benefit_hint": "A yearly sweep removes the soot that causes chimney fires."
         }
@@ -51,28 +114,79 @@
       "class_id": "boat",
       "name": "Boat",
       "fields": [
-        {"name": "boat_type", "kind": "enum", "options": ["motorboat", "sailboat", "rowing_boat"], "description": "Type of boat."},
-        {"name": "last_engine_service", "kind": "date", "description": "Date of the last engine service."},
-        {"name": "winter_storage", "kind": "enum", "options": ["indoor", "outdoor_covered", "outdoor_uncovered"], "description": "Where the boat spends the winter."}
+        {
+          "name": "boat_type",
+          "kind": "enum",
+          "options": [
+            "motorboat",
+            "sailboat",
+            "rowing_boat"
+          ],
+          "description": "Type of boat."
+        },
+        {
+          "name": "last_engine_service",
+          "kind": "date",
+          "description": "Date of the last engine service."
+        },
+        {
+          "name": "winter_storage",
+          "kind": "enum",
+          "options": [
+            "indoor",
+            "outdoor_covered",
+            "outdoor_uncovered"
+          ],
+          "description": "Where the boat spends the winter."
+        }
       ],
       "risks": [
         {
           "id": "boat.engine.service_overdue",
           "category": "engine",
           "title": "Boat engine not serviced in two years",
-          "applies_when": {"op": "and", "args": [
-            {"op": "in", "field": "boat_type", "value": ["motorboat", "sailboat", "unknown"]},
-            {"op": "or", "args": [
-              {"op": "not", "args": [{"op": "exists", "field": "last_engine_service"}]},
-              {"op": "lt", "field": "last_engine_service", "value": "2024-10-01"}
-            ]}
-          ]},
+          "applies_when": {
+            "op": "and",
+            "args": [
+              {
+                "op": "in",
+                "field": "boat_type",
+                "value": [
+                  "motorboat",
+                  "sailboat",
+                  "unknown"
+                ]
+              },
+              {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "not",
+                    "args": [
+                      {
+                        "op": "exists",
+                        "field": "last_engine_service"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "lt",
+                    "field": "last_engine_service",
+                    "value": "2024-10-01"
+                  }
+                ]
+              }
+            ]
+          },
           "severity": 3,
           "probability": 3,
           "points": 50,
           "half_life_years": 2,
           "check_interval_years": 2,
-          "mitigation": {"action": "A boat mechanic services the engine, the fuel line and the cooling system", "partner_category": "boat_mechanic"},
+          "mitigation": {
+            "action": "A boat mechanic services the engine, the fuel line and the cooling system",
+            "partner_category": "boat_mechanic"
+          },
           "why_hint": "An unserviced engine is the most common reason a boat breaks down or catches fire at sea.",
           "benefit_hint": "A service finds worn fuel lines and impellers before they fail on the water."
         },
@@ -80,13 +194,20 @@
           "id": "boat.winter.uncovered_storage",
           "category": "storage",
           "title": "Boat stored outdoors without a cover",
-          "applies_when": {"op": "eq", "field": "winter_storage", "value": "outdoor_uncovered"},
+          "applies_when": {
+            "op": "eq",
+            "field": "winter_storage",
+            "value": "outdoor_uncovered"
+          },
           "severity": 3,
           "probability": 4,
           "points": 40,
           "half_life_years": 1,
           "check_interval_years": 1,
-          "mitigation": {"action": "Store the boat under a fitted winter cover or indoors", "partner_category": "boat_storage"},
+          "mitigation": {
+            "action": "Store the boat under a fitted winter cover or indoors",
+            "partner_category": "boat_storage"
+          },
           "why_hint": "Snow and melt water collect in an uncovered boat; the weight and the frost crack the hull and the deck.",
           "benefit_hint": "A cover or indoor storage keeps snow and ice out over the winter."
         }
@@ -96,22 +217,41 @@
       "class_id": "car",
       "name": "Car",
       "fields": [
-        {"name": "model_year", "kind": "year", "description": "Model year of the car."},
-        {"name": "winter_tyres_year", "kind": "year", "description": "Year the winter tyres were bought."},
-        {"name": "last_service", "kind": "date", "description": "Date of the last service."}
+        {
+          "name": "model_year",
+          "kind": "year",
+          "description": "Model year of the car."
+        },
+        {
+          "name": "winter_tyres_year",
+          "kind": "year",
+          "description": "Year the winter tyres were bought."
+        },
+        {
+          "name": "last_service",
+          "kind": "date",
+          "description": "Date of the last service."
+        }
       ],
       "risks": [
         {
           "id": "car.tyres.winter_age",
           "category": "tyres",
           "title": "Winter tyres over five years old",
-          "applies_when": {"op": "lt", "field": "winter_tyres_year", "value": 2021},
+          "applies_when": {
+            "op": "lt",
+            "field": "winter_tyres_year",
+            "value": 2021
+          },
           "severity": 4,
           "probability": 3,
           "points": 50,
           "half_life_years": 3,
           "check_interval_years": 5,
-          "mitigation": {"action": "A tyre shop checks the tread and fits new winter tyres if needed", "partner_category": "tyre_shop"},
+          "mitigation": {
+            "action": "A tyre shop checks the tread and fits new winter tyres if needed",
+            "partner_category": "tyre_shop"
+          },
           "why_hint": "Winter tyre rubber hardens with age and grips the ice far worse after five years.",
           "benefit_hint": "New winter tyres shorten the braking distance on ice."
         },
@@ -119,16 +259,34 @@
           "id": "car.service.overdue",
           "category": "service",
           "title": "Car not serviced in the last year",
-          "applies_when": {"op": "or", "args": [
-            {"op": "not", "args": [{"op": "exists", "field": "last_service"}]},
-            {"op": "lt", "field": "last_service", "value": "2025-10-01"}
-          ]},
+          "applies_when": {
+            "op": "or",
+            "args": [
+              {
+                "op": "not",
+                "args": [
+                  {
+                    "op": "exists",
+                    "field": "last_service"
+                  }
+                ]
+              },
+              {
+                "op": "lt",
+                "field": "last_service",
+                "value": "2025-10-01"
+              }
+            ]
+          },
           "severity": 3,
           "probability": 2,
           "points": 40,
           "half_life_years": 1,
           "check_interval_years": 1,
-          "mitigation": {"action": "A garage services the car and checks the brakes", "partner_category": "car_garage"},
+          "mitigation": {
+            "action": "A garage services the car and checks the brakes",
+            "partner_category": "car_garage"
+          },
           "why_hint": "Worn brakes and old fluids go unnoticed without a yearly service.",
           "benefit_hint": "A yearly service keeps the brakes and the lights safe."
         }
@@ -138,22 +296,53 @@
       "class_id": "dog",
       "name": "Dog",
       "fields": [
-        {"name": "breed_size", "kind": "enum", "options": ["small", "medium", "large"], "description": "Size class of the breed."},
-        {"name": "birth_year", "kind": "year", "description": "Year the dog was born."},
-        {"name": "vaccinations_valid", "kind": "enum", "options": ["yes", "no"], "description": "Whether the vaccinations are up to date."}
+        {
+          "name": "breed_size",
+          "kind": "enum",
+          "options": [
+            "small",
+            "medium",
+            "large"
+          ],
+          "description": "Size class of the breed."
+        },
+        {
+          "name": "birth_year",
+          "kind": "year",
+          "description": "Year the dog was born."
+        },
+        {
+          "name": "vaccinations_valid",
+          "kind": "enum",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "description": "Whether the vaccinations are up to date."
+        }
       ],
       "risks": [
         {
           "id": "dog.vaccination.expired",
           "category": "health",
           "title": "Vaccinations not up to date",
-          "applies_when": {"op": "in", "field": "vaccinations_valid", "value": ["no", "unknown"]},
+          "applies_when": {
+            "op": "in",
+            "field": "vaccinations_valid",
+            "value": [
+              "no",
+              "unknown"
+            ]
+          },
           "severity": 4,
           "probability": 2,
           "points": 40,
           "half_life_years": 1,
           "check_interval_years": 1,
-          "mitigation": {"action": "A vet renews the vaccinations", "partner_category": "vet"},
+          "mitigation": {
+            "action": "A vet renews the vaccinations",
+            "partner_category": "vet"
+          },
           "why_hint": "An unvaccinated dog can catch parvovirus or distemper, which need long and costly care.",
           "benefit_hint": "Valid vaccinations prevent the most expensive infectious diseases."
         },
@@ -161,16 +350,30 @@
           "id": "dog.joints.large_breed_check",
           "category": "health",
           "title": "Older large dog without a joint check",
-          "applies_when": {"op": "and", "args": [
-            {"op": "eq", "field": "breed_size", "value": "large"},
-            {"op": "lt", "field": "birth_year", "value": 2020}
-          ]},
+          "applies_when": {
+            "op": "and",
+            "args": [
+              {
+                "op": "eq",
+                "field": "breed_size",
+                "value": "large"
+              },
+              {
+                "op": "lt",
+                "field": "birth_year",
+                "value": 2020
+              }
+            ]
+          },
           "severity": 3,
           "probability": 4,
           "points": 50,
           "half_life_years": 2,
           "check_interval_years": 2,
-          "mitigation": {"action": "A vet checks the hips and the elbows", "partner_category": "vet"},
+          "mitigation": {
+            "action": "A vet checks the hips and the elbows",
+            "partner_category": "vet"
+          },
           "why_hint": "Large dogs over six years old often develop hip and elbow problems that get worse without care.",
           "benefit_hint": "An early joint check slows the problem down and lowers the cost of care."
         }
@@ -181,16 +384,109 @@
     "customer_id": "cust_01",
     "name": "Aino Virtanen",
     "objects": [
-      {"object_id": "home_01", "class_id": "house", "name": "Home, Esimerkkikatu 3, Turku"},
-      {"object_id": "obj_cottage", "class_id": "cottage", "name": "Summer cottage, Nauvo",
-       "profile": {"building_year": 1968, "heating": "wood", "water_winterized": "no", "last_chimney_sweep": "2023-06-01"}},
-      {"object_id": "obj_boat", "class_id": "boat", "name": "Buster XL motorboat",
-       "profile": {"boat_type": "motorboat", "last_engine_service": "2023-09-15", "winter_storage": "outdoor_uncovered"}},
-      {"object_id": "obj_car", "class_id": "car", "name": "Škoda Octavia 2016",
-       "profile": {"model_year": 2016, "winter_tyres_year": 2019, "last_service": "2025-03-10"}},
-      {"object_id": "obj_dog", "class_id": "dog", "name": "Ruska, Labrador",
-       "profile": {"breed_size": "large", "birth_year": 2018, "vaccinations_valid": "no"}}
+      {
+        "object_id": "home_01",
+        "class_id": "house",
+        "name": "Home, Esimerkkikatu 3, Turku",
+        "history": [
+          {
+            "label": "Heat pump installed (2015)",
+            "points": 60
+          },
+          {
+            "label": "Smoke alarms registered",
+            "points": 20
+          },
+          {
+            "label": "Roof check aged",
+            "points": -10
+          },
+          {
+            "label": "Missed gutter cleaning",
+            "points": -15
+          }
+        ]
+      },
+      {
+        "object_id": "obj_cottage",
+        "class_id": "cottage",
+        "name": "Summer cottage, Nauvo",
+        "profile": {
+          "building_year": 1968,
+          "heating": "wood",
+          "water_winterized": "no",
+          "last_chimney_sweep": "2023-06-01"
+        },
+        "history": [
+          {
+            "label": "Fire extinguisher registered",
+            "points": 20
+          }
+        ]
+      },
+      {
+        "object_id": "obj_boat",
+        "class_id": "boat",
+        "name": "Buster XL motorboat",
+        "profile": {
+          "boat_type": "motorboat",
+          "last_engine_service": "2023-09-15",
+          "winter_storage": "outdoor_uncovered"
+        },
+        "history": [
+          {
+            "label": "Engine service missed in 2024",
+            "points": -30
+          }
+        ]
+      },
+      {
+        "object_id": "obj_car",
+        "class_id": "car",
+        "name": "Škoda Octavia 2016",
+        "profile": {
+          "model_year": 2016,
+          "winter_tyres_year": 2019,
+          "last_service": "2025-03-10"
+        },
+        "history": [
+          {
+            "label": "Clean driving record, 3 years",
+            "points": 150
+          },
+          {
+            "label": "Driver safety course",
+            "points": 40
+          }
+        ]
+      },
+      {
+        "object_id": "obj_dog",
+        "class_id": "dog",
+        "name": "Ruska, Labrador",
+        "profile": {
+          "breed_size": "large",
+          "birth_year": 2018,
+          "vaccinations_valid": "no"
+        },
+        "history": [
+          {
+            "label": "Insured since a puppy",
+            "points": 200
+          },
+          {
+            "label": "Microchip registered",
+            "points": 60
+          }
+        ]
+      }
     ]
   },
-  "base_premiums_eur": {"house": 900, "cottage": 450, "boat": 300, "car": 700, "dog": 350}
+  "base_premiums_eur": {
+    "house": 900,
+    "cottage": 450,
+    "boat": 300,
+    "car": 700,
+    "dog": 350
+  }
 }

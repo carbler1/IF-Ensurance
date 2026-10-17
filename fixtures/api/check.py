@@ -27,7 +27,7 @@ KEYS = {
     "risk_list": {"generated_at", "risks"},
     "risk": {
         "risk_id", "category", "title", "severity", "probability", "why",
-        "benefit", "points_available", "premium_reduction_eur", "partner_category", "llm_proposed", "status",
+        "benefit", "points_available", "partner_category", "llm_proposed", "status",
     },
     "risk_detail_extra": {"evidence", "mitigation", "partners"},
     "evidence": {"document_id", "page", "quote"},

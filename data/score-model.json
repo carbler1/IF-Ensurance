@@ -1,0 +1,20 @@
+{
+  "_note": "Mock score model for the hackathon demo (2026-10-17). Each insurance has its own score from 0 to max_score; a new insurance starts at insurance_score_start. The insurance's score sets a discount on that insurance (bands). The aggregate score is the average of a customer's insurance scores and sets the tier, whose bonuses are display texts only. The backend seeds these into its database once; If staff edit them in the dashboard. The mobile app mirrors the numbers in mobile-app/src/data/mock.ts. fixtures/score-tiers.json is the older model behind /homes/me/score and stays as it is.",
+  "insurance_score_start": 500,
+  "max_score": 1000,
+  "bands": [
+    {"min_score": 500, "percent": 5},
+    {"min_score": 700, "percent": 10},
+    {"min_score": 900, "percent": 15}
+  ],
+  "tiers": [
+    {"index": 0, "name": "Bronze", "min_score": 0, "partner_discount_percent": 5,
+     "bonuses": ["Seasonal reminders"]},
+    {"index": 1, "name": "Silver", "min_score": 500, "partner_discount_percent": 10,
+     "bonuses": ["1 free checkup / year", "Priority partner booking"]},
+    {"index": 2, "name": "Gold", "min_score": 700, "partner_discount_percent": 15,
+     "bonuses": ["One month off one insurance", "1 free checkup / year", "Priority partner booking"]},
+    {"index": 3, "name": "Platinum", "min_score": 850, "partner_discount_percent": 20,
+     "bonuses": ["One month off one insurance", "Free yearly home check", "A weekend trip for two"]}
+  ]
+}

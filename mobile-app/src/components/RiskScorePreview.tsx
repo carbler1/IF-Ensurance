@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, View } from "react-native";
 import { useStore } from "@/lib/store";
 import { colors, fontFamily, sizes } from "@/lib/theme";
-import { Heading, RingOverlay, ScoreRing, Text, useReducedMotion } from "./ui";
+import { getBand } from "@/data/mock";
+import { fmt } from "@/lib/i18n";
+import { Heading, RingOverlay, ScoreRing, Text, bandSegments, useReducedMotion } from "./ui";
 
-export function RiskScorePreview({ score, addedPoints }: { score: number; addedPoints: number }) {
+/** An insurance score now and after one fix, on the discount band ring. label: "House score" etc. */
+export function RiskScorePreview({ score, addedPoints, label }: { score: number; addedPoints: number; label: string }) {
   const { t } = useStore();
   const reducedMotion = useReducedMotion();
   const projectedScore = Math.min(1000, score + addedPoints);
@@ -44,10 +47,10 @@ export function RiskScorePreview({ score, addedPoints }: { score: number; addedP
   const [plusSize, plusLine] = sizes["2xl"];
 
   return (
-    <View accessibilityLabel={t("rd.safetyScore")} style={{ alignItems: "center", paddingVertical: 8 }}>
-      <Heading size="lg" style={{ alignSelf: "flex-start" }}>{t("rd.safetyScore")}</Heading>
+    <View accessibilityLabel={label} style={{ alignItems: "center", paddingVertical: 8 }}>
+      <Heading size="lg" style={{ alignSelf: "flex-start" }}>{label}</Heading>
       <View style={{ maxWidth: "100%" }}>
-        <ScoreRing score={score} projectedScore={previewScore} thresholdScore={score} showThresholds />
+        <ScoreRing score={score} projectedScore={previewScore} thresholdScore={score} showThresholds segments={bandSegments} />
         <RingOverlay>
           <Animated.Text
             style={{
@@ -92,6 +95,13 @@ export function RiskScorePreview({ score, addedPoints }: { score: number; addedP
           </View>
         </View>
       )}
+      {/* The discount this insurance earns, and the higher one once the fix lands in a new band. */}
+      <View style={{ marginTop: 12, borderRadius: 999, backgroundColor: getBand(previewScore) ? colors.successSoft : colors.secondary, paddingHorizontal: 14, paddingVertical: 4 }}>
+        <Text size="sm" weight={600} color={getBand(previewScore) ? "success" : "mutedForeground"}>
+          {getBand(score) ? fmt(t("band.off"), { pct: getBand(score) }) : t("band.none")}
+          {getBand(projectedScore) > getBand(score) ? ` → ${fmt(t("band.off"), { pct: getBand(projectedScore) })}` : ""}
+        </Text>
+      </View>
     </View>
   );
 }

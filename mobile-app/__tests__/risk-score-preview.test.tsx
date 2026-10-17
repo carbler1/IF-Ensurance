@@ -26,7 +26,7 @@ describe("Risk score preview thresholds", () => {
       return 1;
     });
     jest.spyOn(globalThis, "cancelAnimationFrame").mockImplementation(() => {});
-    await render(<RiskScorePreview score={680} addedPoints={40} />);
+    await render(<RiskScorePreview score={680} addedPoints={40} label="House score" />);
     await act(() => frame(0));
     await act(() => frame(1850));
     expect(captured.projectedScore).toBe(720);

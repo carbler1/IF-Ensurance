@@ -3,6 +3,11 @@
 The house uses data/catalogue.json and data/home-profile.schema.json. The cottage, the boat,
 the car and the dog use data/insurance-classes.json (mock: two risks each). A fix rule's context
 is tested against the profile of the object it belongs to. Code decides every number here.
+
+Score model (data/score-model.json, editable in the dashboard): each insurance has its own score,
+starting at insurance_score_start and capped at max_score. Confirmed fixes add their points. The
+insurance's score sets its discount band (percent off its own premium). The aggregate score is the
+average of a customer's insurance scores and sets the tier; tier bonuses are display texts only.
 """
 
 import json
@@ -13,7 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend import db, engine
-from backend.models import InsuranceClass, InsuredObject, Profile, Tier
+from backend.models import InsuranceClass, InsuredObject, Profile, WorkOrder
 
 ROOT = Path(__file__).resolve().parent.parent
 UNKNOWN = "unknown"
@@ -116,53 +121,84 @@ def validate_context(condition: dict, class_id: str) -> None:
     check(condition)
 
 
-def _tier(score: int, tiers: list[Tier]) -> dict | None:
-    reached = [t for t in sorted(tiers, key=lambda t: t.min_score) if score >= t.min_score]
-    t = reached[-1] if reached else None
-    return {"index": t.tier_index, "name": t.name, "min_score": t.min_score,
-            "deductible_reduction_eur": t.deductible_reduction_eur} if t else None
+def band(score: int, bands: list[dict]) -> int:
+    """Percent off an insurance's own premium at this insurance score; 0 below the lowest band."""
+    return max((b["percent"] for b in bands if score >= b["min_score"]), default=0)
+
+
+def next_band(score: int, bands: list[dict]) -> dict | None:
+    """The next band above this score, with the points still missing."""
+    up = [b for b in bands if b["min_score"] > score]
+    return {**up[0], "points_to": up[0]["min_score"] - score} if up else None
+
+
+def _tier(score: int, tiers: list[dict]) -> dict | None:
+    reached = [t for t in tiers if score >= t["min_score"]]
+    return reached[-1] if reached else None
+
+
+def _next_tier(score: int, tiers: list[dict]) -> dict | None:
+    up = [t for t in tiers if t["min_score"] > score]
+    return {"name": up[0]["name"], "min_score": up[0]["min_score"], "points_to": up[0]["min_score"] - score} if up else None
+
+
+def _confirmed(s: Session, object_id: str) -> set[str]:
+    """Risk ids with a confirmed work order. Only a house has work orders in phase 1."""
+    return set(s.scalars(select(WorkOrder.risk_id).where(WorkOrder.home_id == object_id, WorkOrder.status == "confirmed")))
 
 
 def simulate(s: Session, objects: list[dict]) -> dict:
-    """What a customer gains when every fix that applies to their objects is confirmed.
-    objects: [{object_id?, class_id, name, profile: {field: value}}]."""
+    """Each insurance's score now and with every open fix confirmed, its discount band and premium,
+    and the aggregate score (the average) with its tier.
+    objects: [{object_id?, class_id, name?, profile: {field: value}, history?: [{label, points}]}]."""
     rules = db.fix_rules(s)
     classes = {c.class_id: c for c in s.scalars(select(InsuranceClass))}
+    st = db.settings(s)
+    bands = db.bands(s)
+    tiers = db.tiers(s)
+    clamp = lambda x: max(0, min(st.max_score, x))  # noqa: E731
     out = []
     for o in objects:
         d = definition(o["class_id"])
         cls = classes[o["class_id"]]
         profile = o.get("profile") or {}
-        fixes = []
+        done = _confirmed(s, o["object_id"]) if o.get("object_id") else set()
+        fixes, done_points = [], 0
         for e in d["risks"]:
             if not engine.matches(e["applies_when"], profile):
                 continue
             v = engine.fix_value(rules, e, profile)
+            if e["id"] in done:
+                done_points += v["points"]
+                continue
             fixes.append({"risk_id": e["id"], "title": e["title"], "category": e["category"],
                           "action": e["mitigation"]["action"], **v,
                           "rule_label": next((r.label for r in rules if r.rule_id == v["rule_id"]), None),
                           "rule_context": next((json.loads(r.context) if r.context else None
                                                 for r in rules if r.rule_id == v["rule_id"]), None)})
         fixes.sort(key=lambda f: (-f["points"], f["risk_id"]))
-        cap = round(cls.base_annual_premium_eur * cls.max_reduction_percent / 100)
-        raw = sum(f["premium_reduction_eur"] for f in fixes)
+        history = o.get("history") or []
+        now = clamp(st.insurance_score_start + sum(h["points"] for h in history) + done_points)
+        after = clamp(now + sum(f["points"] for f in fixes))
+        base = cls.base_annual_premium_eur
         out.append({
             "object_id": o.get("object_id"), "class_id": o["class_id"], "class_name": cls.name,
-            "name": o.get("name") or cls.name, "fixes": fixes,
+            "name": o.get("name") or cls.name, "history": history, "fixes": fixes,
             "points": sum(f["points"] for f in fixes),
-            "premium": {"base": cls.base_annual_premium_eur, "cut_raw": raw, "cut": min(raw, cap),
-                        "capped": raw > cap, "max_reduction_percent": cls.max_reduction_percent,
-                        "after": cls.base_annual_premium_eur - min(raw, cap)},
+            "score": {"now": now, "after": after, "next_band": next_band(now, bands)},
+            "band": {"now": band(now, bands), "after": band(after, bands)},
+            "premium": {"base": base, "now": round(base * (1 - band(now, bands) / 100)),
+                        "after": round(base * (1 - band(after, bands) / 100))},
         })
-    start = db.settings(s).score_start
-    total = sum(o["points"] for o in out)
-    tiers = list(s.scalars(select(Tier)))
+    agg_now = round(sum(o["score"]["now"] for o in out) / len(out)) if out else 0
+    agg_after = round(sum(o["score"]["after"] for o in out) / len(out)) if out else 0
     return {
         "objects": out,
-        "score": {"start": start, "points": total, "after": start + total,
-                  "tier_before": _tier(start, tiers), "tier_after": _tier(start + total, tiers)},
-        "premium": {"base": sum(o["premium"]["base"] for o in out), "cut": sum(o["premium"]["cut"] for o in out),
-                    "after": sum(o["premium"]["after"] for o in out)},
+        "aggregate": {"now": agg_now, "after": agg_after, "tier_now": _tier(agg_now, tiers),
+                      "tier_after": _tier(agg_after, tiers), "next_tier": _next_tier(agg_now, tiers)},
+        "premium": {k: sum(o["premium"][k] for o in out) for k in ("base", "now", "after")},
+        "model": {"insurance_score_start": st.insurance_score_start, "max_score": st.max_score, "bands": bands,
+                  "tiers": tiers},
     }
 
 
@@ -171,5 +207,5 @@ def customer_objects(s: Session, customer_id: str) -> list[dict]:
     order = [d["class_id"] for d in definitions()]
     rows = sorted(s.scalars(select(InsuredObject).where(InsuredObject.customer_id == customer_id)),
                   key=lambda o: (order.index(o.class_id), o.object_id))
-    return [{"object_id": o.object_id, "class_id": o.class_id, "name": o.name, "profile": object_profile(s, o)}
-            for o in rows]
+    return [{"object_id": o.object_id, "class_id": o.class_id, "name": o.name, "profile": object_profile(s, o),
+             "history": json.loads(o.history or "[]")} for o in rows]
