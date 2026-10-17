@@ -32,6 +32,22 @@
         "type": "github"
       }
     },
+    "mermaid-skill": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1786476891,
+        "narHash": "sha256-Pyo9G8dd+IenDK6MocEToG9Cl825DW9itACCpX0eICo=",
+        "owner": "WH-2099",
+        "repo": "mermaid-skill",
+        "rev": "982d9035231312c527197501a882cf6c8f4394cc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "WH-2099",
+        "repo": "mermaid-skill",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1791883866,
@@ -68,6 +84,7 @@
       "inputs": {
         "impeccable": "impeccable",
         "jmo-skills": "jmo-skills",
+        "mermaid-skill": "mermaid-skill",
         "nixpkgs": "nixpkgs",
         "ponytail": "ponytail"
       }

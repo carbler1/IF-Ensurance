@@ -6,9 +6,10 @@
     jmo-skills = { url = "github:23jmo/jmo-skills"; flake = false; };
     impeccable = { url = "github:pbakaus/impeccable"; flake = false; };
     ponytail = { url = "github:DietrichGebert/ponytail"; flake = false; };
+    mermaid-skill = { url = "github:WH-2099/mermaid-skill"; flake = false; };
   };
 
-  outputs = { nixpkgs, jmo-skills, impeccable, ponytail, ... }:
+  outputs = { nixpkgs, jmo-skills, impeccable, ponytail, mermaid-skill, ... }:
     let
       systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
       forAll = f: nixpkgs.lib.genAttrs systems (s: f nixpkgs.legacyPackages.${s});
@@ -37,6 +38,7 @@
                   mkdir -p $d
                   ln -sfn ${jmo-skills}/skills/interview $d/interview
                   ln -sfn ${impeccable}/.claude/skills/impeccable $d/impeccable
+                  ln -sfn ${mermaid-skill}/.claude/skills/mermaid $d/mermaid
                 done
               )
             '';

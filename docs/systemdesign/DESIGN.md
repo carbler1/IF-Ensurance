@@ -131,3 +131,10 @@ Shapes are in `api-contract.md`. Example responses for each endpoint are in `fix
 | `GET /homes/me/score` | Score = 1000 + the sum of decayed points from confirmed jobs − penalties. Decay uses the mock half-lives. Phase 1 has no penalties. Tier and reward from `fixtures/score-tiers.json` | maybe |
 
 Auth: one bearer token for the demo customer and one partner token, both from `.env`.
+
+## 8. Left to the code for now
+
+These points are not specified. The developer decides them while coding. They do not block the demo.
+- A job with no matched risk: the worker may skip the write step. The app shows an empty list.
+- Maintenance base date: the developer picks a simple rule. Fixtures may differ from it.
+- Both processes open SQLite through `db.connect()`, which sets WAL and a busy timeout.
