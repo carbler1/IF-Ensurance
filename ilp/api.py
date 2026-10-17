@@ -9,7 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from ilp import db
+from ilp import db, engine, maintenance
 
 HOME_ID = "home_01"  # the single demo home
 
@@ -106,6 +106,32 @@ def get_job(job_id: str):
     }
 
 
+def _read(fn, *args):
+    conn = db.connect()
+    try:
+        return fn(conn, HOME_ID, *args)
+    finally:
+        conn.close()
+
+
+@v1.get("/homes/me/risks")
+def get_risks():
+    return _read(engine.risk_list)
+
+
+@v1.get("/homes/me/risks/{risk_id}")
+def get_risk(risk_id: str):
+    try:
+        return _read(engine.risk_detail, risk_id)
+    except LookupError:
+        raise HTTPException(404, f"Risk {risk_id} not found.")
+
+
+@v1.get("/homes/me/maintenance")
+def get_maintenance():
+    return _read(maintenance.maintenance)
+
+
 try:
     from ilp.upload import router as _upload_router
 
@@ -114,3 +140,10 @@ except ImportError:  # upload.py not written yet
     pass
 
 app.include_router(v1)
+
+
+@app.on_event("startup")
+def _seed():
+    conn = db.connect()
+    db.seed(conn)
+    conn.close()
