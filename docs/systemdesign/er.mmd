@@ -1,0 +1,63 @@
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "14px", "primaryColor": "#eef3fb", "primaryBorderColor": "#2f5fa7", "lineColor": "#44546a"}}}%%
+erDiagram
+    homes ||--|| profiles : "has one"
+    homes ||--o{ documents : "uploads"
+    documents ||--o{ jobs : "starts"
+    homes ||--o{ risk_texts : "gets"
+    homes ||--o{ work_orders : "books (maybe)"
+    homes ||--o{ score_events : "earns (maybe)"
+    work_orders ||--o| score_events : "confirm adds"
+
+    homes {
+        text home_id PK
+        text street
+        text postal_code
+        text city
+        text created_at "profile creation date"
+    }
+    profiles {
+        text home_id PK, FK
+        json profile "20 fields"
+        text updated_at
+    }
+    documents {
+        text document_id PK
+        text home_id FK
+        text type
+        text uploaded_at
+        text status "queued, processed, failed"
+    }
+    jobs {
+        text job_id PK
+        text document_id FK
+        text status "queued, running, done, failed"
+        text stage "extracting, matching, writing"
+        text started_at
+        text finished_at
+        text error
+    }
+    risk_texts {
+        text home_id PK, FK
+        text risk_id PK "catalogue id"
+        text why
+        text benefit
+        bool llm_proposed
+        text generated_at
+    }
+    work_orders {
+        text work_order_id PK
+        text home_id FK
+        text risk_id "catalogue id"
+        text partner_id "partners.json"
+        text status
+        text created_at
+        text confirmed_at
+    }
+    score_events {
+        text event_id PK
+        text home_id FK
+        text at
+        int delta
+        text reason
+        text work_order_id FK
+    }
