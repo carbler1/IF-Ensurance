@@ -23,7 +23,7 @@ def _finish(s: Session, job_id, document_id, job_values: dict, document_status: 
 
 
 def _fail(s: Session, job_id, document_id, code, message) -> None:
-    err = json.dumps({"code": code, "message": message})
+    err = json.dumps({"code": code, "message": str(message)[:300]})
     _finish(s, job_id, document_id, {"status": "failed", "error": err}, "failed")
 
 
@@ -35,8 +35,11 @@ def run_once(s: Session) -> bool:
         s.rollback()  # end the read so the next poll sees new jobs
         return False
     job_id, document_id = row
-    s.execute(update(Job).where(Job.job_id == job_id).values(status="running", started_at=pipeline.now()))
+    claimed = s.execute(update(Job).where(Job.job_id == job_id, Job.status == "queued")
+                        .values(status="running", started_at=pipeline.now()))
     s.commit()
+    if claimed.rowcount == 0:  # another worker took it
+        return True
     t0 = time.monotonic()
 
     def stage(name):
@@ -46,6 +49,7 @@ def run_once(s: Session) -> bool:
     def check():
         if time.monotonic() - t0 > LIMIT:
             raise Timeout(f"job ran over {LIMIT} s")
+        return LIMIT - (time.monotonic() - t0)  # remaining budget for the next LLM call
 
     try:
         pipeline.run(s, document_id, stage, check)
@@ -53,7 +57,7 @@ def run_once(s: Session) -> bool:
         s.rollback()
         _fail(s, job_id, document_id, getattr(e, "code", "pipeline_error"), str(e))
         return True
-    _finish(s, job_id, document_id, {"status": "done"}, "processed")
+    _finish(s, job_id, document_id, {"status": "done", "error": None}, "processed")
     return True
 
 
