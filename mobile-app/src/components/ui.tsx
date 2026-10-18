@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { forwardRef, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo,
   Animated,
   Easing,
   Image,
   Keyboard,
+  Platform,
   Pressable,
   ScrollView,
   Text as RNText,
@@ -19,7 +20,7 @@ import {
 } from "react-native";
 import { Link, router, type Href } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Circle, G, Line, Text as SvgText } from "react-native-svg";
+import Svg, { Circle, G, Line, Text as SvgText, type CircleProps } from "react-native-svg";
 import { Bone, Car, ChevronLeft, CircleGauge, Cog, Dog, Droplets, Flame, Home as HomeIcon, Layers, Loader2, Sailboat, Snowflake, Syringe, TreePine, Warehouse, Wind, Wrench, Zap, type LucideIcon } from "@/lib/icons";
 import type { InsuranceId, RiskArea } from "@/data/mock";
 import type { Band, Tier } from "@/lib/types";
@@ -290,7 +291,12 @@ export function Spinner({ size, color }: { size: number; color: string }) {
   );
 }
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+// react-native-web's Animated adds collapsable={false}; the svg web Circle forwards it to the DOM <circle> and React warns.
+const WebCircle = forwardRef<Circle, CircleProps>((props, ref) => {
+  const { collapsable: _collapsable, ...rest } = props as CircleProps & { collapsable?: boolean };
+  return <Circle ref={ref} {...rest} />;
+});
+const AnimatedCircle = Animated.createAnimatedComponent(Platform.OS === "web" ? WebCircle : Circle);
 
 /** The ring's first sweep lands at this time; what follows the score (tier, next goal) keys off it. */
 export const ringLandMs = 1100;
