@@ -4,20 +4,22 @@ Field names follow the app (mobile-app/src/lib/types.ts). Scores come from insur
 
 import json
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import select
 
 from backend import db, engine, insurance
 from backend.auth import Who, require_token
+from backend.i18n_data import localize
 from backend.models import AssignedRisk, Bid, Booking, Customer, InsuranceClass, InsuredObject, MaintenanceTask, Reminder
 
 TIER_IDS = ["bronze", "silver", "gold", "platinum"]  # the app's tier colours, by tier index
 
 router = APIRouter(prefix="/me")
+Lang = Query("en", pattern="^(en|fi|sv)$")  # the app's language; the seed text is English
 
 
-def app_data(s, customer_id: str) -> dict:
+def app_data(s, customer_id: str, lang: str = "en") -> dict:
     customer = s.get(Customer, customer_id)
     if customer is None:
         raise HTTPException(404, "The customer is missing.")
@@ -39,7 +41,7 @@ def app_data(s, customer_id: str) -> dict:
                       "points": points, "explain": r.explain, "fix": r.fix, "diy": r.diy,
                       "job": {"bidId": b.bid_id, "mode": b.mode, "step": b.step} if b else None})
 
-    return {
+    data = {
         "customer": {"id": customer.customer_id, "name": customer.name},
         "home": json.loads(house.details) if house else {},
         "model": {"insuranceStart": st.insurance_score_start, "maxScore": st.max_score,
@@ -61,12 +63,13 @@ def app_data(s, customer_id: str) -> dict:
                                      .order_by(MaintenanceTask.sort_order))],
         "reminders": list(s.scalars(select(Reminder.task_id).where(Reminder.customer_id == customer_id))),
     }
+    return localize(data, lang)
 
 
 @router.get("/app")
-def get_app(who: Who = Depends(require_token)):
+def get_app(who: Who = Depends(require_token), lang: str = Lang):
     with db.connect() as s:
-        return app_data(s, who.customer_id)
+        return app_data(s, who.customer_id, lang)
 
 
 class BookingIn(BaseModel):
@@ -76,7 +79,7 @@ class BookingIn(BaseModel):
 
 
 @router.post("/bookings", status_code=201)
-def book(body: BookingIn, who: Who = Depends(require_token)):
+def book(body: BookingIn, who: Who = Depends(require_token), lang: str = Lang):
     """Book a partner for a risk. Answers with the whole app data, so the app needs one call."""
     if body.mode not in ("hire", "diy"):
         raise HTTPException(400, "mode must be hire or diy.")
@@ -90,11 +93,11 @@ def book(body: BookingIn, who: Who = Depends(require_token)):
         s.add(Booking(risk_id=body.risk_id, customer_id=who.customer_id, object_id=risk.object_id, bid_id=body.bid_id,
                       mode=body.mode, step=0, created_at=db.now_iso()))
         s.commit()
-        return app_data(s, who.customer_id)
+        return app_data(s, who.customer_id, lang)
 
 
 @router.post("/bookings/{risk_id}/advance")
-def advance(risk_id: str, who: Who = Depends(require_token)):
+def advance(risk_id: str, who: Who = Depends(require_token), lang: str = Lang):
     """Move a booking one step on (the demo's "simulate next step"). Step 2 confirms the fix."""
     with db.connect() as s:
         b = s.get(Booking, risk_id)
@@ -105,7 +108,7 @@ def advance(risk_id: str, who: Who = Depends(require_token)):
             if b.step == 2:
                 b.confirmed_at = db.now_iso()
         s.commit()
-        return app_data(s, who.customer_id)
+        return app_data(s, who.customer_id, lang)
 
 
 class ReminderIn(BaseModel):
@@ -113,7 +116,7 @@ class ReminderIn(BaseModel):
 
 
 @router.put("/reminders/{task_id}")
-def set_reminder(task_id: str, body: ReminderIn, who: Who = Depends(require_token)):
+def set_reminder(task_id: str, body: ReminderIn, who: Who = Depends(require_token), lang: str = Lang):
     with db.connect() as s:
         task = s.get(MaintenanceTask, task_id)
         if task is None or task.customer_id != who.customer_id:
@@ -124,7 +127,7 @@ def set_reminder(task_id: str, body: ReminderIn, who: Who = Depends(require_toke
         elif not body.on and row is not None:
             s.delete(row)
         s.commit()
-        return app_data(s, who.customer_id)
+        return app_data(s, who.customer_id, lang)
 
 
 class InsuranceIn(BaseModel):
@@ -133,7 +136,7 @@ class InsuranceIn(BaseModel):
 
 
 @router.post("/insurances", status_code=201)
-def add_insurance(body: InsuranceIn, who: Who = Depends(require_token)):
+def add_insurance(body: InsuranceIn, who: Who = Depends(require_token), lang: str = Lang):
     """Add an insurance (an object with an empty profile). One per class: the app keys scores by class."""
     with db.connect() as s:
         cls = s.get(InsuranceClass, body.class_id)
@@ -144,4 +147,4 @@ def add_insurance(body: InsuranceIn, who: Who = Depends(require_token)):
         s.add(InsuredObject(object_id=f"{who.customer_id}_{body.class_id}", customer_id=who.customer_id, class_id=body.class_id,
                             name=body.name.strip()[:80] or cls.name, profile="{}", created_at=db.now_iso()))
         s.commit()
-        return app_data(s, who.customer_id)
+        return app_data(s, who.customer_id, lang)

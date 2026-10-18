@@ -17,6 +17,8 @@ export const storage = {
 export function resetFakeApi() {
   state = structuredClone(recorded as AppData);
   memStorage.clear();
+  lang = "en";
+  loadLangs.length = 0;
   memStorage.set("ilp.choice", "house");
 }
 
@@ -32,6 +34,10 @@ function rescore() {
   state.aggregate = Math.round(state.insurances.reduce((a, i) => a + i.score, 0) / state.insurances.length);
 }
 
+// The language each load was asked for. The fake answers in English whatever it is.
+let lang = "en";
+export const loadLangs: string[] = [];
+
 const answer = () => Promise.resolve(structuredClone(state));
 
 export class ApiError extends Error {
@@ -45,8 +51,8 @@ export const dropInsuranceFromFakeApi = (id: string) => { state.insurances = sta
 
 export const api = {
   getLang: () => Promise.resolve(null as string | null),
-  setLang: (_l: string) => Promise.resolve(),
-  load: answer,
+  setLang: (l: string) => { lang = l; return Promise.resolve(); },
+  load: () => { loadLangs.push(lang); return answer(); },
   book: (riskId: string, bidId: string, mode: "hire" | "diy") => {
     state.risks = state.risks.map((r) => (r.id === riskId ? { ...r, job: { bidId, mode, step: 0 } } : r));
     return answer();

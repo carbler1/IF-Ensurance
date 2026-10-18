@@ -73,11 +73,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>("loading");
   const [error, setError] = useState<string | null>(null);
 
+  const loads = useRef(0);
   const reload = useCallback(() => {
-    setStatus("loading");
+    const mine = ++loads.current; // only the latest load applies, so a slow reply in the old language cannot win
+    setStatus((s) => (s === "ready" ? s : "loading")); // a language change refetches without the loading screen
     api.load().then(
-      (d) => { setData(d); setStatus("ready"); setError(null); },
+      (d) => { if (mine === loads.current) { setData(d); setStatus("ready"); setError(null); } },
       (e: Error) => {
+        if (mine !== loads.current) return;
         setError(e.message);
         setStatus("error");
       },
@@ -87,8 +90,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     api.getLang().then((l) => {
       if (l === "en" || l === "fi" || l === "sv") setLangState(l);
     });
-    reload();
-  }, [reload]);
+  }, []);
+  // The backend sends its text in the app's language, so a language change loads the data again.
+  useEffect(() => reload(), [reload, lang]);
 
   // Show the change at once, then take the backend's answer (it recomputes the scores).
   // Only the latest request's reply is applied. A failed save refetches quietly, so the screen stays put.

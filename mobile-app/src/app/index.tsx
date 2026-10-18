@@ -6,8 +6,9 @@ import { useStore } from "@/lib/store";
 import { colors, radius, shadows, tierColors } from "@/lib/theme";
 
 export default function Dashboard() {
-  const { t, scores, aggregate: score, completed, customer, insurances, risks, tiers, model, getTier, getBand } = useStore();
+  const { t, scores, aggregate: score, completed, customer, insurances, risks, tiers, model, home, getTier, getBand } = useStore();
   const { tier, next } = getTier(score);
+  const city = home.address.replace(/^.*\d{5}\s*/, ""); // the address ends in "20100 Turku"
   // The open fix worth the most points, across all five insurances.
   const nextRisk = [...risks].sort((a, b) => b.points - a.points).find((r) => !completed.includes(r.id));
 
@@ -89,7 +90,7 @@ export default function Dashboard() {
         </View>
         <View style={{ flex: 1 }}>
           <Text size="sm" weight={600} color="accentForeground">{t("home.alert")}</Text>
-          <Text>{t("home.alertText")}</Text>
+          <Text>{fmt(t("home.alertText"), { city })}</Text>
         </View>
       </Card>
 
