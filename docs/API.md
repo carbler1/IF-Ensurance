@@ -111,7 +111,7 @@ The response has all risk fields above, plus:
 
 | Field | Meaning |
 |---|---|
-| `evidence` | List of `document_id`, `page`, `quote`. |
+| `evidence` | List of `document_id`, `page`, `quote`. `page` is `null` if no page holds the quote. |
 | `mitigation` | Object with `action`. |
 | `partners` | Up to 3 vetted partners in the home's city, sorted by rating (highest first). Each partner has the fields that `db.partners` returns, without `categories` and `listing_fee_tier`. |
 
