@@ -38,10 +38,10 @@ def test_search_and_claim(tmp_path, monkeypatch):
     with c:
         with db.connect() as s:
             _add(s, "x_boat", "boat", {"reg_no": "FIN-1234-K"})
-            _add(s, "x_car", "car", {"plate": "abc-123"})
+            _add(s, "x_car", "car", {"plate": "qzx-123"})
             _add(s, "x_dog", "dog", {"chip_id": "9500 0000 1111"})
             _add(s, "x_cot", "cottage", {"property_id": "123-456-7-8"})
-            _add(s, "x_house", home=("Testikuja 12", "20100", "Turku"))
+            _add(s, "x_house", home=("Testikuja 12", "99990", "Turku"))
             for i in range(7):
                 _add(s, f"z{i}", home=("Samakatu 1", "00100", "Espoo"))
 
@@ -50,13 +50,13 @@ def test_search_and_claim(tmp_path, monkeypatch):
             return c.get("/v1/profiles/search", params={"class": cls, "q": q})
 
         assert g("boat", "fin 1234k").json() == {"hits": [{"customer_id": "x_boat", "label": "FIN-****-K", "taken": False}]}
-        assert g("car", "ABC123").json()["hits"][0]["label"] == "abc-**3"
+        assert g("car", "QZX123").json()["hits"][0]["label"] == "qzx-**3"
         assert g("dog", "950000001111").json()["hits"][0]["customer_id"] == "x_dog"
         assert g("cottage", "123-456-7-8").json()["hits"][0]["customer_id"] == "x_cot"
         assert g("boat", "FIN-12").json()["hits"] == []  # exact match only
         assert g("house", "testiku").json()["hits"] == [{"customer_id": "x_house", "label": "Tes*** 12, Turku", "taken": False}]
-        assert g("house", "testikuja 12 20100").json()["hits"][0]["customer_id"] == "x_house"
-        assert g("house", "20100").json()["hits"][0]["customer_id"] == "x_house"
+        assert g("house", "testikuja 12 99990").json()["hits"][0]["customer_id"] == "x_house"
+        assert g("house", "99990").json()["hits"][0]["customer_id"] == "x_house"
         assert len(g("house", "samakatu").json()["hits"]) == 5  # cap
         assert g("boat", "fin").status_code == 400 and g("boat", "a-b c").status_code == 400  # min 4 after normalising
         assert g("plane", "abcdef").status_code == 400
