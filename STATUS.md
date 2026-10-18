@@ -70,100 +70,50 @@ Open:
 - Three synthetic PDFs exist in `samples/synthetic/`: 1975 detached house, 1992 flat, 2010 row house. `fixtures/homes/` holds matching profiles.
 - Mobile app: background #f6f3f0, text #331e11 (dark brown), primary #0054f0 (`mobile-app/src/lib/theme.ts`).
 
-## Not fully implemented
+## To do
 
-### Flow: upload, extract, match, risk list, maintenance
+Grouped by what to solve together. None of it blocks the first version.
 
-- (a) `POST /homes/me/documents` (`backend/upload.py`) accepts only type `kuntotarkastus`, PDFs up to 20 MB. It queues a job; a worker runs the pipeline, so results are not instant. The home is hardcoded to `home_01`.
+### Bookings, work orders and risk state
 
-### Risk states: open, booked, done
-
-- The `work_orders` table exists, and `engine.py` and `insurance.py` read it (status `booked` or `confirmed`, not "done"). No code creates or changes a work order.
-- 409 exists only for booking an already booked risk. Advancing past step 2 does not return 409; it silently does nothing.
-
-### Jobs: timeout and polling
-
-- The server side exists: `GET /jobs/{job_id}` returns status and stage (`backend/api.py`).
-
-### API
-
-- Work-order endpoints do not exist. The `work_orders` table is read but never written.
-- Score has no `/homes/me` endpoint. Only a `ScoreEvent` model exists. Score is served by `GET /v1/me/insurances` and the mobile app's `/v1/me/app`.
+- No code creates or changes a `work_orders` row, and no work-order endpoints exist. `engine.py` and `insurance.py` read the table (`booked`, `confirmed`).
+- A confirmed booking does not remove the risk or move the maintenance date.
+- Advancing a booking past step 2 does nothing and returns no 409 (409 exists only for booking an already booked risk).
+- Decide the state name: code uses `confirmed`, the claim says "done".
 
 ### Scoring
 
-- Decay: `half_life_years` is stored and passed through, but no code lowers points over time (`backend/insurance.py`, `backend/engine.py`).
-- Proof: a fix counts when a booking reaches step 2 or a work order is `confirmed`. The booking step is advanced by a demo button, and bookings allow a `diy` mode. No document or inspector proof check exists.
-- Rewards: a partner discount per tier exists. A deductible reduction exists only in `fixtures/score-tiers.json`, not in `data/score-model.json`. No "offers on If products" and no "may offer" wording found.
+- `half_life_years` is editable and stored, but no code lowers points over time (`backend/insurance.py`, `backend/engine.py`).
+- A fix counts when a booking reaches step 2 (a demo button advances it; `diy` mode allowed) or a work order is `confirmed`. No document or inspector proof check exists.
+- The deductible reduction exists only in `fixtures/score-tiers.json`, not in `data/score-model.json`. No "offers on If products" wording exists.
 
-### Prompts
+### Customers and homes
+
+- Every customer and every upload uses the demo home `home_01` and one shared customer token (`backend/api.py`, `backend/upload.py`).
+- Onboarding ignores the user's input and always shows the demo home.
+- The customer token ships in the public web bundle (`EXPO_PUBLIC_API_TOKEN`).
+
+### Demo state
+
+- Dashboard partner edits never reach the app: the app reads `Bid`, not `Partner`.
+- "Reset all demo data" resets only bookings and reminders.
+- The app loses language and onboarding state on every reload.
+
+### Extraction
 
 - Long reports are not split at the KH sections. A report that does not fit in `num_ctx` (16384) fails the job with `llm_truncated`.
 
 ### Catalogue
 
-- Size: 20 risks exist; 58 are planned. The other 38 are listed under "To do" below.
-
-## To do
-
-Risk state: code uses 'confirmed', the claim says 'done'. Which is it?
-
-- Open. Decide which name stays. Code uses `confirmed` (`work_orders.status`, `Booking` step 2).
-
-### Planned: 38 extra risks
-
-The catalogue holds 20 risks. These 38 more are planned, not built (source: the old catalogue review).
-
-- Sockets without an earth conductor (Electricity): sockets lack a safe path for stray current.
-- No surge protection (Electricity): voltage spikes can break devices.
-- EV charger or e-bike charging not checked by an electrician (Electricity): overheating circuit or cable at night.
-- Too few or battery-only smoke alarms (Fire safety): alarms are missing, old or not linked.
-- No stove guard, liesivahti (Fire safety): a forgotten pan can start a fire.
-- No extinguisher or fire blanket (Fire safety): a small fire cannot be stopped early.
-- Liquefied gas or fuel stored in a basement or living space (Fire safety): explosion or fast fire.
-- Oil boiler near the end of its service life (Heating): breakdown or oil leak.
-- Old radiators with surface rust (Heating): leak that wets the floor.
-- Oil tank room without a fire door or protection basin (Heating): fire or oil leak spreads.
-- Heat pump or ground system not serviced in the last year (Heating): higher power use and failure.
-- No backup heat in a winter power cut (Heating): cold home and frozen pipes.
-- Water pipes in unheated rooms without protection (Heating): frozen pipe bursts.
-- Blocked wall ventilation gaps in a brick-clad wall (Moisture): wall frame stays wet.
-- Poor surface drainage next to the house (Moisture): water collects at the foundation.
-- Worn sealant in the wet room (Moisture): water gets behind the surface.
-- Wet-room waterproofing past its service life (Moisture): hidden water damage.
-- Cracked sealant at a balcony or terrace door (Moisture): water enters the structure.
-- No backflow valve in the sewer (Moisture): sewage flows back into the home.
-- Drain pump station without an alarm (Moisture): pump failure goes unseen.
-- Radon not measured (Indoor air): radioactive gas in indoor air.
-- Asbestos and PAH survey missing before a renovation (Indoor air): harmful materials released in work.
-- Cast-iron sewer pipes over 50 years old (Plumbing): old pipes crack or block.
-- No leak tray under the dishwasher or washing machine (Plumbing): leaks reach the floor.
-- Old washing machine hoses or no own shut-off valve (Plumbing): hose bursts.
-- No water leak detector or automatic shut-off valve (Plumbing): leaks run for long.
-- Water not shut off or monitored during long absences (Plumbing): leaks go unseen while away.
-- Roof drains and gutters not cleaned each year (Roof): blocked drains cause overflow.
-- Low-pitch or flat roof without a snow-load plan (Roof): heavy snow stresses the roof.
-- Tall trees that can fall on the house (Roof): storm damage.
-- Windows at the end of their service life (Roof): drafts and water leaks.
-- Wood cladding and terrace need maintenance (Roof): rot and weathering.
-- Wild animals in the roof or walls (Roof): damage to insulation and wiring.
-- Supply-air valve blocked (Ventilation): poor air supply.
-- Building or extension without a permit (Building and documents): legal and sale problems.
-- Wet-room or electrical work done without documents (Building and documents): no proof of correct work.
-- Entrance doors and windows with weak locks, no alarm (Security): easy break-in.
-- Fire barrier between row house units not checked (Fire safety): fire spreads between units; row houses only.
-
-### Water heater re-check interval
-
-The research says the interval should drop from 10 to 5 years. `plumbing/water_heater.age.json` still has 10.
-
-### Later: known gaps accepted for the first version
-
-- A confirmed booking does not remove a risk or move the maintenance date.
-- Dashboard partner edits never reach the app: the app reads `Bid`, not `Partner`.
-- Onboarding ignores the user's input and always shows the demo home.
-- The customer token ships in the public web bundle (`EXPO_PUBLIC_API_TOKEN`). Anyone who loads the demo can read it.
-- "Reset all demo data" resets only bookings and reminders.
-- The app loses language and onboarding state on every reload.
-- `half_life_years` is editable but the score math ignores it (see Scoring above).
-- Every customer and every upload uses the single demo home `home_01` (see Flow above).
+- `plumbing/water_heater.age.json` has a 10-year re-check interval; the research says 5.
+- 38 more risks are planned (20 exist, 58 total):
+  - Electricity (3): no earth conductor in sockets; no surge protection; EV or e-bike charger not checked by an electrician.
+  - Fire safety (5): too few or battery-only smoke alarms; no stove guard (liesivahti); no extinguisher or fire blanket; liquefied gas or fuel stored indoors; fire barrier between row house units unchecked (row houses only).
+  - Heating (6): oil boiler near end of life; rusty old radiators; oil tank room without fire door or basin; heat pump or ground system not serviced in a year; no backup heat in a winter power cut; unprotected water pipes in unheated rooms.
+  - Moisture (7): blocked wall ventilation gaps in brick cladding; poor surface drainage; worn wet-room sealant; wet-room waterproofing past its life; cracked balcony or terrace door sealant; no sewer backflow valve; drain pump station without an alarm.
+  - Indoor air (2): radon not measured; asbestos and PAH survey missing before renovation.
+  - Plumbing (5): cast-iron sewer pipes over 50 years; no leak tray under dishwasher or washing machine; old washing machine hoses or no own shut-off valve; no leak detector or automatic shut-off valve; water not shut off or monitored during long absences.
+  - Roof (6): gutters and drains not cleaned yearly; low-pitch or flat roof without a snow-load plan; tall trees that can fall on the house; windows at end of life; wood cladding and terrace need maintenance; wild animals in roof or walls.
+  - Ventilation (1): supply-air valve blocked.
+  - Building and documents (2): building or extension without a permit; wet-room or electrical work without documents.
+  - Security (1): weak door and window locks, no alarm.
