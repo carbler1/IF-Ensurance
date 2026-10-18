@@ -5,8 +5,9 @@ import { COOKIE, verify } from "@/lib/session";
 export async function proxy(req: NextRequest) {
   const name = await verify(req.cookies.get(COOKIE)?.value);
   const onLogin = req.nextUrl.pathname === "/login";
-  if (!name && !onLogin) return NextResponse.redirect(new URL("/login", req.url));
-  if (name && onLogin) return NextResponse.redirect(new URL("/", req.url));
+  const to = (pathname: string) => { const u = req.nextUrl.clone(); u.pathname = pathname; return NextResponse.redirect(u); };
+  if (!name && !onLogin) return to("/login");
+  if (name && onLogin) return to("/");
   return NextResponse.next();
 }
 
