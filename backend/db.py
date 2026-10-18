@@ -14,13 +14,17 @@ from pathlib import Path
 from sqlalchemy import Engine, create_engine, delete, event, select
 from sqlalchemy.orm import Session
 
+from backend import presets
 from backend.models import (AssignedRisk, Base, Bid, Booking, Customer, DiscountBand, FixRule, Home, InsuranceClass,
-                            InsuranceSettings, InsuredObject, MaintenanceTask, Partner, Profile, Reminder, Tier)
+                            InsuranceSettings, InsuredObject, MaintenanceTask, Partner, Profile, Reminder, StaffAccount, Tier)
 
 ROOT = Path(__file__).resolve().parent.parent
 VAR = ROOT / "var"
 DB_PATH = VAR / "ilp.sqlite"
 UPLOADS = VAR / "uploads"
+
+STAFF_ACCOUNTS = ["Nordic Roofing Oy", "Kotikunto Ky", "Aurora Electric Oy", "Pohjola Plumbing Oy",
+                  "Lumi Property Care Ky", "Harmaja Heating Oy"]
 
 _engines: dict[str, Engine] = {}
 
@@ -96,6 +100,9 @@ def seed(s: Session) -> None:
     for class_id, premium in other["base_premiums_eur"].items():
         add_missing(InsuranceClass, class_id, InsuranceClass(
             class_id=class_id, name=names[class_id], base_annual_premium_eur=premium, updated_at=now))
+    for name in STAFF_ACCOUNTS:
+        if s.scalar(select(StaffAccount).where(StaffAccount.name == name)) is None:
+            s.add(StaffAccount(name=name))
     s.flush()
 
     entries = json.loads((ROOT / "data" / "catalogue.json").read_text())["entries"]
@@ -116,6 +123,28 @@ def seed(s: Session) -> None:
         points=110, half_life_years=10, active=1, updated_at=now))
     s.commit()
     sync_demo_person(s, demo)
+    seed_presets(s, demo)
+
+
+def seed_presets(s: Session, demo: dict) -> None:
+    """Add the preset homes (backend/presets.py) that are missing. Existing ones, and their claims, stay as they are."""
+    now = now_iso()
+    for p in presets.all_presets(demo):
+        c, h = p["customer"], p["home"]
+        if s.get(Home, h["home_id"]) is not None:
+            continue
+        s.add(Customer(customer_id=c["customer_id"], name=c["name"], created_at=now))
+        s.flush()
+        s.add(Home(**h, created_at=now, customer_id=c["customer_id"]))
+        s.flush()
+        s.add(Profile(home_id=h["home_id"], profile=json.dumps(p["profile"]), updated_at=now))
+        s.add(InsuredObject(object_id=h["home_id"], customer_id=c["customer_id"], class_id="house", name=p["details"]["address"],
+                            history=json.dumps(p["history"]), details=json.dumps(p["details"]), created_at=now))
+        s.flush()
+        s.add_all(AssignedRisk(**r) for r in p["risks"])
+        s.add_all(Bid(**b, customer_id=c["customer_id"]) for b in p["bids"])
+        s.add_all(MaintenanceTask(**t, customer_id=c["customer_id"]) for t in p["tasks"])
+        s.commit()
 
 
 def sync_demo_person(s: Session, demo: dict | None = None) -> None:
@@ -134,9 +163,10 @@ def sync_demo_person(s: Session, demo: dict | None = None) -> None:
 
     h = s.get(Home, home["home_id"])
     if h is None:
-        s.add(Home(home_id=home["home_id"], street=home["street"], postal_code=home["postal_code"], city=home["city"], created_at=now))
+        s.add(Home(home_id=home["home_id"], street=home["street"], postal_code=home["postal_code"], city=home["city"],
+                   created_at=now, customer_id=cust["customer_id"]))
     else:
-        h.street, h.postal_code, h.city = home["street"], home["postal_code"], home["city"]
+        h.street, h.postal_code, h.city, h.customer_id = home["street"], home["postal_code"], home["city"], cust["customer_id"]
     s.flush()
     if s.get(Profile, home["home_id"]) is None:
         # The pipeline fills the house profile from an uploaded report; it starts all "unknown".
@@ -168,8 +198,9 @@ def sync_demo_person(s: Session, demo: dict | None = None) -> None:
     object_ids = [o["object_id"] for o in demo["objects"]]
     replace_all(AssignedRisk, "risk_id", [{k: r[k] for k in ("risk_id", "object_id", "area", "title", "why", "explain", "fix", "diy", "sort_order")}
                                           for r in demo["risks"]], AssignedRisk.object_id.in_(object_ids))
-    replace_all(Bid, "bid_id", demo["bids"])
-    s.execute(delete(Reminder).where(Reminder.task_id.not_in([t["task_id"] for t in demo["tasks"]])))
+    replace_all(Bid, "bid_id", [{**b, "customer_id": cust["customer_id"]} for b in demo["bids"]], Bid.customer_id == cust["customer_id"])
+    s.execute(delete(Reminder).where(Reminder.customer_id == cust["customer_id"],
+                                     Reminder.task_id.not_in([t["task_id"] for t in demo["tasks"]])))
     replace_all(MaintenanceTask, "task_id", [{**t, "customer_id": cust["customer_id"]} for t in demo["tasks"]],
                 MaintenanceTask.customer_id == cust["customer_id"])
     s.flush()

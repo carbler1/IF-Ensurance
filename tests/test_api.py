@@ -102,8 +102,9 @@ def test_admin_and_insurances(tmp_path, monkeypatch):
         assert all(len(classes[k]["risks"]) == 2 for k in ("cottage", "boat", "car", "dog"))
 
         cust = c.get("/v1/admin/customers", headers=A).json()["customers"]
-        assert len(cust) == 1 and [o["class_id"] for o in cust[0]["objects"]] == ["house", "cottage", "boat", "car", "dog"]
-        assert cust[0]["name"] == "Aino"
+        assert len(cust) == 51  # the demo customer and the 50 preset homes
+        cust = [x for x in cust if x["name"] == "Aino"][:1]
+        assert [o["class_id"] for o in cust[0]["objects"]] == ["house", "cottage", "boat", "car", "dog"]
         dog = next(o for o in cust[0]["objects"] if o["class_id"] == "dog")
         assert {f["risk_id"] for f in dog["fixes"]} == {"dog-vaccine", "dog-joints"}
 
@@ -190,3 +191,72 @@ def test_app_api(tmp_path, monkeypatch):
         assert c.post("/v1/admin/demo/reset", headers={"X-Admin-Token": "a"}).status_code == 200
         d = c.get("/v1/me/app", headers=H).json()
         assert d["aggregate"] == 599 and d["reminders"] == ["t1"] and all(r["job"] is None for r in d["risks"])
+
+
+def test_claim_and_isolation(tmp_path, monkeypatch):
+    from backend import admin, db
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "t.sqlite")
+    monkeypatch.setattr(db, "UPLOADS", tmp_path / "up")
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("CUSTOMER_TOKEN", "t")
+    monkeypatch.setenv("ADMIN_TOKEN", "a")
+    admin._FAILS.clear()
+    from backend.api import app
+    with TestClient(app) as c:
+        homes = c.get("/v1/homes-available").json()["homes"]  # no auth
+        assert len(homes) == 50 and not any(h["taken"] for h in homes) and "home_01" not in {h["home_id"] for h in homes}
+        assert len({h["city"] for h in homes}) > 10
+
+        def claim(home, pw="password1"):
+            return c.post("/v1/claim", json={"home_id": home, "password": pw})
+
+        r1 = claim("home_02")
+        assert r1.status_code == 200 and r1.json()["home_id"] == "home_02"
+        assert claim("home_02", "wrongpass1").status_code == 401  # taken: needs its password
+        assert claim("home_01").status_code == 404 and claim("nope").status_code == 404
+        assert next(h for h in c.get("/v1/homes-available").json()["homes"] if h["home_id"] == "home_02")["taken"]
+        h1 = {"Authorization": "Bearer " + r1.json()["token"]}
+        h2 = {"Authorization": "Bearer " + claim("home_03", "password2").json()["token"]}
+        with db.connect() as s:  # only salted hashes are stored
+            from backend.models import Customer
+            c2 = s.get(Customer, "cust_02")
+            assert c2.password_hash.startswith("scrypt$") and "password1" not in c2.password_hash
+            assert c2.token_hash and r1.json()["token"] not in c2.token_hash
+
+        d1, d2 = c.get("/v1/me/app", headers=h1).json(), c.get("/v1/me/app", headers=h2).json()
+        assert d1["customer"]["id"] == "cust_02" and d2["customer"]["id"] == "cust_03"
+        assert d1["risks"] and d1["bids"] and d1["tasks"] and d1["aggregate"]
+        assert c.get("/v1/homes/me", headers=h1).json()["home_id"] == "home_02"
+        risk, bid = d1["risks"][0]["id"], d1["bids"][0]["id"]
+        assert c.post("/v1/me/bookings", headers=h2, json={"risk_id": risk, "bid_id": bid, "mode": "hire"}).status_code == 404
+        assert c.post("/v1/me/bookings", headers=h1, json={"risk_id": risk, "bid_id": bid, "mode": "hire"}).status_code == 201
+        assert [r["job"] is not None for r in c.get("/v1/me/app", headers=h1).json()["risks"]][0]
+        assert all(r["job"] is None for r in c.get("/v1/me/app", headers=h2).json()["risks"])
+        assert all(r["job"] is None for r in c.get("/v1/me/app", headers=H).json()["risks"])  # the demo customer too
+        assert c.post(f"/v1/me/bookings/{risk}/advance", headers=h2).status_code == 404
+
+        # An upload goes to the caller's home.
+        up = c.post("/v1/homes/me/documents", headers=h2, files={"file": ("a.pdf", b"%PDF-1.4 x")}, data={"type": "kuntotarkastus"})
+        assert up.status_code == 202
+        assert [d["document_id"] for d in c.get("/v1/homes/me", headers=h2).json()["documents"]] == [up.json()["document_id"]]
+        assert c.get("/v1/homes/me", headers=h1).json()["documents"] == []
+
+        # Five wrong passwords lock the home for a minute.
+        for _ in range(5):
+            claim("home_03", "badbadbad")
+        assert claim("home_03", "password2").status_code == 429
+
+        # Reset and a restart keep the claims.
+        c.post("/v1/admin/demo/reset", headers={"X-Admin-Token": "a"})
+        c.post("/v1/admin/accounts/unclaim", headers={"X-Admin-Token": "a"})
+        with db.connect() as s:
+            db.seed(s)
+        assert c.get("/v1/me/app", headers=h1).json()["risks"][0]["job"] is not None
+        assert claim("home_02").status_code == 200
+
+
+def test_presets_are_deterministic():
+    from backend import presets
+    demo = json.loads((ROOT / "data/demo-person.json").read_text())
+    a = presets.all_presets(demo)
+    assert a == presets.all_presets(demo) and len(a) == 50 and len({p["home"]["home_id"] for p in a}) == 50
