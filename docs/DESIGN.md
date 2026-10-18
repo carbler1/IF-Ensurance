@@ -24,13 +24,14 @@ flowchart LR
     worker["backend/worker.py"] -->|polls jobs| db
     worker --> pipe["pipeline.py: extract, merge, match, write"]
     pipe -->|Ollama /api/chat| llm["Ollama qwen3.5:9b"]
-    api --> data["data/catalogue.json, fixtures/partners.json"]
+    api --> data["data/catalogue.json"]
     pipe --> data
 ```
 
 | Part | Does |
 |---|---|
-| `backend/api.py` | Customer endpoints, bearer token check, CORS allow-list, `/health` |
+| `backend/api.py` | Customer endpoints, claim, CORS allow-list, `/health` |
+| `backend/auth.py`, `presets.py` | Bearer token check and IP rate limit; the 50 preset homes |
 | `backend/upload.py` | `POST /v1/homes/me/documents` |
 | `backend/app_api.py` | The mobile app: `/v1/me/app`, bookings, reminders |
 | `backend/admin.py` | Staff dashboard API under `/v1/admin` (staff login, classes, rules, bands, tiers, partners, simulate, demo reset) |
@@ -58,7 +59,7 @@ flowchart LR
 | Validation | jsonschema |
 | Deployment | `docker-compose.yml`, 5 containers (below). Ollama runs on the host, not in a container |
 | Dev shell | Nix flake (`flake.nix`) |
-| Config | `.env` (not in git): `CUSTOMER_TOKEN` (required), `ADMIN_TOKEN`, `CORS_ORIGINS` (not needed for the app: it shares one origin with the API through nginx), `OLLAMA_URL` (in compose `http://host.docker.internal:11434`; `127.0.0.1` would be the container itself), `EXPO_PUBLIC_API_URL` (public app URL, baked in at mobile build time, default `http://localhost:8082`), `APP_DOMAIN` and `DASHBOARD_DOMAIN` (both required), `DATABASE_URL`, Postgres settings |
+| Config | `.env` (not in git): `CUSTOMER_TOKEN` (required), `ADMIN_TOKEN`, `CORS_ORIGINS` (not needed for the app demo behind Caddy: it shares one origin with the API through nginx; only other browser origins need it), `OLLAMA_URL` (in compose `http://host.docker.internal:11434`; `127.0.0.1` would be the container itself), `EXPO_PUBLIC_API_URL` (public app URL, baked in at mobile build time; set it to `https://<APP_DOMAIN>`. The default `http://localhost:8082` points to a port no compose container publishes), `APP_DOMAIN` and `DASHBOARD_DOMAIN` (both required), `DATABASE_URL`, Postgres settings |
 
 | Container | Role |
 |---|---|
@@ -79,7 +80,7 @@ flowchart LR
 7. **Finish.** The job becomes `done` and the document `processed`. On any error both become `failed`, with an error code and message.
 
 Limits:
-- A job has a 180 s budget. Each Ollama call gets the remaining time as its timeout, and a slow model gives `timeout`. Known issue: on the live host Ollama runs on CPU, extraction exceeds this limit, and PDF upload fails.
+- A job has a 180 s budget. Each Ollama call gets the remaining time as its timeout, and a slow model gives `timeout`.
 - At start, the worker fails every job still `running` (`worker_restart`).
 - Every Ollama call uses `POST /api/chat` with `stream: false`, `think: false`, `format` set to the schema, `temperature: 0` and `num_ctx: 16384`. The job fails (`llm_truncated`) when `done_reason` is `length`, `prompt_eval_count` comes within 512 of `num_ctx`, or it is far below the input size. A report over 150 pages, about 45,000 characters or about 14,000 estimated tokens fails with `document_too_long`. Without `think: false` and a larger `num_ctx`, output was cut on the test machine.
 
@@ -87,17 +88,7 @@ Limits:
 
 Code builds both from the profile, the catalogue and the database. No model is involved.
 
-| Endpoint | Behaviour |
-|---|---|
-| `GET /v1/homes/me` | Home, profile and documents |
-| `GET /v1/homes/me/risks` | Matched entries (and `llm_proposed` ones) with texts. Entries with a confirmed work order are left out. Sorted by `severity x probability`, LLM-proposed last. At most 5 |
-| `GET /v1/homes/me/risks/{id}` | The risk, its evidence (quotes of the profile fields its condition uses) and up to 3 partners: same `partner_category`, same city as the home, `if_vetted`, best rating first |
-| `GET /v1/homes/me/maintenance` | See section 6 |
-| `GET /v1/me/insurances` | Each insured object with its fixes, points and premium cuts |
-| `GET /v1/me/app` | All data for the mobile app in one response |
-| `POST /v1/me/bookings` | Books a bid for a risk. `409` if already booked |
-| `POST /v1/me/bookings/{risk_id}/advance` | Moves a booking one step (steps 0 to 2). Step 2 confirms the fix |
-| `PUT /v1/me/reminders/{task_id}` | Sets or clears a maintenance reminder |
+Endpoint shapes are in `docs/API.md`.
 
 Customer auth is a bearer token: `CUSTOMER_TOKEN` opens the shared demo home `home_01`. Each of the 50 preset homes (`home_02` to `home_51`, own mock data) is claimed with a password through `POST /v1/claim`, which returns that home's token. Staff routes use the header `X-Admin-Token` (`ADMIN_TOKEN`). The dashboard has a login on top: 6 preset company accounts (`staff_accounts`), each claimed on first use. Passwords are hashed with scrypt. 5 wrong passwords lock an account and client IP for 60 s. Claims and staff logins are also limited to 20 attempts per minute per IP (429 `too_many_attempts`). Both counts live in process memory.
 
@@ -178,80 +169,17 @@ Tier bonuses are display texts only. A fix earns the points of its `fix_rules` r
 
 | Topic | Decision |
 |---|---|
-| Fact source | The model reads facts. The writer model may propose catalogue ids only. Code copies severity, probability and points from the catalogue and rules |
-| Matching | Code matches by conditions. The only model addition is a proposed id, marked `llm_proposed` |
 | Catalogue format | JSON, one file per entry, checked by `validate.py` with per-entry `tests.match` and `tests.reject` |
-| Intake | Only the kuntotarkastus PDF. Other types return `400` |
-| Run mode | Background job, status read with `GET /v1/jobs/{id}`, 180 s limit |
-| Merge order | A candidate that is not `"unknown"` replaces the current value |
 | Raw model data | Raw output goes to the worker log. The database stores only what the endpoints need |
-| Doubt flags | The writer model flags doubts. Flags do not change the score |
 | RAG | Not used. Matched entries go into the prompt directly |
-| Ollama settings | `num_ctx` 16384, `think: false`, schema as `format`, temperature 0 |
-| Uploads | Magic bytes and size checked. Files stored under `document_id` |
 | Language | English |
 | Mocked | Fraud-proof verification, real premium changes, a real partner network, strong e-ID, partner confirmation |
 
 ## 10. Colour palette
 
-The customer app tokens are in `mobile-app/src/lib/theme.ts`. The staff dashboard tokens are in `frontend/src/app/globals.css`. The roles below are our choice. The hex values come from the If design system.
+The tokens are in `mobile-app/src/lib/theme.ts` (app) and `frontend/src/app/globals.css` (dashboard). The roles are our choice. The hex values come from the If design system.
 
-### Customer app (warm)
-
-The page is warm beige. White cards sit on it. Text is dark brown. One blue carries every action. Yellow and red mark status only.
-
-| Role | Hex |
-|---|---|
-| Page background | `#F6F3F0` |
-| Surface (card) | `#FFFFFF` |
-| Muted surface | `#F1ECE8` |
-| Border | `#E8E0D9` |
-| Input border | `#D6CEC8` |
-| Text | `#331E11` |
-| Text muted | `#6E625E` |
-| Primary (actions, active tab, score fill) | `#0054F0` |
-| Primary pressed | `#1241A2` |
-| Primary tint | `#E1E9F6` |
-| Inverted background | `#24150C` |
-| Text on primary | `#FAF9F7` |
-
-Status in the app:
-
-| Status | Strong | Soft background |
-|---|---|---|
-| Success (good news) | `#1241A2` deep blue | `#E1E9F6` |
-| Warning | `#FCC74F` | `#F9EBC7` |
-| Danger | `#BB320C` | `#F9E3D4` |
-
-Good news in the app is deep blue, not green.
-
-### Staff dashboard (cool)
-
-The dashboard keeps the same blue, tier and state colours. It uses cooler neutrals on purpose.
-
-| Role | Hex |
-|---|---|
-| Canvas | `#F4F6FA` |
-| Text | `#0F1B33` |
-| Muted surface | `#EEF1F6` |
-| Text muted | `#5B6780` |
-| Border | `#E3E8F0` |
-| Input border | `#838DA0` |
-| Primary, pressed | `#0054F0`, `#1241A2` |
-| Accent tint | `#E8EFFD` |
-| Success (green), soft | `#217331`, `#E0F0DB` |
-| Warning, soft | `#FCC74F`, `#F9EBC7` |
-| Danger, soft | `#BB320C`, `#F9E3D4` |
-
-### Tier colours (both apps)
-
-| Tier | Hex |
-|---|---|
-| Bronze | `#D16547` |
-| Silver | `#9F948F` |
-| Gold | `#E9AD25` |
-| Platinum | `#0054F0` |
-
-Show a tier colour as a dot or ring next to the tier name. Never use it alone to carry meaning. Gold on white has a contrast ratio of 2.0:1, so use it for graphics only.
-
-The palette has no dark mode. It does not use the If typeface or the If logo.
+- **App (warm).** Beige page, white cards, dark brown text. One blue (`#0054F0`) carries every action. Yellow and red mark status only. Good news is deep blue (`#1241A2`), not green.
+- **Dashboard (cool).** The same blue, tier and state colours, with cooler neutrals. Success is green.
+- **Tiers (both).** Bronze `#D16547`, Silver `#9F948F`, Gold `#E9AD25`, Platinum `#0054F0`. Show a tier colour as a dot or ring next to the tier name, never alone. Gold on white has a contrast ratio of 2.0:1, so use it for graphics only.
+- No dark mode. No If typeface or logo.
