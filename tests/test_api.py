@@ -186,7 +186,11 @@ def test_app_api(tmp_path, monkeypatch):
         d = c.put("/v1/me/reminders/t3", headers=H, json={"on": True}).json()
         assert sorted(d["reminders"]) == ["t1", "t3"]
 
-        # The dashboard's reset brings the demo back to its start.
+        # The dashboard's reset brings the demo back to its start, including dashboard edits.
+        AD = {"X-Admin-Token": "a"}
+        t2 = c.get("/v1/admin/tiers", headers=AD).json()["tiers"][2]
+        assert c.patch("/v1/admin/tiers/2", headers=AD, json={**t2, "name": "Edited"}).json()["name"] == "Edited"
         assert c.post("/v1/admin/demo/reset", headers={"X-Admin-Token": "a"}).status_code == 200
+        assert c.get("/v1/admin/tiers", headers=AD).json()["tiers"][2]["name"] == "Gold"  # the edit is gone
         d = c.get("/v1/me/app", headers=H).json()
         assert d["aggregate"] == 599 and d["reminders"] == ["t1"] and all(r["job"] is None for r in d["risks"])
