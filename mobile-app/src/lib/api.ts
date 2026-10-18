@@ -84,6 +84,7 @@ export const api = {
   book: (riskId: string, bidId: string, mode: "hire" | "diy") =>
     call("/me/bookings", { method: "POST", body: JSON.stringify({ risk_id: riskId, bid_id: bidId, mode }) }),
   advance: (riskId: string) => call(`/me/bookings/${encodeURIComponent(riskId)}/advance`, { method: "POST" }),
+  addInsurance: (classId: string) => call("/me/insurances", { method: "POST", body: JSON.stringify({ class_id: classId }) }),
   setReminder: (taskId: string, on: boolean) =>
     call(`/me/reminders/${encodeURIComponent(taskId)}`, { method: "PUT", body: JSON.stringify({ on }) }),
 };

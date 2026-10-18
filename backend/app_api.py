@@ -10,7 +10,7 @@ from sqlalchemy import select
 
 from backend import db, engine, insurance
 from backend.auth import Who, require_token
-from backend.models import AssignedRisk, Bid, Booking, Customer, InsuredObject, MaintenanceTask, Reminder
+from backend.models import AssignedRisk, Bid, Booking, Customer, InsuranceClass, InsuredObject, MaintenanceTask, Reminder
 
 TIER_IDS = ["bronze", "silver", "gold", "platinum"]  # the app's tier colours, by tier index
 
@@ -123,5 +123,25 @@ def set_reminder(task_id: str, body: ReminderIn, who: Who = Depends(require_toke
             s.add(Reminder(customer_id=who.customer_id, task_id=task_id))
         elif not body.on and row is not None:
             s.delete(row)
+        s.commit()
+        return app_data(s, who.customer_id)
+
+
+class InsuranceIn(BaseModel):
+    class_id: str
+    name: str = ""
+
+
+@router.post("/insurances", status_code=201)
+def add_insurance(body: InsuranceIn, who: Who = Depends(require_token)):
+    """Add an insurance (an object with an empty profile). One per class: the app keys scores by class."""
+    with db.connect() as s:
+        cls = s.get(InsuranceClass, body.class_id)
+        if cls is None:
+            raise HTTPException(404, f"Unknown insurance {body.class_id}.")
+        if body.class_id in {o["class_id"] for o in insurance.customer_objects(s, who.customer_id)}:
+            raise HTTPException(409, "You already have this insurance.")
+        s.add(InsuredObject(object_id=f"{who.customer_id}_{body.class_id}", customer_id=who.customer_id, class_id=body.class_id,
+                            name=body.name.strip()[:80] or cls.name, profile="{}", created_at=db.now_iso()))
         s.commit()
         return app_data(s, who.customer_id)

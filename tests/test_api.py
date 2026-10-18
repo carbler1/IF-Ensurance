@@ -297,3 +297,28 @@ def test_fix_api_misc(tmp_path, monkeypatch):
         r = c.post("/v1/claim", json={"home_id": "nope", "password": "password1"})
         assert r.status_code == 429 and r.json()["error"]["code"] == "too_many_attempts"
     auth._HITS.clear()
+
+
+def test_preset_points_and_add_insurance(tmp_path, monkeypatch):
+    from backend import admin, db
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "t.sqlite")
+    monkeypatch.setattr(db, "UPLOADS", tmp_path / "up")
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("CUSTOMER_TOKEN", "t")
+    monkeypatch.setenv("ADMIN_TOKEN", "a")
+    admin._FAILS.clear()
+    from backend.api import app
+    from backend.models import FixRule
+    with TestClient(app) as c:
+        with db.connect() as s:  # the generic preset risks are worth points, so a check-up risk never shows +0
+            assert s.get(FixRule, "default.alarm").points > 0 and s.get(FixRule, "default.vent").points > 0
+        h = {"Authorization": "Bearer " + c.post("/v1/claim", json={"home_id": "home_02", "password": "password1"}).json()["token"]}
+        d = c.get("/v1/me/app", headers=h).json()
+        assert all(r["points"] > 0 for r in d["risks"])
+        assert [i["id"] for i in d["insurances"]] == ["house"]
+        assert len({b["name"] for b in d["bids"]}) == len(d["bids"])
+        d = c.post("/v1/me/insurances", headers=h, json={"class_id": "boat", "name": "My boat"}).json()
+        assert [(i["id"], i["object"]) for i in d["insurances"]][1:] == [("boat", "My boat")]
+        assert c.post("/v1/me/insurances", headers=h, json={"class_id": "boat"}).status_code == 409
+        assert c.post("/v1/me/insurances", headers=h, json={"class_id": "nope"}).status_code == 404
+        assert c.post("/v1/me/insurances", headers=H, json={"class_id": "dog"}).status_code == 409  # the demo customer has all five

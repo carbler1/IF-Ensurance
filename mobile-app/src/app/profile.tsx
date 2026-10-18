@@ -2,15 +2,17 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { ChevronRight, Clock, ShieldCheck, UserPlus } from "@/lib/icons";
 import { Button, Card, Heading, Input, LinkBlock, PopIn, Screen, SwitchRow, Text } from "@/components/ui";
+import type { InsuranceId } from "@/data/mock";
 import type { Lang } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
 import { colors, radius, shadows } from "@/lib/theme";
 
 const langs: { id: Lang; label: string }[] = [{ id: "fi", label: "Suomi" }, { id: "sv", label: "Svenska" }, { id: "en", label: "English" }];
+const allInsurances: InsuranceId[] = ["house", "cottage", "boat", "car", "dog"];
 const notifKeys = ["seasonal", "weather", "progress"] as const;
 
 export default function Profile() {
-  const { t, lang, setLang } = useStore();
+  const { t, lang, setLang, insurances, addInsurance } = useStore();
   const [notif, setNotif] = useState({ seasonal: true, weather: true, progress: false });
   const [invite, setInvite] = useState<"idle" | "form" | "sent">("idle");
   const [name, setName] = useState("");
@@ -33,6 +35,21 @@ export default function Profile() {
             </Pressable>
           ))}
         </View>
+      </Card>
+
+      <Card>
+        <Heading size="lg">{t("s.insurances")}</Heading>
+        {insurances.map(({ id, object }) => (
+          <View key={id} style={{ paddingVertical: 8 }}>
+            <Text weight={600}>{t(`ins.${id}`)}</Text>
+            <Text size="sm" color="mutedForeground">{object}</Text>
+          </View>
+        ))}
+        {allInsurances.filter((id) => !insurances.some((i) => i.id === id)).map((id) => (
+          <Button key={id} variant="outline" style={{ marginTop: 8 }} onPress={() => addInsurance(id).catch(() => {})}>
+            {`${t("s.addInsurance")}: ${t(`ins.${id}`)}`}
+          </Button>
+        ))}
       </Card>
 
       <Card>
