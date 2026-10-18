@@ -19,6 +19,8 @@ type Store = Omit<AppData, "insurances"> & {
   error: string | null;
   reload: () => void;
   insurances: AppData["insurances"];
+  /** All the customer's insurances, whatever the entry choice. */
+  allInsurances: AppData["insurances"];
   jobs: Record<string, Job>;
   bookJob: (j: Omit<Job, "step">) => void;
   advanceJob: (riskId: string) => Promise<void>;
@@ -66,7 +68,7 @@ export function tierFor(score: number, tiers: Tier[]) {
 
 const Ctx = createContext<Store | null>(null);
 
-export function StoreProvider({ children }: { children: ReactNode }) {
+export function StoreProvider({ children, choice }: { children: ReactNode; choice?: string | null }) {
   const [lang, setLangState] = useState<Lang>("en");
   const setLang = useCallback((l: Lang) => { setLangState(l); api.setLang(l); }, []);
   const [data, setData] = useState<AppData>(EMPTY);
@@ -101,28 +103,41 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<Store>(() => {
+    const all = data.insurances;
+    // The entry choice narrows insurances, risks, history and scores; the aggregate is recomputed like the backend (average, half up).
+    const insurances = choice ? all.filter((i) => i.id === choice) : all;
+    const view: AppData = choice
+      ? {
+          ...data,
+          insurances,
+          risks: data.risks.filter((r) => r.insurance === choice),
+          history: data.history.filter((h) => h.insurance === choice),
+          aggregate: insurances.length ? Math.floor(insurances.reduce((a, i) => a + i.score, 0) / insurances.length + 0.5) : 0,
+        }
+      : data;
     const jobs: Record<string, Job> = Object.fromEntries(
-      data.risks.filter((r) => r.job).map((r) => [r.id, { riskId: r.id, ...r.job! }]),
+      view.risks.filter((r) => r.job).map((r) => [r.id, { riskId: r.id, ...r.job! }]),
     );
-    const scores = Object.fromEntries(data.insurances.map((i) => [i.id, i.score])) as Record<InsuranceId, number>;
+    const scores = Object.fromEntries(view.insurances.map((i) => [i.id, i.score])) as Record<InsuranceId, number>;
     const bands = data.model.bands;
     const setJob = (riskId: string, job: (j: AppData["risks"][number]["job"]) => AppData["risks"][number]["job"]) =>
       (d: AppData) => ({ ...d, risks: d.risks.map((r) => (r.id === riskId ? { ...r, job: job(r.job) } : r)) });
     return {
-      ...data,
+      ...view,
       lang,
       setLang,
       t: (k) => dictionaries[lang][k],
       status,
       error,
       reload,
+      allInsurances: all,
       jobs,
       bookJob: (j) => save(setJob(j.riskId, () => ({ bidId: j.bidId, mode: j.mode, step: 0 })), () => api.book(j.riskId, j.bidId, j.mode)),
       advanceJob: (id) =>
         save(setJob(id, (job) => job && { ...job, step: Math.min(2, job.step + 1) as JobStep }), () => api.advance(id)),
-      completed: data.risks.filter((r) => r.job?.step === 2).map((r) => r.id),
+      completed: view.risks.filter((r) => r.job?.step === 2).map((r) => r.id),
       scores,
-      aggregate: data.aggregate,
+      aggregate: view.aggregate,
       bands,
       addInsurance: (classId) => api.addInsurance(classId).then(setData),
       toggleReminder: (id) => {
@@ -136,7 +151,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return b && { percent: b.percent, min: b.min, pointsTo: b.min - score };
       },
     };
-  }, [lang, setLang, data, status, error, reload, save]);
+  }, [lang, setLang, data, choice, status, error, reload, save]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
