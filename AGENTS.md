@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Project docs are in `docs/` (not fact-checked yet): `DESIGN.md`, `API.md`, `CATALOGUE.md`, `RESEARCH.md`. Project state is in `STATUS.md`.
+Project docs are in `docs/` (not fact-checked yet, code comments are stale do not trust them at facevalue): `DESIGN.md`, `API.md`, `CATALOGUE.md`, `RESEARCH.md`. Project state is in `STATUS.md`.
 
 - Do only what you are told. Do not add extras.
 - Keep answers short and technical.
