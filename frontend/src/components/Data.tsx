@@ -26,7 +26,7 @@ async function Resolve({ load }: { load: () => Promise<ReactNode> }) {
   }
 }
 
-/** Streams database data behind a skeleton; shows a notice instead of crashing when the database is down. */
+/** Streams backend data behind a skeleton; shows a notice instead of crashing when the backend is down. */
 export function Data({ load }: { load: () => Promise<ReactNode> }) {
   return (
     <Suspense fallback={<Skeleton />}>

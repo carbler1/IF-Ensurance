@@ -22,7 +22,7 @@ export function Nav() {
     <nav className="border-b bg-card md:sticky md:top-0 md:h-screen md:w-[4.5rem] md:shrink-0 md:border-r md:border-b-0 lg:w-64">
       <div className="px-5 pt-5 pb-4 md:px-4 md:pt-6 md:pb-8 lg:px-5">
         <Link href="/" className="flex items-center gap-3">
-          {/* The If disc mark, shared with the mobile app (mobile-app/assets/mark.png); favicon.ico and apple-icon.png are the same disc. */}
+          {/* The If disc mark. */}
           <Image src={mark} alt="If" width={40} height={40} priority className="h-10 w-10 shrink-0" />
           <span className="md:hidden lg:block">
             <span className="block text-xl leading-tight font-semibold tracking-[-0.02em]">Ensurance</span>
