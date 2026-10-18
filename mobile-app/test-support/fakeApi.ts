@@ -1,7 +1,7 @@
 // A stand-in for src/lib/api.ts in the Jest tests. It serves a recorded GET /v1/me/app response
 // (app.json, from the real backend) and applies bookings and reminders the way the backend does:
 // a booking confirmed at step 2 adds its points to its insurance's score, and the Care Score is the
-// average. Refresh app.json when the demo person changes (see test-support/README.md).
+// average. Refresh app.json when the demo person changes.
 import type { AppData } from "@/lib/types";
 import recorded from "./app.json";
 

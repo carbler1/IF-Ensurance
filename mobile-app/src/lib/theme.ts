@@ -1,4 +1,4 @@
-// Design tokens carried over 1:1 from the web prototype's styles.css.
+// Design tokens.
 export const colors = {
   background: "#f6f3f0",
   foreground: "#331e11",

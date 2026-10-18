@@ -1,6 +1,6 @@
 // The backend's customer API (backend/app_api.py). Every call answers with the whole app data.
 // EXPO_PUBLIC_API_URL and EXPO_PUBLIC_API_TOKEN come from mobile-app/.env (see .env.example); Expo
-// builds them into the app. The token is the phase 1 demo customer token, not a real secret.
+// builds them into the app. The token is the demo customer token, not a real secret.
 import type { AppData } from "./types";
 
 const BASE = (process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");

@@ -5,7 +5,6 @@ import { colors, fontFamily, sizes } from "@/lib/theme";
 import { fmt } from "@/lib/i18n";
 import { Heading, RingOverlay, ScoreRing, Text, bandSegmentsOf, useReducedMotion } from "./ui";
 
-/** An insurance score now and after one fix, on the discount band ring. label: "House score" etc. */
 // The counting number re-renders alone; the ring around it is driven by the same Animated value.
 function RisingNumber({ from, to, progress, style }: { from: number; to: number; progress: Animated.Value; style: object }) {
   const [shown, setShown] = useState(from);
