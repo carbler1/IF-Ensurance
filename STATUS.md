@@ -7,30 +7,24 @@ Where the project stands, checked against the code.
 Goal: `docker compose up` serves the dashboard, the app demo and the API on one host. Tests and polish are skipped on purpose.
 
 1. Finalize docs. Done.
-2. Backend.
-3. Deployment.
-4. First working version.
+2. Backend. Done: compose fixes, all three images build, `docker compose up` passes `/health`, dashboard, app demo.
+3. Deploy. Below.
 
-### 2. Backend
+### 3. Deploy
 
-Code and compose wiring. Values that need the host or domain stay as `.env` variables here and get filled in step 3.
+Host: the PC (`pc-btw`, ssh alias `pc-btw`). Ollama runs there with `qwen3.5:9b`. Domains: `app.antal.fi` and `dashboard.antal.fi` (Zoner CNAMEs to `antal.bounceme.net`, which resolves to the PC). Router forwards ports 80 and 443 to the PC; the PC firewall allows them.
 
-- Done: the four compose fixes (API address, CORS, `OLLAMA_URL`, `CUSTOMER_TOKEN`) and the build of all three images.
-- Run `docker compose up` and check `/health`, the dashboard (`:3000`) and the app demo (`:8082`).
+Done:
+- PC `.env`: `OLLAMA_URL=http://host.docker.internal:11434`.
+- DNS, router and firewall.
+- Caddy container added to `docker-compose.yml` (`Caddyfile`); only Caddy publishes ports (80, 443).
 
-### 3. Deployment
-
-- Pick the host. Unknown today.
-- Run Ollama on the host with `qwen3.5:9b` pulled, or PDF upload fails. `ollama` is not on this machine's PATH.
-- Put a reverse proxy in front of the three ports (3000, 8082, 8000).
-- Pick the public URL of the app and point DNS at the host.
-- Get an HTTPS certificate for it.
-- Set `OLLAMA_URL`, `EXPO_PUBLIC_API_URL` and `CORS_ORIGINS` in `.env`, then rebuild the mobile image (the URL is baked in at build time).
-
-### 4. First working version
-
-- Open the dashboard and the app demo on the public URL.
+Left:
+- On the PC: pull, set `APP_DOMAIN`, `DASHBOARD_DOMAIN` and `EXPO_PUBLIC_API_URL=https://app.antal.fi` in `.env`, run `docker compose up -d --build`.
+- Open both URLs.
 - Upload one sample PDF from `samples/synthetic/` and check that a risk list comes back.
+
+Known: the dashboard is public with no login.
 
 ## Working
 
