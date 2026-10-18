@@ -12,7 +12,7 @@ const allInsurances: InsuranceId[] = ["house", "cottage", "boat", "car", "dog"];
 const notifKeys = ["seasonal", "weather", "progress"] as const;
 
 export default function Profile() {
-  const { t, lang, setLang, insurances, addInsurance } = useStore();
+  const { t, lang, setLang, allInsurances: insurances, addInsurance } = useStore();
   const [notif, setNotif] = useState({ seasonal: true, weather: true, progress: false });
   const [invite, setInvite] = useState<"idle" | "form" | "sent">("idle");
   const [name, setName] = useState("");

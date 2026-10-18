@@ -30,13 +30,15 @@ export default function RootLayout() {
     if (loaded || fontError) SplashScreen.hideAsync();
   }, [loaded, fontError]);
 
+  const [choice, choose] = useChoice();
+
   if (!loaded && !fontError) return null;
 
   return (
     <SafeAreaProvider>
-      <StoreProvider>
+      <StoreProvider choice={choice}>
         <StatusBar style="dark" />
-        <AppFrame />
+        <AppFrame choice={choice} choose={choose} />
       </StoreProvider>
     </SafeAreaProvider>
   );
@@ -46,9 +48,8 @@ export default function RootLayout() {
 const PHONE = { width: 390, height: 844 };
 
 // On web at 600 px or wider the app sits in the phone frame; elsewhere it fills the screen up to 430 px.
-function AppFrame() {
+function AppFrame({ choice, choose }: { choice: ReturnType<typeof useChoice>[0]; choose: ReturnType<typeof useChoice>[1] }) {
   const { status, error, reload, t } = useStore();
-  const [choice, choose] = useChoice();
   const window = useWindowDimensions();
   const phoneFrame = Platform.OS === "web" && window.width >= 600;
   return (
