@@ -1,0 +1,2077 @@
+{
+  "_note": "12 reserved demo profiles for the customer app, one distinct customer each (cust_p01 .. cust_p12). Each profile has the data/demo-person.json shape, split per table: customer -> customers; home (null when the customer has no house) -> homes (customer_id = customer); objects -> insured_objects (object_id, class_id, name, history as JSON, details as JSON; profile as JSON for cottage/boat/car/dog; the house keeps object_id = home_id and no profile column, its profile is in profiles instead); the house object's house_profile_values -> profiles.profile, expanded to the 20 fields of data/home-profile.schema.json the way backend/presets.py build does (value, confidence 0.9, source register, evidence {register: preset}, doubt false; every other field unknown); risks -> assigned_risks (texts from demo-person.json; risk_id is <template>@<object_id>, so engine.fix_value uses the rule default.<template>, which seed already creates); bids -> bids (customer_id = customer; firm names from fixtures/partners.json, each once per profile); tasks -> maintenance_tasks (customer_id = customer); reminders -> reminders (task ids). Scores: each insurance starts at 500 and adds its history points; the aggregate is the average; history sets score, band and tier. Premiums come from the class base premiums. Loader: the code of backend/db.py seed_presets, once per profile. profile_id, summary and classes are for people and checks; the loader ignores them.",
+  "profiles": [
+    {
+      "profile_id": "p01",
+      "summary": "House only: new detached house, very high score",
+      "classes": [
+        "house"
+      ],
+      "customer": {
+        "customer_id": "cust_p01",
+        "name": "Mikael"
+      },
+      "home": {
+        "home_id": "home_p01",
+        "street": "Koivukuja 8",
+        "postal_code": "20780",
+        "city": "Kaarina"
+      },
+      "objects": [
+        {
+          "object_id": "home_p01",
+          "class_id": "house",
+          "name": "Koivukuja 8, Kaarina",
+          "house_profile_values": {
+            "house_type": "detached",
+            "building_year": 2019,
+            "heating": "ground_heat",
+            "pipe_material": "pex",
+            "roof_material": "sheet_metal",
+            "ventilation": "mechanical_supply_exhaust",
+            "sauna": "electric_stove",
+            "foundation_type": "slab_on_ground",
+            "last_electrical_check": "2025-04-12"
+          },
+          "history": [
+            {
+              "label": "Smoke alarms registered",
+              "points": 90
+            },
+            {
+              "label": "Electrical check done",
+              "points": 160
+            },
+            {
+              "label": "Water leak sensor installed",
+              "points": 120
+            },
+            {
+              "label": "Missed gutter cleaning",
+              "points": -15
+            }
+          ],
+          "details": {
+            "address": "Koivukuja 8, 20780 Kaarina",
+            "type": "Detached house",
+            "year": 2019,
+            "size": 148,
+            "heating": "Ground heat pump"
+          }
+        }
+      ],
+      "risks": [
+        {
+          "area": "ventilation",
+          "title": "Ventilation filters not changed",
+          "why": "Clogged filters raise damp and energy use.",
+          "explain": "Ventilation filters need changing about once a year; clogged ones let damp build up.",
+          "fix": "A partner cleans the ducts and changes the filters.",
+          "diy": "Change the filters yourself, then book a duct check.",
+          "risk_id": "vent@home_p01",
+          "object_id": "home_p01",
+          "sort_order": 0
+        },
+        {
+          "area": "fire",
+          "title": "Smoke alarms not tested",
+          "why": "A dead battery gives no warning in a fire.",
+          "explain": "Smoke alarms should be tested every few months and replaced after about ten years.",
+          "fix": "A partner tests the alarms and replaces old ones.",
+          "diy": "Press the test button on each alarm, then book a check if one fails.",
+          "risk_id": "alarm@home_p01",
+          "object_id": "home_p01",
+          "sort_order": 1
+        }
+      ],
+      "bids": [
+        {
+          "bid_id": "home_p01_b0",
+          "name": "Kotihuolto Kaarina Oy",
+          "rating": 4.3,
+          "reviews": 71,
+          "price": 955,
+          "earliest": "Tue 20 Oct",
+          "sort_order": 0
+        },
+        {
+          "bid_id": "home_p01_b1",
+          "name": "Liedon Sähkötiimi Oy",
+          "rating": 4.2,
+          "reviews": 296,
+          "price": 3695,
+          "earliest": "Thu 22 Oct",
+          "sort_order": 1
+        },
+        {
+          "bid_id": "home_p01_b2",
+          "name": "Ilmavirta Huolto Oy",
+          "rating": 4.4,
+          "reviews": 215,
+          "price": 790,
+          "earliest": "Fri 23 Oct",
+          "sort_order": 2
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "home_p01_t1",
+          "season": "autumn",
+          "title": "Clean gutters",
+          "due": "31 Oct",
+          "reason": "age",
+          "reason_text": "Last cleaned 14 months ago",
+          "sort_order": 0
+        },
+        {
+          "task_id": "home_p01_t2",
+          "season": "summer",
+          "title": "Test smoke alarms",
+          "due": "Jun",
+          "reason": "law",
+          "reason_text": "Required by the Rescue Act",
+          "sort_order": 1
+        },
+        {
+          "task_id": "home_p01_t3",
+          "season": "winter",
+          "title": "Change heat pump filter",
+          "due": "15 Dec",
+          "reason": "age",
+          "reason_text": "Filter is 11 months old",
+          "sort_order": 2
+        },
+        {
+          "task_id": "home_p01_t4",
+          "season": "winter",
+          "title": "Check roof snow load",
+          "due": "Jan",
+          "reason": "weather",
+          "reason_text": "Heavy snow is common in January",
+          "sort_order": 3
+        }
+      ],
+      "reminders": []
+    },
+    {
+      "profile_id": "p02",
+      "summary": "House + dog: semi-detached house and a young small dog",
+      "classes": [
+        "house",
+        "dog"
+      ],
+      "customer": {
+        "customer_id": "cust_p02",
+        "name": "Sofia"
+      },
+      "home": {
+        "home_id": "home_p02",
+        "street": "Rantakatu 21",
+        "postal_code": "21200",
+        "city": "Raisio"
+      },
+      "objects": [
+        {
+          "object_id": "home_p02",
+          "class_id": "house",
+          "name": "Rantakatu 21, Raisio",
+          "house_profile_values": {
+            "house_type": "semi_detached",
+            "building_year": 1994,
+            "heating": "district",
+            "pipe_material": "copper",
+            "roof_material": "tile",
+            "ventilation": "mechanical_exhaust",
+            "sauna": "none",
+            "foundation_type": "crawl_space"
+          },
+          "history": [
+            {
+              "label": "Smoke alarms registered",
+              "points": 40
+            },
+            {
+              "label": "Electrical check done",
+              "points": 100
+            },
+            {
+              "label": "Water leak sensor installed",
+              "points": 25
+            },
+            {
+              "label": "Roof check aged",
+              "points": -10
+            },
+            {
+              "label": "Missed gutter cleaning",
+              "points": -15
+            }
+          ],
+          "details": {
+            "address": "Rantakatu 21, 21200 Raisio",
+            "type": "Semi-detached house",
+            "year": 1994,
+            "size": 112,
+            "heating": "District heating"
+          }
+        },
+        {
+          "object_id": "cust_p02_dog",
+          "class_id": "dog",
+          "name": "Pyry, Dachshund",
+          "profile": {
+            "breed_size": "small",
+            "birth_year": 2021,
+            "vaccinations_valid": "no"
+          },
+          "history": [
+            {
+              "label": "Insured since a puppy",
+              "points": 220
+            },
+            {
+              "label": "Microchip registered",
+              "points": 60
+            }
+          ],
+          "details": {}
+        }
+      ],
+      "risks": [
+        {
+          "area": "electricity",
+          "title": "Electrical panel from 1994",
+          "why": "Old fuses can overheat and cause fires.",
+          "explain": "Your panel is original. Panels this old often lack residual-current protection, which is a common cause of house fires.",
+          "fix": "A certified electrician inspects the panel and adds a residual-current device if needed.",
+          "diy": "You cannot do electrical work yourself, but you can book an inspection to confirm the panel is safe.",
+          "risk_id": "panel@home_p02",
+          "object_id": "home_p02",
+          "sort_order": 0
+        },
+        {
+          "area": "water",
+          "title": "No water leak sensor",
+          "why": "A dishwasher leak can damage floors overnight.",
+          "explain": "Water damage is the most common home claim in Finland. A sensor with auto shut-off stops the water in seconds.",
+          "fix": "A partner installs leak sensors and a shut-off valve.",
+          "diy": "Place sensors under the dishwasher and sink yourself, then book a quick check.",
+          "risk_id": "leak@home_p02",
+          "object_id": "home_p02",
+          "sort_order": 1
+        },
+        {
+          "area": "insulation",
+          "title": "Thin attic insulation",
+          "why": "Heat loss can cause ice dams on the roof.",
+          "explain": "Insulation from 1994 is usually thinner than today's standard.",
+          "fix": "A partner measures and adds blown insulation.",
+          "diy": "Measure the insulation depth in the attic, then book a check.",
+          "risk_id": "attic@home_p02",
+          "object_id": "home_p02",
+          "sort_order": 2
+        },
+        {
+          "area": "vaccine",
+          "title": "Pyry's vaccinations are out of date",
+          "why": "Parvovirus and distemper need long, costly care.",
+          "explain": "An unvaccinated dog can catch parvovirus or distemper, which need long and costly care.",
+          "fix": "A vet renews the vaccinations.",
+          "diy": "There is no way to do this yourself; book a vet visit.",
+          "risk_id": "dog-vaccine@cust_p02_dog",
+          "object_id": "cust_p02_dog",
+          "sort_order": 3
+        }
+      ],
+      "bids": [
+        {
+          "bid_id": "home_p02_b0",
+          "name": "Turun Talonmies Palvelut Oy",
+          "rating": 4.6,
+          "reviews": 185,
+          "price": 455,
+          "earliest": "Tue 20 Oct",
+          "sort_order": 0
+        },
+        {
+          "bid_id": "home_p02_b1",
+          "name": "Sähköasennus Aurasilta Oy",
+          "rating": 4.7,
+          "reviews": 74,
+          "price": 690,
+          "earliest": "Tue 20 Oct",
+          "sort_order": 1
+        },
+        {
+          "bid_id": "home_p02_b2",
+          "name": "Raision Kylpyhuoneremontit Oy",
+          "rating": 4.9,
+          "reviews": 125,
+          "price": 9920,
+          "earliest": "Mon 19 Oct",
+          "sort_order": 2
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "home_p02_t1",
+          "season": "autumn",
+          "title": "Shut off outdoor tap",
+          "due": "23 Oct",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Raisio",
+          "sort_order": 0
+        },
+        {
+          "task_id": "home_p02_t2",
+          "season": "autumn",
+          "title": "Clean gutters",
+          "due": "31 Oct",
+          "reason": "age",
+          "reason_text": "Last cleaned 14 months ago",
+          "sort_order": 1
+        },
+        {
+          "task_id": "home_p02_t3",
+          "season": "summer",
+          "title": "Test smoke alarms",
+          "due": "Jun",
+          "reason": "law",
+          "reason_text": "Required by the Rescue Act",
+          "sort_order": 2
+        },
+        {
+          "task_id": "home_p02_t4",
+          "season": "spring",
+          "title": "Book the yearly vet check",
+          "due": "Apr",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 3
+        }
+      ],
+      "reminders": [
+        "home_p02_t1"
+      ]
+    },
+    {
+      "profile_id": "p03",
+      "summary": "House + car: 1978 row house with oil heating and an older car",
+      "classes": [
+        "house",
+        "car"
+      ],
+      "customer": {
+        "customer_id": "cust_p03",
+        "name": "Henrik"
+      },
+      "home": {
+        "home_id": "home_p03",
+        "street": "Tehtaankatu 33",
+        "postal_code": "20100",
+        "city": "Turku"
+      },
+      "objects": [
+        {
+          "object_id": "home_p03",
+          "class_id": "house",
+          "name": "Tehtaankatu 33, Turku",
+          "house_profile_values": {
+            "house_type": "row_house",
+            "building_year": 1978,
+            "heating": "oil",
+            "panel_type": "screw_fuse",
+            "pipe_material": "galvanized_steel",
+            "roof_material": "bitumen_felt",
+            "ventilation": "natural",
+            "sauna": "wood_stove",
+            "foundation_type": "basement"
+          },
+          "history": [
+            {
+              "label": "Smoke alarms registered",
+              "points": 20
+            },
+            {
+              "label": "Roof check aged",
+              "points": -10
+            },
+            {
+              "label": "Missed gutter cleaning",
+              "points": -15
+            }
+          ],
+          "details": {
+            "address": "Tehtaankatu 33, 20100 Turku",
+            "type": "Row house",
+            "year": 1978,
+            "size": 96,
+            "heating": "Oil"
+          }
+        },
+        {
+          "object_id": "cust_p03_car",
+          "class_id": "car",
+          "name": "Volvo V70 2012",
+          "profile": {
+            "model_year": 2012,
+            "winter_tyres_year": 2017,
+            "last_service": "2024-02-20"
+          },
+          "history": [
+            {
+              "label": "Clean driving record, 3 years",
+              "points": 150
+            },
+            {
+              "label": "Driver safety course",
+              "points": 40
+            }
+          ],
+          "details": {}
+        }
+      ],
+      "risks": [
+        {
+          "area": "electricity",
+          "title": "Electrical panel from 1978",
+          "why": "Old fuses can overheat and cause fires.",
+          "explain": "Your panel is original. Panels this old often lack residual-current protection, which is a common cause of house fires.",
+          "fix": "A certified electrician inspects the panel and adds a residual-current device if needed.",
+          "diy": "You cannot do electrical work yourself, but you can book an inspection to confirm the panel is safe.",
+          "risk_id": "panel@home_p03",
+          "object_id": "home_p03",
+          "sort_order": 0
+        },
+        {
+          "area": "plumbing",
+          "title": "Original water pipes",
+          "why": "Galvanized steel pipes from 1978 are over 40 years old.",
+          "explain": "Pipes from 1978 (galvanized steel) are near the end of their life. Small leaks inside walls can go unnoticed for months.",
+          "fix": "A plumber checks the pipes with a camera and pressure test, and replaces weak parts.",
+          "diy": "Check visible joints under sinks for green stains, then book an inspection.",
+          "risk_id": "pipes@home_p03",
+          "object_id": "home_p03",
+          "sort_order": 1
+        },
+        {
+          "area": "roof",
+          "title": "Roof not checked in 6 years",
+          "why": "Damaged tiles let in snow melt.",
+          "explain": "Roofs should be checked every 3–5 years. Winter snow load makes small cracks worse.",
+          "fix": "A roofer inspects the tiles, flashings and underlay.",
+          "diy": "Look for loose tiles from the ground with binoculars, then book an inspection.",
+          "risk_id": "roof@home_p03",
+          "object_id": "home_p03",
+          "sort_order": 2
+        },
+        {
+          "area": "insulation",
+          "title": "Thin attic insulation",
+          "why": "Heat loss can cause ice dams on the roof.",
+          "explain": "Insulation from 1978 is usually thinner than today's standard.",
+          "fix": "A partner measures and adds blown insulation.",
+          "diy": "Measure the insulation depth in the attic, then book a check.",
+          "risk_id": "attic@home_p03",
+          "object_id": "home_p03",
+          "sort_order": 3
+        },
+        {
+          "area": "tyres",
+          "title": "Winter tyres over five years old",
+          "why": "Old rubber grips the ice far worse.",
+          "explain": "Your winter tyres are from 2017. Rubber hardens with age and the braking distance on ice grows.",
+          "fix": "A tyre shop checks the tread and fits new winter tyres if needed.",
+          "diy": "Measure the tread depth yourself, then book a tyre check.",
+          "risk_id": "car-tyres@cust_p03_car",
+          "object_id": "cust_p03_car",
+          "sort_order": 4
+        },
+        {
+          "area": "service",
+          "title": "Car not serviced in the last year",
+          "why": "Worn brakes go unnoticed without a service.",
+          "explain": "The last service was in February 2024. Worn brakes and old fluids go unnoticed without a yearly service.",
+          "fix": "A garage services the car and checks the brakes.",
+          "diy": "Check the oil and the lights yourself, then book the service.",
+          "risk_id": "car-service@cust_p03_car",
+          "object_id": "cust_p03_car",
+          "sort_order": 5
+        }
+      ],
+      "bids": [
+        {
+          "bid_id": "home_p03_b0",
+          "name": "Aurajoen Putkityö Oy",
+          "rating": 4.6,
+          "reviews": 182,
+          "price": 2005,
+          "earliest": "Fri 23 Oct",
+          "sort_order": 0
+        },
+        {
+          "bid_id": "home_p03_b1",
+          "name": "Pikasähkö Hirvensalo Oy",
+          "rating": 3.8,
+          "reviews": 135,
+          "price": 480,
+          "earliest": "Mon 26 Oct",
+          "sort_order": 1
+        },
+        {
+          "bid_id": "home_p03_b2",
+          "name": "Kattomestarit Aura Oy",
+          "rating": 4.5,
+          "reviews": 43,
+          "price": 6425,
+          "earliest": "Mon 19 Oct",
+          "sort_order": 2
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "home_p03_t1",
+          "season": "autumn",
+          "title": "Shut off outdoor tap",
+          "due": "23 Oct",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Turku",
+          "sort_order": 0
+        },
+        {
+          "task_id": "home_p03_t2",
+          "season": "autumn",
+          "title": "Clean gutters",
+          "due": "31 Oct",
+          "reason": "age",
+          "reason_text": "Last cleaned 14 months ago",
+          "sort_order": 1
+        },
+        {
+          "task_id": "home_p03_t3",
+          "season": "winter",
+          "title": "Check roof snow load",
+          "due": "Jan",
+          "reason": "weather",
+          "reason_text": "Heavy snow is common in January",
+          "sort_order": 2
+        },
+        {
+          "task_id": "home_p03_t4",
+          "season": "spring",
+          "title": "Inspect drainage well",
+          "due": "Apr",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 3
+        },
+        {
+          "task_id": "home_p03_t5",
+          "season": "autumn",
+          "title": "Change to winter tyres",
+          "due": "15 Nov",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Turku",
+          "sort_order": 4
+        },
+        {
+          "task_id": "home_p03_t6",
+          "season": "spring",
+          "title": "Book the yearly car service",
+          "due": "Apr",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 5
+        }
+      ],
+      "reminders": [
+        "home_p03_t1",
+        "home_p03_t5"
+      ]
+    },
+    {
+      "profile_id": "p04",
+      "summary": "Car only: old car with a missed service, bronze",
+      "classes": [
+        "car"
+      ],
+      "customer": {
+        "customer_id": "cust_p04",
+        "name": "Liisa"
+      },
+      "home": null,
+      "objects": [
+        {
+          "object_id": "cust_p04_car",
+          "class_id": "car",
+          "name": "Toyota Yaris 2009",
+          "profile": {
+            "model_year": 2009,
+            "winter_tyres_year": 2018,
+            "last_service": "2024-05-14"
+          },
+          "history": [
+            {
+              "label": "Car service missed in 2024",
+              "points": -120
+            },
+            {
+              "label": "Driver safety course",
+              "points": 40
+            }
+          ],
+          "details": {}
+        }
+      ],
+      "risks": [
+        {
+          "area": "tyres",
+          "title": "Winter tyres over five years old",
+          "why": "Old rubber grips the ice far worse.",
+          "explain": "Your winter tyres are from 2018. Rubber hardens with age and the braking distance on ice grows.",
+          "fix": "A tyre shop checks the tread and fits new winter tyres if needed.",
+          "diy": "Measure the tread depth yourself, then book a tyre check.",
+          "risk_id": "car-tyres@cust_p04_car",
+          "object_id": "cust_p04_car",
+          "sort_order": 0
+        },
+        {
+          "area": "service",
+          "title": "Car not serviced in the last year",
+          "why": "Worn brakes go unnoticed without a service.",
+          "explain": "The last service was in May 2024. Worn brakes and old fluids go unnoticed without a yearly service.",
+          "fix": "A garage services the car and checks the brakes.",
+          "diy": "Check the oil and the lights yourself, then book the service.",
+          "risk_id": "car-service@cust_p04_car",
+          "object_id": "cust_p04_car",
+          "sort_order": 1
+        }
+      ],
+      "bids": [
+        {
+          "bid_id": "cust_p04_b0",
+          "name": "Kotihuolto Kaarina Oy",
+          "rating": 4.3,
+          "reviews": 135,
+          "price": 1560,
+          "earliest": "Tue 20 Oct",
+          "sort_order": 0
+        },
+        {
+          "bid_id": "cust_p04_b1",
+          "name": "Turun Talonmies Palvelut Oy",
+          "rating": 4.6,
+          "reviews": 195,
+          "price": 1110,
+          "earliest": "Tue 20 Oct",
+          "sort_order": 1
+        },
+        {
+          "bid_id": "cust_p04_b2",
+          "name": "Turun Lukko ja Hälytin Oy",
+          "rating": 4.6,
+          "reviews": 261,
+          "price": 1380,
+          "earliest": "Fri 23 Oct",
+          "sort_order": 2
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "cust_p04_t1",
+          "season": "autumn",
+          "title": "Change to winter tyres",
+          "due": "15 Nov",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Tampere",
+          "sort_order": 0
+        },
+        {
+          "task_id": "cust_p04_t2",
+          "season": "spring",
+          "title": "Book the yearly car service",
+          "due": "Apr",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 1
+        }
+      ],
+      "reminders": []
+    },
+    {
+      "profile_id": "p05",
+      "summary": "Dog only: older large dog with a joint risk",
+      "classes": [
+        "dog"
+      ],
+      "customer": {
+        "customer_id": "cust_p05",
+        "name": "Jussi"
+      },
+      "home": null,
+      "objects": [
+        {
+          "object_id": "cust_p05_dog",
+          "class_id": "dog",
+          "name": "Karhu, Bernese Mountain Dog",
+          "profile": {
+            "breed_size": "large",
+            "birth_year": 2017,
+            "vaccinations_valid": "yes"
+          },
+          "history": [
+            {
+              "label": "Insured since a puppy",
+              "points": 200
+            },
+            {
+              "label": "Microchip registered",
+              "points": 60
+            }
+          ],
+          "details": {}
+        }
+      ],
+      "risks": [
+        {
+          "area": "joints",
+          "title": "Older large dog without a joint check",
+          "why": "Hip problems get worse without early care.",
+          "explain": "Large dogs over six years old often develop hip and elbow problems that get worse without care.",
+          "fix": "A vet checks the hips and the elbows.",
+          "diy": "Watch for stiffness after walks, then book a vet check.",
+          "risk_id": "dog-joints@cust_p05_dog",
+          "object_id": "cust_p05_dog",
+          "sort_order": 0
+        }
+      ],
+      "bids": [
+        {
+          "bid_id": "cust_p05_b0",
+          "name": "Kotihuolto Kaarina Oy",
+          "rating": 4.3,
+          "reviews": 142,
+          "price": 2450,
+          "earliest": "Mon 26 Oct",
+          "sort_order": 0
+        },
+        {
+          "bid_id": "cust_p05_b1",
+          "name": "Turun Talonmies Palvelut Oy",
+          "rating": 4.6,
+          "reviews": 150,
+          "price": 2370,
+          "earliest": "Mon 19 Oct",
+          "sort_order": 1
+        },
+        {
+          "bid_id": "cust_p05_b2",
+          "name": "Puuhuolto Aura Oy",
+          "rating": 4.4,
+          "reviews": 234,
+          "price": 4545,
+          "earliest": "Tue 20 Oct",
+          "sort_order": 2
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "cust_p05_t1",
+          "season": "spring",
+          "title": "Book the yearly vet check",
+          "due": "Apr",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 0
+        }
+      ],
+      "reminders": [
+        "cust_p05_t1"
+      ]
+    },
+    {
+      "profile_id": "p06",
+      "summary": "Boat only: sailboat with an engine service overdue",
+      "classes": [
+        "boat"
+      ],
+      "customer": {
+        "customer_id": "cust_p06",
+        "name": "Noora"
+      },
+      "home": null,
+      "objects": [
+        {
+          "object_id": "cust_p06_boat",
+          "class_id": "boat",
+          "name": "Nordic 22 sailboat",
+          "profile": {
+            "boat_type": "sailboat",
+            "last_engine_service": "2023-06-20",
+            "winter_storage": "indoor"
+          },
+          "history": [
+            {
+              "label": "Fire extinguisher registered",
+              "points": 40
+            },
+            {
+              "label": "Engine service missed in 2024",
+              "points": -30
+            }
+          ],
+          "details": {}
+        }
+      ],
+      "risks": [
+        {
+          "area": "engine",
+          "title": "Boat engine not serviced in two years",
+          "why": "Worn fuel lines can fail at sea.",
+          "explain": "An unserviced engine is the most common reason a boat breaks down or catches fire at sea.",
+          "fix": "A boat mechanic services the engine, the fuel line and the cooling system.",
+          "diy": "Check the fuel line and the impeller yourself, then book a service check.",
+          "risk_id": "boat-engine@cust_p06_boat",
+          "object_id": "cust_p06_boat",
+          "sort_order": 0
+        }
+      ],
+      "bids": [
+        {
+          "bid_id": "cust_p06_b0",
+          "name": "Naantalin LVI-Asennus Oy",
+          "rating": 3.9,
+          "reviews": 190,
+          "price": 6750,
+          "earliest": "Tue 20 Oct",
+          "sort_order": 0
+        },
+        {
+          "bid_id": "cust_p06_b1",
+          "name": "Kotihuolto Kaarina Oy",
+          "rating": 4.3,
+          "reviews": 145,
+          "price": 1245,
+          "earliest": "Tue 20 Oct",
+          "sort_order": 1
+        },
+        {
+          "bid_id": "cust_p06_b2",
+          "name": "Turun Talonmies Palvelut Oy",
+          "rating": 4.6,
+          "reviews": 188,
+          "price": 200,
+          "earliest": "Mon 19 Oct",
+          "sort_order": 2
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "cust_p06_t1",
+          "season": "autumn",
+          "title": "Winterize the boat engine",
+          "due": "31 Oct",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Naantali",
+          "sort_order": 0
+        },
+        {
+          "task_id": "cust_p06_t2",
+          "season": "spring",
+          "title": "Service the boat engine",
+          "due": "Apr",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 1
+        }
+      ],
+      "reminders": []
+    },
+    {
+      "profile_id": "p07",
+      "summary": "Cottage + boat: neglected cottage and motorboat, bronze",
+      "classes": [
+        "cottage",
+        "boat"
+      ],
+      "customer": {
+        "customer_id": "cust_p07",
+        "name": "Pekka"
+      },
+      "home": null,
+      "objects": [
+        {
+          "object_id": "cust_p07_cottage",
+          "class_id": "cottage",
+          "name": "Log cottage, Taivassalo",
+          "profile": {
+            "building_year": 1955,
+            "heating": "wood",
+            "water_winterized": "no",
+            "last_chimney_sweep": "2022-06-10"
+          },
+          "history": [
+            {
+              "label": "Fire extinguisher registered",
+              "points": 20
+            },
+            {
+              "label": "Chimney sweep missed in 2024",
+              "points": -60
+            }
+          ],
+          "details": {}
+        },
+        {
+          "object_id": "cust_p07_boat",
+          "class_id": "boat",
+          "name": "Yamarin 5130 motorboat",
+          "profile": {
+            "boat_type": "motorboat",
+            "last_engine_service": "2022-09-02",
+            "winter_storage": "outdoor_uncovered"
+          },
+          "history": [
+            {
+              "label": "Engine service missed in 2024",
+              "points": -30
+            }
+          ],
+          "details": {}
+        }
+      ],
+      "risks": [
+        {
+          "area": "frost",
+          "title": "Cottage pipes not drained for winter",
+          "why": "Frozen pipes burst and flood the floor in spring.",
+          "explain": "Water left in the pipes of an empty cottage freezes, bursts the pipes and floods the floor when it thaws.",
+          "fix": "A plumber drains the pipes and the water heater and closes the main valve before the frost.",
+          "diy": "Drain the pipes yourself with a checklist, then book a quick check.",
+          "risk_id": "cottage-pipes@cust_p07_cottage",
+          "object_id": "cust_p07_cottage",
+          "sort_order": 0
+        },
+        {
+          "area": "fire",
+          "title": "Fireplace chimney not swept",
+          "why": "Soot in the flue can catch fire.",
+          "explain": "Soot builds up in a flue that is not swept every year. The cottage chimney was last swept in 2022.",
+          "fix": "A chimney sweep cleans the flue and checks the fireplace.",
+          "diy": "You cannot sweep the flue yourself safely, but you can book the sweep for the start of the season.",
+          "risk_id": "cottage-chimney@cust_p07_cottage",
+          "object_id": "cust_p07_cottage",
+          "sort_order": 1
+        },
+        {
+          "area": "engine",
+          "title": "Boat engine not serviced in two years",
+          "why": "Worn fuel lines can fail at sea.",
+          "explain": "An unserviced engine is the most common reason a boat breaks down or catches fire at sea.",
+          "fix": "A boat mechanic services the engine, the fuel line and the cooling system.",
+          "diy": "Check the fuel line and the impeller yourself, then book a service check.",
+          "risk_id": "boat-engine@cust_p07_boat",
+          "object_id": "cust_p07_boat",
+          "sort_order": 2
+        },
+        {
+          "area": "storage",
+          "title": "Boat stored outdoors without a cover",
+          "why": "Snow and ice crack the hull over winter.",
+          "explain": "Snow and melt water collect in an uncovered boat; the weight and the frost crack the hull and the deck.",
+          "fix": "A boat yard stores the boat indoors or fits a winter cover.",
+          "diy": "Fit a winter cover yourself, then book a quick check.",
+          "risk_id": "boat-storage@cust_p07_boat",
+          "object_id": "cust_p07_boat",
+          "sort_order": 3
+        }
+      ],
+      "bids": [
+        {
+          "bid_id": "cust_p07_b0",
+          "name": "Nuohouspalvelu Savusieppo Oy",
+          "rating": 4.8,
+          "reviews": 59,
+          "price": 145,
+          "earliest": "Mon 26 Oct",
+          "sort_order": 0
+        },
+        {
+          "bid_id": "cust_p07_b1",
+          "name": "Naantalin LVI-Asennus Oy",
+          "rating": 3.9,
+          "reviews": 106,
+          "price": 3620,
+          "earliest": "Fri 23 Oct",
+          "sort_order": 1
+        },
+        {
+          "bid_id": "cust_p07_b2",
+          "name": "Kotihuolto Kaarina Oy",
+          "rating": 4.3,
+          "reviews": 147,
+          "price": 495,
+          "earliest": "Mon 26 Oct",
+          "sort_order": 2
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "cust_p07_t1",
+          "season": "autumn",
+          "title": "Drain the cottage water pipes",
+          "due": "20 Oct",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Taivassalo",
+          "sort_order": 0
+        },
+        {
+          "task_id": "cust_p07_t2",
+          "season": "spring",
+          "title": "Book the chimney sweep",
+          "due": "May",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 1
+        },
+        {
+          "task_id": "cust_p07_t3",
+          "season": "autumn",
+          "title": "Winterize the boat engine",
+          "due": "31 Oct",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Taivassalo",
+          "sort_order": 2
+        },
+        {
+          "task_id": "cust_p07_t4",
+          "season": "autumn",
+          "title": "Fit the boat winter cover",
+          "due": "15 Nov",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Taivassalo",
+          "sort_order": 3
+        }
+      ],
+      "reminders": [
+        "cust_p07_t1"
+      ]
+    },
+    {
+      "profile_id": "p08",
+      "summary": "All five classes: house, cottage, boat, car and dog, gold",
+      "classes": [
+        "house",
+        "cottage",
+        "boat",
+        "car",
+        "dog"
+      ],
+      "customer": {
+        "customer_id": "cust_p08",
+        "name": "Hanna"
+      },
+      "home": {
+        "home_id": "home_p08",
+        "street": "Kallionkatu 17",
+        "postal_code": "90100",
+        "city": "Oulu"
+      },
+      "objects": [
+        {
+          "object_id": "home_p08",
+          "class_id": "house",
+          "name": "Kallionkatu 17, Oulu",
+          "house_profile_values": {
+            "house_type": "detached",
+            "building_year": 1988,
+            "heating": "electric",
+            "panel_type": "automatic_fuses",
+            "pipe_material": "copper",
+            "roof_material": "tile",
+            "ventilation": "mechanical_exhaust",
+            "sauna": "electric_stove",
+            "foundation_type": "crawl_space",
+            "last_electrical_check": "2024-03-05"
+          },
+          "history": [
+            {
+              "label": "Smoke alarms registered",
+              "points": 90
+            },
+            {
+              "label": "Electrical check done",
+              "points": 120
+            },
+            {
+              "label": "Water leak sensor installed",
+              "points": 25
+            },
+            {
+              "label": "Roof check aged",
+              "points": -10
+            },
+            {
+              "label": "Missed gutter cleaning",
+              "points": -25
+            }
+          ],
+          "details": {
+            "address": "Kallionkatu 17, 90100 Oulu",
+            "type": "Detached house",
+            "year": 1988,
+            "size": 168,
+            "heating": "Direct electric"
+          }
+        },
+        {
+          "object_id": "cust_p08_cottage",
+          "class_id": "cottage",
+          "name": "Lakeside cottage, Kuusamo",
+          "profile": {
+            "building_year": 1991,
+            "heating": "electric",
+            "water_winterized": "no",
+            "last_chimney_sweep": "2024-06-01"
+          },
+          "history": [
+            {
+              "label": "Fire extinguisher registered",
+              "points": 60
+            },
+            {
+              "label": "Chimney swept",
+              "points": 40
+            }
+          ],
+          "details": {}
+        },
+        {
+          "object_id": "cust_p08_boat",
+          "class_id": "boat",
+          "name": "Linder 445 fishing boat",
+          "profile": {
+            "boat_type": "motorboat",
+            "last_engine_service": "2023-08-12",
+            "winter_storage": "outdoor_covered"
+          },
+          "history": [
+            {
+              "label": "Fire extinguisher registered",
+              "points": 270
+            },
+            {
+              "label": "Engine service missed in 2024",
+              "points": -30
+            }
+          ],
+          "details": {}
+        },
+        {
+          "object_id": "cust_p08_car",
+          "class_id": "car",
+          "name": "Mazda CX-5 2019",
+          "profile": {
+            "model_year": 2019,
+            "winter_tyres_year": 2021,
+            "last_service": "2025-03-10"
+          },
+          "history": [
+            {
+              "label": "Clean driving record, 3 years",
+              "points": 250
+            },
+            {
+              "label": "Driver safety course",
+              "points": 90
+            }
+          ],
+          "details": {}
+        },
+        {
+          "object_id": "cust_p08_dog",
+          "class_id": "dog",
+          "name": "Nuppu, Border Collie",
+          "profile": {
+            "breed_size": "medium",
+            "birth_year": 2019,
+            "vaccinations_valid": "no"
+          },
+          "history": [
+            {
+              "label": "Insured since a puppy",
+              "points": 230
+            },
+            {
+              "label": "Microchip registered",
+              "points": 50
+            }
+          ],
+          "details": {}
+        }
+      ],
+      "risks": [
+        {
+          "area": "electricity",
+          "title": "Electrical panel from 1988",
+          "why": "Old fuses can overheat and cause fires.",
+          "explain": "Your panel is original. Panels this old often lack residual-current protection, which is a common cause of house fires.",
+          "fix": "A certified electrician inspects the panel and adds a residual-current device if needed.",
+          "diy": "You cannot do electrical work yourself, but you can book an inspection to confirm the panel is safe.",
+          "risk_id": "panel@home_p08",
+          "object_id": "home_p08",
+          "sort_order": 0
+        },
+        {
+          "area": "water",
+          "title": "No water leak sensor",
+          "why": "A dishwasher leak can damage floors overnight.",
+          "explain": "Water damage is the most common home claim in Finland. A sensor with auto shut-off stops the water in seconds.",
+          "fix": "A partner installs leak sensors and a shut-off valve.",
+          "diy": "Place sensors under the dishwasher and sink yourself, then book a quick check.",
+          "risk_id": "leak@home_p08",
+          "object_id": "home_p08",
+          "sort_order": 1
+        },
+        {
+          "area": "roof",
+          "title": "Roof not checked in 6 years",
+          "why": "Damaged tiles let in snow melt.",
+          "explain": "Roofs should be checked every 3–5 years. Winter snow load makes small cracks worse.",
+          "fix": "A roofer inspects the tiles, flashings and underlay.",
+          "diy": "Look for loose tiles from the ground with binoculars, then book an inspection.",
+          "risk_id": "roof@home_p08",
+          "object_id": "home_p08",
+          "sort_order": 2
+        },
+        {
+          "area": "frost",
+          "title": "Cottage pipes not drained for winter",
+          "why": "Frozen pipes burst and flood the floor in spring.",
+          "explain": "Water left in the pipes of an empty cottage freezes, bursts the pipes and floods the floor when it thaws.",
+          "fix": "A plumber drains the pipes and the water heater and closes the main valve before the frost.",
+          "diy": "Drain the pipes yourself with a checklist, then book a quick check.",
+          "risk_id": "cottage-pipes@cust_p08_cottage",
+          "object_id": "cust_p08_cottage",
+          "sort_order": 3
+        },
+        {
+          "area": "fire",
+          "title": "Fireplace chimney not swept",
+          "why": "Soot in the flue can catch fire.",
+          "explain": "Soot builds up in a flue that is not swept every year. The cottage chimney was last swept in 2024.",
+          "fix": "A chimney sweep cleans the flue and checks the fireplace.",
+          "diy": "You cannot sweep the flue yourself safely, but you can book the sweep for the start of the season.",
+          "risk_id": "cottage-chimney@cust_p08_cottage",
+          "object_id": "cust_p08_cottage",
+          "sort_order": 4
+        },
+        {
+          "area": "engine",
+          "title": "Boat engine not serviced in two years",
+          "why": "Worn fuel lines can fail at sea.",
+          "explain": "An unserviced engine is the most common reason a boat breaks down or catches fire at sea.",
+          "fix": "A boat mechanic services the engine, the fuel line and the cooling system.",
+          "diy": "Check the fuel line and the impeller yourself, then book a service check.",
+          "risk_id": "boat-engine@cust_p08_boat",
+          "object_id": "cust_p08_boat",
+          "sort_order": 5
+        },
+        {
+          "area": "service",
+          "title": "Car not serviced in the last year",
+          "why": "Worn brakes go unnoticed without a service.",
+          "explain": "The last service was in March 2025. Worn brakes and old fluids go unnoticed without a yearly service.",
+          "fix": "A garage services the car and checks the brakes.",
+          "diy": "Check the oil and the lights yourself, then book the service.",
+          "risk_id": "car-service@cust_p08_car",
+          "object_id": "cust_p08_car",
+          "sort_order": 6
+        },
+        {
+          "area": "vaccine",
+          "title": "Nuppu's vaccinations are out of date",
+          "why": "Parvovirus and distemper need long, costly care.",
+          "explain": "An unvaccinated dog can catch parvovirus or distemper, which need long and costly care.",
+          "fix": "A vet renews the vaccinations.",
+          "diy": "There is no way to do this yourself; book a vet visit.",
+          "risk_id": "dog-vaccine@cust_p08_dog",
+          "object_id": "cust_p08_dog",
+          "sort_order": 7
+        }
+      ],
+      "bids": [
+        {
+          "bid_id": "home_p08_b0",
+          "name": "Sähköasennus Aurasilta Oy",
+          "rating": 4.7,
+          "reviews": 73,
+          "price": 465,
+          "earliest": "Thu 22 Oct",
+          "sort_order": 0
+        },
+        {
+          "bid_id": "home_p08_b1",
+          "name": "Nuohouspalvelu Savusieppo Oy",
+          "rating": 4.8,
+          "reviews": 73,
+          "price": 90,
+          "earliest": "Tue 20 Oct",
+          "sort_order": 1
+        },
+        {
+          "bid_id": "home_p08_b2",
+          "name": "Kotihuolto Kaarina Oy",
+          "rating": 4.3,
+          "reviews": 140,
+          "price": 2435,
+          "earliest": "Mon 19 Oct",
+          "sort_order": 2
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "home_p08_t1",
+          "season": "autumn",
+          "title": "Shut off outdoor tap",
+          "due": "23 Oct",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Oulu",
+          "sort_order": 0
+        },
+        {
+          "task_id": "home_p08_t2",
+          "season": "autumn",
+          "title": "Clean gutters",
+          "due": "31 Oct",
+          "reason": "age",
+          "reason_text": "Last cleaned 14 months ago",
+          "sort_order": 1
+        },
+        {
+          "task_id": "home_p08_t3",
+          "season": "winter",
+          "title": "Check roof snow load",
+          "due": "Jan",
+          "reason": "weather",
+          "reason_text": "Heavy snow is common in January",
+          "sort_order": 2
+        },
+        {
+          "task_id": "home_p08_t4",
+          "season": "summer",
+          "title": "Test smoke alarms",
+          "due": "Jun",
+          "reason": "law",
+          "reason_text": "Required by the Rescue Act",
+          "sort_order": 3
+        },
+        {
+          "task_id": "home_p08_t5",
+          "season": "autumn",
+          "title": "Drain the cottage water pipes",
+          "due": "20 Oct",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Oulu",
+          "sort_order": 4
+        },
+        {
+          "task_id": "home_p08_t6",
+          "season": "autumn",
+          "title": "Winterize the boat engine",
+          "due": "31 Oct",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Oulu",
+          "sort_order": 5
+        },
+        {
+          "task_id": "home_p08_t7",
+          "season": "autumn",
+          "title": "Change to winter tyres",
+          "due": "15 Nov",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Oulu",
+          "sort_order": 6
+        },
+        {
+          "task_id": "home_p08_t8",
+          "season": "spring",
+          "title": "Book the yearly vet check",
+          "due": "Apr",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 7
+        }
+      ],
+      "reminders": [
+        "home_p08_t1",
+        "home_p08_t8"
+      ]
+    },
+    {
+      "profile_id": "p09",
+      "summary": "Cottage only: tidy cottage with one chimney risk",
+      "classes": [
+        "cottage"
+      ],
+      "customer": {
+        "customer_id": "cust_p09",
+        "name": "Kalle"
+      },
+      "home": null,
+      "objects": [
+        {
+          "object_id": "cust_p09_cottage",
+          "class_id": "cottage",
+          "name": "Island cottage, Nauvo",
+          "profile": {
+            "building_year": 1982,
+            "heating": "electric",
+            "water_winterized": "yes",
+            "last_chimney_sweep": "2024-06-02"
+          },
+          "history": [
+            {
+              "label": "Fire extinguisher registered",
+              "points": 20
+            },
+            {
+              "label": "Chimney swept",
+              "points": 35
+            }
+          ],
+          "details": {}
+        }
+      ],
+      "risks": [
+        {
+          "area": "fire",
+          "title": "Fireplace chimney not swept",
+          "why": "Soot in the flue can catch fire.",
+          "explain": "Soot builds up in a flue that is not swept every year. The cottage chimney was last swept in 2024.",
+          "fix": "A chimney sweep cleans the flue and checks the fireplace.",
+          "diy": "You cannot sweep the flue yourself safely, but you can book the sweep for the start of the season.",
+          "risk_id": "cottage-chimney@cust_p09_cottage",
+          "object_id": "cust_p09_cottage",
+          "sort_order": 0
+        }
+      ],
+      "bids": [
+        {
+          "bid_id": "cust_p09_b0",
+          "name": "Nuohouspalvelu Savusieppo Oy",
+          "rating": 4.8,
+          "reviews": 170,
+          "price": 80,
+          "earliest": "Mon 26 Oct",
+          "sort_order": 0
+        },
+        {
+          "bid_id": "cust_p09_b1",
+          "name": "Hormi ja Tulisija Virta Oy",
+          "rating": 4.1,
+          "reviews": 40,
+          "price": 600,
+          "earliest": "Mon 19 Oct",
+          "sort_order": 1
+        },
+        {
+          "bid_id": "cust_p09_b2",
+          "name": "Naantalin LVI-Asennus Oy",
+          "rating": 3.9,
+          "reviews": 231,
+          "price": 950,
+          "earliest": "Tue 20 Oct",
+          "sort_order": 2
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "cust_p09_t1",
+          "season": "spring",
+          "title": "Book the chimney sweep",
+          "due": "May",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 0
+        },
+        {
+          "task_id": "cust_p09_t2",
+          "season": "summer",
+          "title": "Test smoke alarms",
+          "due": "Jun",
+          "reason": "law",
+          "reason_text": "Required by the Rescue Act",
+          "sort_order": 1
+        }
+      ],
+      "reminders": [
+        "cust_p09_t1"
+      ]
+    },
+    {
+      "profile_id": "p10",
+      "summary": "House + boat: 1962 house with many risks, bronze",
+      "classes": [
+        "house",
+        "boat"
+      ],
+      "customer": {
+        "customer_id": "cust_p10",
+        "name": "Maija"
+      },
+      "home": {
+        "home_id": "home_p10",
+        "street": "Mäntytie 5",
+        "postal_code": "01300",
+        "city": "Vantaa"
+      },
+      "objects": [
+        {
+          "object_id": "home_p10",
+          "class_id": "house",
+          "name": "Mäntytie 5, Vantaa",
+          "house_profile_values": {
+            "house_type": "detached",
+            "building_year": 1962,
+            "heating": "oil",
+            "panel_type": "screw_fuse",
+            "pipe_material": "galvanized_steel",
+            "roof_material": "fibre_cement",
+            "ventilation": "natural",
+            "sauna": "wood_stove",
+            "foundation_type": "crawl_space"
+          },
+          "history": [
+            {
+              "label": "Roof check aged",
+              "points": -90
+            },
+            {
+              "label": "Missed gutter cleaning",
+              "points": -60
+            }
+          ],
+          "details": {
+            "address": "Mäntytie 5, 01300 Vantaa",
+            "type": "Detached house",
+            "year": 1962,
+            "size": 89,
+            "heating": "Oil"
+          }
+        },
+        {
+          "object_id": "cust_p10_boat",
+          "class_id": "boat",
+          "name": "Nimbus 280 sailboat",
+          "profile": {
+            "boat_type": "sailboat",
+            "last_engine_service": "2024-04-18",
+            "winter_storage": "outdoor_covered"
+          },
+          "history": [
+            {
+              "label": "Engine service missed in 2024",
+              "points": -30
+            }
+          ],
+          "details": {}
+        }
+      ],
+      "risks": [
+        {
+          "area": "electricity",
+          "title": "Electrical panel from 1962",
+          "why": "Old fuses can overheat and cause fires.",
+          "explain": "Your panel is original. Panels this old often lack residual-current protection, which is a common cause of house fires.",
+          "fix": "A certified electrician inspects the panel and adds a residual-current device if needed.",
+          "diy": "You cannot do electrical work yourself, but you can book an inspection to confirm the panel is safe.",
+          "risk_id": "panel@home_p10",
+          "object_id": "home_p10",
+          "sort_order": 0
+        },
+        {
+          "area": "plumbing",
+          "title": "Original water pipes",
+          "why": "Galvanized steel pipes from 1962 are over 60 years old.",
+          "explain": "Pipes from 1962 (galvanized steel) are near the end of their life. Small leaks inside walls can go unnoticed for months.",
+          "fix": "A plumber checks the pipes with a camera and pressure test, and replaces weak parts.",
+          "diy": "Check visible joints under sinks for green stains, then book an inspection.",
+          "risk_id": "pipes@home_p10",
+          "object_id": "home_p10",
+          "sort_order": 1
+        },
+        {
+          "area": "water",
+          "title": "No water leak sensor",
+          "why": "A dishwasher leak can damage floors overnight.",
+          "explain": "Water damage is the most common home claim in Finland. A sensor with auto shut-off stops the water in seconds.",
+          "fix": "A partner installs leak sensors and a shut-off valve.",
+          "diy": "Place sensors under the dishwasher and sink yourself, then book a quick check.",
+          "risk_id": "leak@home_p10",
+          "object_id": "home_p10",
+          "sort_order": 2
+        },
+        {
+          "area": "roof",
+          "title": "Roof not checked in 6 years",
+          "why": "Damaged tiles let in snow melt.",
+          "explain": "Roofs should be checked every 3–5 years. Winter snow load makes small cracks worse.",
+          "fix": "A roofer inspects the tiles, flashings and underlay.",
+          "diy": "Look for loose tiles from the ground with binoculars, then book an inspection.",
+          "risk_id": "roof@home_p10",
+          "object_id": "home_p10",
+          "sort_order": 3
+        },
+        {
+          "area": "insulation",
+          "title": "Thin attic insulation",
+          "why": "Heat loss can cause ice dams on the roof.",
+          "explain": "Insulation from 1962 is usually thinner than today's standard.",
+          "fix": "A partner measures and adds blown insulation.",
+          "diy": "Measure the insulation depth in the attic, then book a check.",
+          "risk_id": "attic@home_p10",
+          "object_id": "home_p10",
+          "sort_order": 4
+        },
+        {
+          "area": "engine",
+          "title": "Boat engine not serviced in two years",
+          "why": "Worn fuel lines can fail at sea.",
+          "explain": "An unserviced engine is the most common reason a boat breaks down or catches fire at sea.",
+          "fix": "A boat mechanic services the engine, the fuel line and the cooling system.",
+          "diy": "Check the fuel line and the impeller yourself, then book a service check.",
+          "risk_id": "boat-engine@cust_p10_boat",
+          "object_id": "cust_p10_boat",
+          "sort_order": 5
+        }
+      ],
+      "bids": [
+        {
+          "bid_id": "home_p10_b0",
+          "name": "Aurajoen Putkityö Oy",
+          "rating": 4.6,
+          "reviews": 215,
+          "price": 490,
+          "earliest": "Mon 19 Oct",
+          "sort_order": 0
+        },
+        {
+          "bid_id": "home_p10_b1",
+          "name": "Varsinais-Suomen Kosteusmittaus Oy",
+          "rating": 4.8,
+          "reviews": 59,
+          "price": 345,
+          "earliest": "Fri 23 Oct",
+          "sort_order": 1
+        },
+        {
+          "bid_id": "home_p10_b2",
+          "name": "Kattomestarit Aura Oy",
+          "rating": 4.5,
+          "reviews": 88,
+          "price": 1240,
+          "earliest": "Mon 26 Oct",
+          "sort_order": 2
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "home_p10_t1",
+          "season": "autumn",
+          "title": "Shut off outdoor tap",
+          "due": "23 Oct",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Vantaa",
+          "sort_order": 0
+        },
+        {
+          "task_id": "home_p10_t2",
+          "season": "autumn",
+          "title": "Clean gutters",
+          "due": "31 Oct",
+          "reason": "age",
+          "reason_text": "Last cleaned 14 months ago",
+          "sort_order": 1
+        },
+        {
+          "task_id": "home_p10_t3",
+          "season": "winter",
+          "title": "Check roof snow load",
+          "due": "Jan",
+          "reason": "weather",
+          "reason_text": "Heavy snow is common in January",
+          "sort_order": 2
+        },
+        {
+          "task_id": "home_p10_t4",
+          "season": "spring",
+          "title": "Inspect drainage well",
+          "due": "Apr",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 3
+        },
+        {
+          "task_id": "home_p10_t5",
+          "season": "autumn",
+          "title": "Winterize the boat engine",
+          "due": "31 Oct",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Vantaa",
+          "sort_order": 4
+        }
+      ],
+      "reminders": [
+        "home_p10_t2"
+      ]
+    },
+    {
+      "profile_id": "p11",
+      "summary": "Car + dog: newer car, older large dog, silver",
+      "classes": [
+        "car",
+        "dog"
+      ],
+      "customer": {
+        "customer_id": "cust_p11",
+        "name": "Tapio"
+      },
+      "home": null,
+      "objects": [
+        {
+          "object_id": "cust_p11_car",
+          "class_id": "car",
+          "name": "Volkswagen Golf 2020",
+          "profile": {
+            "model_year": 2020,
+            "winter_tyres_year": 2018,
+            "last_service": "2025-09-20"
+          },
+          "history": [
+            {
+              "label": "Clean driving record, 3 years",
+              "points": 180
+            },
+            {
+              "label": "Driver safety course",
+              "points": 40
+            }
+          ],
+          "details": {}
+        },
+        {
+          "object_id": "cust_p11_dog",
+          "class_id": "dog",
+          "name": "Sisu, Golden Retriever",
+          "profile": {
+            "breed_size": "large",
+            "birth_year": 2016,
+            "vaccinations_valid": "no"
+          },
+          "history": [
+            {
+              "label": "Insured since a puppy",
+              "points": 100
+            }
+          ],
+          "details": {}
+        }
+      ],
+      "risks": [
+        {
+          "area": "tyres",
+          "title": "Winter tyres over five years old",
+          "why": "Old rubber grips the ice far worse.",
+          "explain": "Your winter tyres are from 2018. Rubber hardens with age and the braking distance on ice grows.",
+          "fix": "A tyre shop checks the tread and fits new winter tyres if needed.",
+          "diy": "Measure the tread depth yourself, then book a tyre check.",
+          "risk_id": "car-tyres@cust_p11_car",
+          "object_id": "cust_p11_car",
+          "sort_order": 0
+        },
+        {
+          "area": "vaccine",
+          "title": "Sisu's vaccinations are out of date",
+          "why": "Parvovirus and distemper need long, costly care.",
+          "explain": "An unvaccinated dog can catch parvovirus or distemper, which need long and costly care.",
+          "fix": "A vet renews the vaccinations.",
+          "diy": "There is no way to do this yourself; book a vet visit.",
+          "risk_id": "dog-vaccine@cust_p11_dog",
+          "object_id": "cust_p11_dog",
+          "sort_order": 1
+        },
+        {
+          "area": "joints",
+          "title": "Older large dog without a joint check",
+          "why": "Hip problems get worse without early care.",
+          "explain": "Large dogs over six years old often develop hip and elbow problems that get worse without care.",
+          "fix": "A vet checks the hips and the elbows.",
+          "diy": "Watch for stiffness after walks, then book a vet check.",
+          "risk_id": "dog-joints@cust_p11_dog",
+          "object_id": "cust_p11_dog",
+          "sort_order": 2
+        }
+      ],
+      "bids": [
+        {
+          "bid_id": "cust_p11_b0",
+          "name": "Kotihuolto Kaarina Oy",
+          "rating": 4.3,
+          "reviews": 214,
+          "price": 1720,
+          "earliest": "Tue 20 Oct",
+          "sort_order": 0
+        },
+        {
+          "bid_id": "cust_p11_b1",
+          "name": "Turun Talonmies Palvelut Oy",
+          "rating": 4.6,
+          "reviews": 70,
+          "price": 1430,
+          "earliest": "Fri 23 Oct",
+          "sort_order": 1
+        },
+        {
+          "bid_id": "cust_p11_b2",
+          "name": "Tuholaistorjunta Pesäpuu Oy",
+          "rating": 4.0,
+          "reviews": 179,
+          "price": 1370,
+          "earliest": "Thu 22 Oct",
+          "sort_order": 2
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "cust_p11_t1",
+          "season": "autumn",
+          "title": "Change to winter tyres",
+          "due": "15 Nov",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Lahti",
+          "sort_order": 0
+        },
+        {
+          "task_id": "cust_p11_t2",
+          "season": "spring",
+          "title": "Book the yearly car service",
+          "due": "Apr",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 1
+        },
+        {
+          "task_id": "cust_p11_t3",
+          "season": "spring",
+          "title": "Book the yearly vet check",
+          "due": "Apr",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 2
+        }
+      ],
+      "reminders": [
+        "cust_p11_t1",
+        "cust_p11_t3"
+      ]
+    },
+    {
+      "profile_id": "p12",
+      "summary": "House + cottage + dog: new flat, cottage and small dog, platinum",
+      "classes": [
+        "house",
+        "cottage",
+        "dog"
+      ],
+      "customer": {
+        "customer_id": "cust_p12",
+        "name": "Saara"
+      },
+      "home": {
+        "home_id": "home_p12",
+        "street": "Linnankatu 9",
+        "postal_code": "20100",
+        "city": "Turku"
+      },
+      "objects": [
+        {
+          "object_id": "home_p12",
+          "class_id": "house",
+          "name": "Linnankatu 9, Turku",
+          "house_profile_values": {
+            "house_type": "flat",
+            "building_year": 2021,
+            "heating": "district",
+            "pipe_material": "pex",
+            "roof_material": "bitumen_felt",
+            "ventilation": "mechanical_supply_exhaust",
+            "sauna": "electric_stove",
+            "foundation_type": "slab_on_ground",
+            "last_electrical_check": "2025-08-01"
+          },
+          "history": [
+            {
+              "label": "Smoke alarms registered",
+              "points": 90
+            },
+            {
+              "label": "Electrical check done",
+              "points": 160
+            },
+            {
+              "label": "Water leak sensor installed",
+              "points": 130
+            }
+          ],
+          "details": {
+            "address": "Linnankatu 9, 20100 Turku",
+            "type": "Flat",
+            "year": 2021,
+            "size": 56,
+            "heating": "District heating"
+          }
+        },
+        {
+          "object_id": "cust_p12_cottage",
+          "class_id": "cottage",
+          "name": "Pine cottage, Parainen",
+          "profile": {
+            "building_year": 2008,
+            "heating": "electric",
+            "water_winterized": "no",
+            "last_chimney_sweep": "2025-07-01"
+          },
+          "history": [
+            {
+              "label": "Fire extinguisher registered",
+              "points": 200
+            },
+            {
+              "label": "Chimney swept",
+              "points": 150
+            }
+          ],
+          "details": {}
+        },
+        {
+          "object_id": "cust_p12_dog",
+          "class_id": "dog",
+          "name": "Tipsu, Papillon",
+          "profile": {
+            "breed_size": "small",
+            "birth_year": 2022,
+            "vaccinations_valid": "yes"
+          },
+          "history": [
+            {
+              "label": "Insured since a puppy",
+              "points": 300
+            },
+            {
+              "label": "Microchip registered",
+              "points": 160
+            }
+          ],
+          "details": {}
+        }
+      ],
+      "risks": [
+        {
+          "area": "ventilation",
+          "title": "Ventilation filters not changed",
+          "why": "Clogged filters raise damp and energy use.",
+          "explain": "Ventilation filters need changing about once a year; clogged ones let damp build up.",
+          "fix": "A partner cleans the ducts and changes the filters.",
+          "diy": "Change the filters yourself, then book a duct check.",
+          "risk_id": "vent@home_p12",
+          "object_id": "home_p12",
+          "sort_order": 0
+        },
+        {
+          "area": "fire",
+          "title": "Smoke alarms not tested",
+          "why": "A dead battery gives no warning in a fire.",
+          "explain": "Smoke alarms should be tested every few months and replaced after about ten years.",
+          "fix": "A partner tests the alarms and replaces old ones.",
+          "diy": "Press the test button on each alarm, then book a check if one fails.",
+          "risk_id": "alarm@home_p12",
+          "object_id": "home_p12",
+          "sort_order": 1
+        },
+        {
+          "area": "frost",
+          "title": "Cottage pipes not drained for winter",
+          "why": "Frozen pipes burst and flood the floor in spring.",
+          "explain": "Water left in the pipes of an empty cottage freezes, bursts the pipes and floods the floor when it thaws.",
+          "fix": "A plumber drains the pipes and the water heater and closes the main valve before the frost.",
+          "diy": "Drain the pipes yourself with a checklist, then book a quick check.",
+          "risk_id": "cottage-pipes@cust_p12_cottage",
+          "object_id": "cust_p12_cottage",
+          "sort_order": 2
+        }
+      ],
+      "bids": [
+        {
+          "bid_id": "home_p12_b0",
+          "name": "Kotihuolto Kaarina Oy",
+          "rating": 4.3,
+          "reviews": 181,
+          "price": 305,
+          "earliest": "Tue 20 Oct",
+          "sort_order": 0
+        },
+        {
+          "bid_id": "home_p12_b1",
+          "name": "Ilmavirta Huolto Oy",
+          "rating": 4.4,
+          "reviews": 129,
+          "price": 230,
+          "earliest": "Fri 23 Oct",
+          "sort_order": 1
+        },
+        {
+          "bid_id": "home_p12_b2",
+          "name": "Nuohouspalvelu Savusieppo Oy",
+          "rating": 4.8,
+          "reviews": 33,
+          "price": 75,
+          "earliest": "Mon 26 Oct",
+          "sort_order": 2
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "home_p12_t1",
+          "season": "summer",
+          "title": "Test smoke alarms",
+          "due": "Jun",
+          "reason": "law",
+          "reason_text": "Required by the Rescue Act",
+          "sort_order": 0
+        },
+        {
+          "task_id": "home_p12_t2",
+          "season": "autumn",
+          "title": "Drain the cottage water pipes",
+          "due": "20 Oct",
+          "reason": "weather",
+          "reason_text": "Frost forecast in Turku",
+          "sort_order": 1
+        },
+        {
+          "task_id": "home_p12_t3",
+          "season": "spring",
+          "title": "Book the yearly vet check",
+          "due": "Apr",
+          "reason": "partner",
+          "reason_text": "Recommended in partner report",
+          "sort_order": 2
+        }
+      ],
+      "reminders": [
+        "home_p12_t1"
+      ]
+    }
+  ]
+}

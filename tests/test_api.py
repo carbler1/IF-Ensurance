@@ -261,3 +261,30 @@ def test_preset_points_and_add_insurance(tmp_path, monkeypatch):
         assert c.post("/v1/me/insurances", headers=h, json={"class_id": "boat"}).status_code == 409
         assert c.post("/v1/me/insurances", headers=h, json={"class_id": "nope"}).status_code == 404
         assert c.post("/v1/me/insurances", headers=H, json={"class_id": "dog"}).status_code == 409  # the demo customer has all five
+
+
+def test_demo_profiles_reset(tmp_path, monkeypatch):
+    from backend import db
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "t.sqlite")
+    monkeypatch.setattr(db, "UPLOADS", tmp_path / "up")
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("CUSTOMER_TOKEN", "t")
+    monkeypatch.setenv("ADMIN_TOKEN", "a")
+    from backend.api import app
+    A = {"X-Admin-Token": "a"}
+    profiles = json.loads((ROOT / "data/profiles.json").read_text())["profiles"]
+    ids = lambda c: {x["customer_id"] for x in c.get("/v1/admin/customers", headers=A).json()["customers"]}  # noqa: E731
+    with TestClient(app) as c:
+        assert c.post("/v1/admin/demo/profiles/reset").status_code == 401
+        r = c.post("/v1/admin/demo/profiles/reset", headers=A)
+        assert r.status_code == 200
+        counts = r.json()
+        assert counts == {"customers": 12, "homes": sum(p["home"] is not None for p in profiles),
+                          "objects": sum(len(p["objects"]) for p in profiles), "risks": sum(len(p["risks"]) for p in profiles),
+                          "bids": sum(len(p["bids"]) for p in profiles), "tasks": sum(len(p["tasks"]) for p in profiles)}
+        got = ids(c)
+        assert got == {"cust_01"} | {p["customer"]["customer_id"] for p in profiles}  # cust_02..cust_51 are gone
+        assert c.post("/v1/admin/demo/profiles/reset", headers=A).json() == counts  # idempotent
+        assert ids(c) == got
+        d = c.get("/v1/me/app", headers=H)
+        assert d.status_code == 200 and d.json()["customer"]["id"] == "cust_01" and d.json()["aggregate"] == 599

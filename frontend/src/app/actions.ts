@@ -124,6 +124,16 @@ export async function saveTier(_: SaveState, form: FormData): Promise<SaveState>
   );
 }
 
+export async function resetProfiles(): Promise<SaveState> {
+  try {
+    const c = await api.resetProfiles();
+    ["/", "/customers", "/simulator", "/scoring", "/tiers", "/partners"].forEach((p) => revalidatePath(p));
+    return { ok: true, message: `Reset: ${c.customers} customers, ${c.homes} homes, ${c.objects} objects, ${c.risks} risks, ${c.bids} bids, ${c.tasks} tasks.` };
+  } catch (e) {
+    return { ok: false, message: e instanceof ApiError ? e.message : "The reset failed." };
+  }
+}
+
 export type SimInput = { object_id: string | null; class_id: string; name: string; profile: Record<string, ProfileValue>; history: { label: string; points: number }[] };
 
 /** The simulator asks the backend for the numbers; nothing is saved. */

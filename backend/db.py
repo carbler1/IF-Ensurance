@@ -11,12 +11,13 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from sqlalchemy import Engine, create_engine, delete, event, select
+from sqlalchemy import Engine, create_engine, delete, event, func, select
 from sqlalchemy.orm import Session
 
 from backend import presets
-from backend.models import (AssignedRisk, Base, Bid, Booking, Customer, DiscountBand, FixRule, Home, InsuranceClass,
-                            InsuranceSettings, InsuredObject, MaintenanceTask, Partner, Profile, Reminder, StaffAccount, Tier)
+from backend.models import (AssignedRisk, Base, Bid, Booking, Customer, DiscountBand, Document, FixRule, Home, InsuranceClass,
+                            InsuranceSettings, InsuredObject, Job, MaintenanceTask, Partner, Profile, Reminder, RiskText,
+                            ScoreEvent, StaffAccount, Tier, WorkOrder)
 
 ROOT = Path(__file__).resolve().parent.parent
 VAR = ROOT / "var"
@@ -227,6 +228,70 @@ def reset_demo(s: Session) -> None:
         s.execute(delete(m))
     s.commit()
     seed(s)
+
+
+def reset_to_profiles(s: Session) -> dict:
+    """Reset the demo (reset_demo keeps cust_01), delete the generated preset customers and homes
+    (cust_02..cust_51) and any earlier load of data/profiles.json, then load its profiles.
+    The delete and the load share one transaction. Returns the counts."""
+    reset_demo(s)  # also seeds the rules, classes and settings the loader needs
+    data = json.loads((ROOT / "data" / "profiles.json").read_text())["profiles"]
+    props = list(json.loads((ROOT / "data" / "home-profile.schema.json").read_text())["properties"])
+    cids = [f"cust_{i:02d}" for i in range(2, presets.COUNT + 2)] + [p["customer"]["customer_id"] for p in data]
+    hids = [f"home_{i:02d}" for i in range(2, presets.COUNT + 2)] + [p["home"]["home_id"] for p in data if p["home"]]
+    try:
+        s.execute(delete(Booking).where(Booking.customer_id.in_(cids)))
+        s.execute(delete(Reminder).where(Reminder.customer_id.in_(cids)))
+        s.execute(delete(MaintenanceTask).where(MaintenanceTask.customer_id.in_(cids)))
+        s.execute(delete(Bid).where(Bid.customer_id.in_(cids)))
+        objs = select(InsuredObject.object_id).where(InsuredObject.customer_id.in_(cids))
+        s.execute(delete(AssignedRisk).where(AssignedRisk.object_id.in_(objs)))
+        s.execute(delete(InsuredObject).where(InsuredObject.customer_id.in_(cids)))
+        s.execute(delete(ScoreEvent).where(ScoreEvent.home_id.in_(hids)))
+        s.execute(delete(WorkOrder).where(WorkOrder.home_id.in_(hids)))
+        s.execute(delete(RiskText).where(RiskText.home_id.in_(hids)))
+        s.execute(delete(Job).where(Job.document_id.in_(select(Document.document_id).where(Document.home_id.in_(hids)))))
+        s.execute(delete(Document).where(Document.home_id.in_(hids)))
+        s.execute(delete(Profile).where(Profile.home_id.in_(hids)))
+        s.execute(delete(Home).where(Home.home_id.in_(hids)))
+        s.execute(delete(Customer).where(Customer.customer_id.in_(cids)))
+        now = now_iso()
+        ev = {"register": "preset"}
+        for p in data:
+            c, h = p["customer"], p["home"]
+            cid = c["customer_id"]
+            s.add(Customer(customer_id=cid, name=c["name"], created_at=now))
+            s.flush()
+            if h:
+                s.add(Home(**h, created_at=now, customer_id=cid))
+                s.flush()
+            for o in p["objects"]:
+                if o["class_id"] == "house":
+                    vals = o["house_profile_values"]
+                    prof = {n: ({"value": vals[n], "confidence": 0.9, "source": "register", "evidence": ev, "doubt": False}
+                                if n in vals else {"value": "unknown", "confidence": 0, "source": "none", "evidence": None, "doubt": False})
+                            for n in props}
+                    s.add(Profile(home_id=o["object_id"], profile=json.dumps(prof), updated_at=now))
+                s.add(InsuredObject(object_id=o["object_id"], customer_id=cid, class_id=o["class_id"], name=o["name"],
+                                    profile=json.dumps(o["profile"]) if "profile" in o else None,
+                                    history=json.dumps(o["history"]), details=json.dumps(o["details"]), created_at=now))
+            s.flush()
+            s.add_all(AssignedRisk(**r) for r in p["risks"])
+            s.add_all(Bid(**b, customer_id=cid) for b in p["bids"])
+            s.add_all(MaintenanceTask(**t, customer_id=cid) for t in p["tasks"])
+            s.flush()
+            s.add_all(Reminder(customer_id=cid, task_id=t) for t in p["reminders"])
+        n = lambda m, col: s.scalar(select(func.count()).select_from(m).where(col.in_([p["customer"]["customer_id"] for p in data])))  # noqa: E731
+        counts = {"customers": n(Customer, Customer.customer_id), "homes": n(Home, Home.customer_id),
+                  "objects": n(InsuredObject, InsuredObject.customer_id), "bids": n(Bid, Bid.customer_id),
+                  "tasks": n(MaintenanceTask, MaintenanceTask.customer_id),
+                  "risks": s.scalar(select(func.count()).select_from(AssignedRisk).where(AssignedRisk.object_id.in_(
+                      select(InsuredObject.object_id).where(InsuredObject.customer_id.in_([p["customer"]["customer_id"] for p in data])))))}
+        s.commit()
+    except Exception:
+        s.rollback()
+        raise
+    return counts
 
 
 def partner_dict(p: Partner) -> dict:

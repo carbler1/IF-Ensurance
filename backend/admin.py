@@ -314,6 +314,12 @@ def demo_reset(s: Session = Depends(_session)):
     return {"status": "reset"}
 
 
+@router.post("/demo/profiles/reset")
+def demo_profiles_reset(s: Session = Depends(_session)):
+    """Demo reset, then replace the 50 generated presets with the profiles of data/profiles.json. Keeps cust_01."""
+    return db.reset_to_profiles(s)
+
+
 # --- Partners and tiers -----------------------------------------------------------------------
 
 @router.get("/partners")

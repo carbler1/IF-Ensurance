@@ -52,5 +52,6 @@ export const api = {
   deleteRule: (id: string) => send<void>("DELETE", `/rules/${encodeURIComponent(id)}`),
   patchPartner: (id: string, body: unknown) => send<Partner>("PATCH", `/partners/${encodeURIComponent(id)}`, body),
   patchTier: (index: number, body: unknown) => send<Tier>("PATCH", `/tiers/${index}`, body),
+  resetProfiles: () => send<Record<"customers" | "homes" | "objects" | "risks" | "bids" | "tasks", number>>("POST", "/demo/profiles/reset"),
   simulate: (objects: unknown) => send<Simulation>("POST", "/simulate", { objects }),
 };
