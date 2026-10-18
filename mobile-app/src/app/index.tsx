@@ -6,7 +6,7 @@ import { useStore } from "@/lib/store";
 import { colors, radius, shadows, tierColors } from "@/lib/theme";
 
 export default function Dashboard() {
-  const { t, scores, aggregate: score, completed, customer, insurances, risks, tiers, model, home, getTier, getBand } = useStore();
+  const { t, aggregate: score, completed, customer, allInsurances, risks, tiers, model, home, getTier, getBand } = useStore();
   const { tier, next } = getTier(score);
   const city = home.address.replace(/^.*\d{5}\s*/, ""); // the address ends in "20100 Turku"
   // The open fix worth the most points, across all five insurances.
@@ -44,16 +44,16 @@ export default function Dashboard() {
       {/* The five insurances as one row of equal columns: no orphan tile, and quieter than the hero. */}
       <LinkBlock
         href="/score"
-        accessibilityLabel={insurances.map(({ id }) => `${t(`ins.${id}`)} ${scores[id]}, ${getBand(scores[id]) ? fmt(t("band.off"), { pct: getBand(scores[id]) }) : t("band.none")}`).join("; ")}
+        accessibilityLabel={allInsurances.map(({ id, score: s }) => `${t(`ins.${id}`)} ${s}, ${getBand(s) ? fmt(t("band.off"), { pct: getBand(s) }) : t("band.none")}`).join("; ")}
       >
         <Card style={{ flexDirection: "row", paddingHorizontal: 4, paddingVertical: 10 }}>
-          {insurances.map(({ id }, i) => {
+          {allInsurances.map(({ id, score: own }, i) => {
             const Icon = insuranceIcon[id];
-            const pct = getBand(scores[id]);
+            const pct = getBand(own);
             return (
               <View key={id} style={[{ flex: 1, alignItems: "center", gap: 1 }, i > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border }]}>
                 <Icon size={18} color={colors.primary} />
-                <Text size="xl" display weight={600} tabular maxFontSizeMultiplier={1.3}>{scores[id]}</Text>
+                <Text size="xl" display weight={600} tabular maxFontSizeMultiplier={1.3}>{own}</Text>
                 <Text size="xs" weight={600} color={pct ? "success" : "mutedForeground"} maxFontSizeMultiplier={1.3} numberOfLines={1} adjustsFontSizeToFit>{pct ? fmt(t("band.off"), { pct }) : "—"}</Text>
               </View>
             );
