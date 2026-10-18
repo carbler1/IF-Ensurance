@@ -260,7 +260,7 @@ def reset_to_profiles(s: Session) -> dict:
         for p in data:
             c, h = p["customer"], p["home"]
             cid = c["customer_id"]
-            s.add(Customer(customer_id=cid, name=c["name"], created_at=now))
+            s.add(Customer(customer_id=cid, name=c["name"], created_at=now, password_hash=None, token_hash=None))
             s.flush()
             if h:
                 s.add(Home(**h, created_at=now, customer_id=cid))

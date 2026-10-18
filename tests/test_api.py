@@ -27,6 +27,8 @@ def test_routes(tmp_path, monkeypatch):
             s.add(RiskText(home_id="home_01", risk_id="elec.check.overdue", why="w", benefit="b",
                            llm_proposed=0, generated_at=now))
             s.commit()
+        for p in ("/v1/homes/me/risks", "/v1/homes/me/risks/x", "/v1/homes/me/maintenance"):
+            assert c.get(p).status_code == 401
         r = c.get("/v1/homes/me/risks", headers=H).json()
         assert set(r) == set(fx("risks.json")) and r["risks"]
         assert set(r["risks"][0]) == set(fx("risks.json")["risks"][0])
@@ -162,7 +164,7 @@ def test_app_api(tmp_path, monkeypatch):
     from backend.api import app
     demo = json.loads((ROOT / "data/demo-person.json").read_text())
     with TestClient(app) as c:
-        assert c.get("/v1/me/app").json()["customer"]["id"] == "cust_01"  # no token needed
+        assert c.get("/v1/me/app").status_code == 401
         d = c.get("/v1/me/app", headers=H).json()
         # The app's person comes back exactly as data/demo-person.json has them.
         assert d["customer"]["name"] == demo["customer"]["name"] and d["home"]["address"] == demo["home"]["address"]
