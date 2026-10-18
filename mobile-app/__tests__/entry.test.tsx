@@ -12,9 +12,9 @@ describe("Entry screen", () => {
     expect(await screen.findByText("Who do you want to insure?")).toBeOnTheScreen();
     expect(screen.queryByText("Good evening, Aino")).not.toBeOnTheScreen();
 
-    fireEvent.press(screen.getByLabelText("Cat"));
+    fireEvent.press(screen.getByLabelText("Boat"));
 
     expect(await screen.findByText("Good evening, Aino")).toBeOnTheScreen();
-    expect(memStorage.get("ilp.choice")).toBe("cat");
+    expect(memStorage.get("ilp.choice")).toBe("boat");
   });
 });
