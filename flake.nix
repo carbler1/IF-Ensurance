@@ -24,10 +24,20 @@
               || { echo "claude: not installed. Install Claude Code first: https://claude.com/claude-code" >&2; exit 1; }
             exec "$real" --plugin-dir ${ponytail} "$@"
           '';
+          # Runs the customer app on a USB-connected Android phone in Expo Go (mobile-app/README.md).
+          phone = pkgs.writeShellScriptBin "phone" ''
+            port="''${1:-8083}"
+            adb wait-for-device
+            adb reverse tcp:"$port" tcp:"$port"
+            adb reverse tcp:8000 tcp:8000
+            cd "$(git rev-parse --show-toplevel)/mobile-app"
+            [ -d node_modules ] || npm install
+            exec npx expo start --localhost --port "$port" --android
+          '';
         in {
           default = pkgs.mkShell {
             # No openssh: the system ssh keeps macOS options such as UseKeychain working.
-            packages = [ claude ] ++ (with pkgs; [ git gh jq ripgrep curl ]);
+            packages = [ claude phone ] ++ (with pkgs; [ git gh jq ripgrep curl nodejs_24 android-tools ]);
             # Link skills at the repo root, also when nix develop runs in a subfolder.
             shellHook = ''
               (

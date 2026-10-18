@@ -8,25 +8,24 @@ Prompt version: 3, the single line in `prompts/VERSION`. Model: `qwen3.5:9b`. Sc
 |---|---|
 | `format` | the content of `prompts/extract.schema.json` |
 | `temperature` | 0 |
-| `num_ctx` | 16384 (measured on pc-btw 2026-10-17, see `docs/systemdesign/DESIGN.md` §6) |
+| `num_ctx` | 16384 (measured on pc-btw 2026-10-17, see `docs/DESIGN.md`) |
 | `think` | false. With thinking on, a call takes 54 s and the JSON is cut. |
 | Input | one unit of the report as text |
 | Output | profile field candidates, see the schema |
 
 The worker fails the job when `done_reason` is `length` or `prompt_eval_count` reaches `num_ctx`.
 
-## Chunking rule
+## Input
 
-Measured on pc-btw 2026-10-17: small units made the model invent values (19 %); the whole report invented none.
+The backend sends the whole report text as one unit. Measured on pc-btw 2026-10-17: small units made the model invent values (19 %); the whole report invented none.
 
-1. Text PDFs: a report under 20,000 characters is one unit. A longer report splits at the top-level KH sections (1 to 12) into units of 8,000 to 20,000 characters, never above 24,000.
-2. Scanned PDFs (no text layer): phase 1 fails the job. Page images are later work (`docs/systemdesign/LATER.md` §1).
+A PDF with no text layer fails the job (`no_text_layer`). Page images are not supported.
 
 The backend fills the template placeholders (`{{document_id}}`, `{{page}}`, `{{section_heading}}`, `{{section_text}}`). For a whole-report unit, `section_heading` is the report title and `page` is null; the backend finds each quote's page in the page texts.
 
 ## After the call
 
-The backend validates the output against `prompts/extract.schema.json`, then checks each candidate's `value` against the field's own type in `data/home-profile.schema.json` (enum, year 1800 to 2100, ISO date, or `"unknown"`). A candidate that fails is dropped and logged; the rest go to the merge step (`docs/systemdesign/DESIGN.md` §6) with `source: "document"` and `evidence: {document_id, page, quote}`.
+The backend validates the output against `prompts/extract.schema.json`, then checks each candidate's `value` against the field's own type in `data/home-profile.schema.json` (enum, year 1800 to 2100, ISO date, or `"unknown"`). A candidate that fails is dropped and logged; the rest go to the merge step (`docs/DESIGN.md`) with `source: "document"` and `evidence: {document_id, page, quote}`.
 
 ## System prompt
 

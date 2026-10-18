@@ -8,12 +8,12 @@ Prompt version: 3, the single line in `prompts/VERSION`. Model: `qwen3.5:9b`. Sc
 |---|---|
 | `format` | the content of `prompts/write.schema.json` |
 | `temperature` | 0 |
-| `num_ctx` | 16384 (measured on pc-btw 2026-10-17, see `docs/systemdesign/DESIGN.md` §6) |
+| `num_ctx` | 16384 (measured on pc-btw 2026-10-17, see `docs/DESIGN.md`) |
 | `think` | false |
 | Input | one JSON object (below): the home profile, the matched entries in full, the unmatched entries as id and title |
 | Output | per matched entry `why`, `benefit`, `doubt`, `doubt_reason`; plus `proposed_additions` |
 
-Sizing: 16384 holds about 20 matched entries. Above 20, the backend trims the unmatched list. The worker fails the job when `done_reason` is `length` or `prompt_eval_count` reaches `num_ctx`.
+Sizing: 16384 holds about 20 matched entries. The worker fails the job when `done_reason` is `length` or `prompt_eval_count` reaches `num_ctx`.
 
 ## Input object
 
@@ -47,7 +47,7 @@ The backend builds this object and pastes it into the user prompt as `{{input_js
 
 ## After the call
 
-`prompts/write.schema.json` is the base schema. For each call the backend copies it and sets `enum` on the item id to the matched ids, `enum` on the proposed-addition id to the unmatched ids, and `minItems` and `maxItems` on `items` to the matched count; it sends that copy as `format`. The backend validates the output against the same copy, then checks: `items` ids equal the matched ids (missing ones get the hint texts without the `DRAFT: ` prefix as fallback and `doubt: true`; extra ones are dropped); `proposed_additions` ids are in the unmatched list (others are dropped and logged with `dropped: true`). Severity, probability and points come from the catalogue. When proposed additions remain, the backend runs this prompt a second time with those entries in full as `matched`, their triggering facts from `condition_leaves()` in `scripts/catalogue/validate.py`, and an empty `unmatched` list; their texts are stored with `llm_proposed` true. Phase 1 stores `why` and `benefit` in `risk_texts`. The raw model text, the `doubt` flags and the dropped ids go to the worker log only (decision 11).
+`prompts/write.schema.json` is the base schema. For each call the backend copies it and sets `enum` on the item id to the matched ids, `enum` on the proposed-addition id to the unmatched ids, and `minItems` and `maxItems` on `items` to the matched count; it sends that copy as `format`. The backend checks the output: `items` ids equal the matched ids (missing ones get the hint texts without the `DRAFT: ` prefix as fallback; extra ones are dropped); `proposed_additions` ids are in the unmatched list (others are dropped and logged). Severity, probability and points come from the catalogue. When proposed additions remain, the backend runs this prompt a second time with those entries in full as `matched`, their triggering facts from `condition_leaves()` in `scripts/catalogue/validate.py`, and an empty `unmatched` list; their texts are stored with `llm_proposed` true. Phase 1 stores `why` and `benefit` in `risk_texts`. The raw model text, the `doubt` flags and the dropped ids go to the worker log only.
 
 ## System prompt
 
