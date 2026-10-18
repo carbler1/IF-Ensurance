@@ -5,7 +5,7 @@ import { Plus, Trash2, X } from "lucide-react";
 import { addRule, deleteRule, saveClass, saveRule } from "@/app/actions";
 import { describe, fieldLabel, rowsToCondition, type FieldInfo, type Row } from "@/lib/context";
 import type { InsuranceClass, Risk, Rule } from "@/lib/types";
-import { Button, ConfirmSubmit, Label, SaveForm, Switch } from "./form";
+import { Button, ConfirmSubmit, Label, SaveForm, Switch, useReadOnly } from "./form";
 import { Card, Disclosure, IconTile, Pill, Segmented, categoryIcon, classIcon, eur, humanize, inputClass } from "./ui";
 
 function RuleEditor({ rule }: { rule: Rule }) {
@@ -137,6 +137,7 @@ function AddRule({ risk, fields, onDone, defaults }: { risk: Risk; fields: Field
 
 function FixCard({ risk, rules, fields }: { risk: Risk; rules: Rule[]; fields: FieldInfo[] }) {
   const [adding, setAdding] = useState(false);
+  const readOnly = useReadOnly();
   const Icon = categoryIcon[risk.category] ?? categoryIcon.roof;
   const def = rules.find((r) => r.is_default);
   const contextRules = rules.filter((r) => !r.is_default).sort((a, b) => b.priority - a.priority || a.rule_id.localeCompare(b.rule_id));
@@ -162,7 +163,7 @@ function FixCard({ risk, rules, fields }: { risk: Risk; rules: Rule[]; fields: F
         {adding ? (
           <AddRule risk={risk} fields={fields} defaults={def} onDone={() => setAdding(false)} />
         ) : (
-          <Button type="button" variant="outline" big={false} onClick={() => setAdding(true)}><Plus className="h-4 w-4" />Add a context</Button>
+          <Button type="button" variant="outline" big={false} disabled={readOnly} onClick={() => setAdding(true)}><Plus className="h-4 w-4" />Add a context</Button>
         )}
       </div>
     </Disclosure>

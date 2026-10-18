@@ -1,5 +1,6 @@
 import "server-only";
 import { connection } from "next/server";
+import { isReadOnly } from "@/config";
 import type { Band, Customer, InsuranceClass, Overview, Partner, Rule, Settings, Simulation, Tier } from "./types";
 
 // Every read and write goes through the backend's /v1/admin API; the dashboard never touches the
@@ -43,15 +44,21 @@ export const getTiers = () => read<{ tiers: Tier[] }>("/tiers").then((r) => r.ti
 const send = <T>(method: "POST" | "PATCH" | "PUT" | "DELETE", path: string, body?: unknown) =>
   call<T>(path, { method, body: body === undefined ? undefined : JSON.stringify(body) });
 
+// Every write goes through here, so read-only mode stops it before the backend is called.
+const write = <T>(method: "PATCH" | "PUT" | "POST" | "DELETE", path: string, body?: unknown) => {
+  if (isReadOnly()) throw new ApiError("Editing is disabled.");
+  return send<T>(method, path, body);
+};
+
 export const api = {
-  patchSettings: (body: { insurance_score_start: number }) => send("PATCH", "/settings", body),
-  putBands: (bands: Band[]) => send("PUT", "/bands", { bands }),
-  patchClass: (id: string, body: { base_annual_premium_eur: number }) => send("PATCH", `/classes/${encodeURIComponent(id)}`, body),
-  createRule: (body: unknown) => send<Rule>("POST", "/rules", body),
-  patchRule: (id: string, body: unknown) => send<Rule>("PATCH", `/rules/${encodeURIComponent(id)}`, body),
-  deleteRule: (id: string) => send<void>("DELETE", `/rules/${encodeURIComponent(id)}`),
-  patchPartner: (id: string, body: unknown) => send<Partner>("PATCH", `/partners/${encodeURIComponent(id)}`, body),
-  patchTier: (index: number, body: unknown) => send<Tier>("PATCH", `/tiers/${index}`, body),
-  resetProfiles: () => send<Record<"customers" | "homes" | "objects" | "risks" | "bids" | "tasks", number>>("POST", "/demo/profiles/reset"),
+  patchSettings: (body: { insurance_score_start: number }) => write("PATCH", "/settings", body),
+  putBands: (bands: Band[]) => write("PUT", "/bands", { bands }),
+  patchClass: (id: string, body: { base_annual_premium_eur: number }) => write("PATCH", `/classes/${encodeURIComponent(id)}`, body),
+  createRule: (body: unknown) => write<Rule>("POST", "/rules", body),
+  patchRule: (id: string, body: unknown) => write<Rule>("PATCH", `/rules/${encodeURIComponent(id)}`, body),
+  deleteRule: (id: string) => write<void>("DELETE", `/rules/${encodeURIComponent(id)}`),
+  patchPartner: (id: string, body: unknown) => write<Partner>("PATCH", `/partners/${encodeURIComponent(id)}`, body),
+  patchTier: (index: number, body: unknown) => write<Tier>("PATCH", `/tiers/${index}`, body),
+  resetProfiles: () => write<Record<"customers" | "homes" | "objects" | "risks" | "bids" | "tasks", number>>("POST", "/demo/profiles/reset"),
   simulate: (objects: unknown) => send<Simulation>("POST", "/simulate", { objects }),
 };
