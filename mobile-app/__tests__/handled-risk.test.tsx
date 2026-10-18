@@ -1,5 +1,5 @@
 import { Slot, router } from "expo-router";
-import { act, fireEvent, renderRouter, screen } from "expo-router/testing-library";
+import { act, fireEvent, renderRouter, screen, waitFor } from "expo-router/testing-library";
 import JobStatus from "@/app/job/[id]";
 import RiskDetail from "@/app/risks/[id]";
 import { StoreProvider } from "@/lib/store";
@@ -34,6 +34,7 @@ describe("handled risk page", () => {
     expect(await screen.findByText("Booked")).toBeOnTheScreen();
 
     await press("Simulate next step");
+    await waitFor(() => expect(screen.getByText("Simulate next step")).toBeEnabled()); // disabled while saving
     await press("Simulate next step");
     expect(await screen.findByText("Your insurance score went up")).toBeOnTheScreen();
 

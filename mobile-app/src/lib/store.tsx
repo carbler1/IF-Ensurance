@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { InsuranceId } from "@/data/mock";
 import { dictionaries, type Lang, type TKey } from "@/lib/i18n";
 import { api } from "./api";
@@ -7,7 +7,7 @@ import type { AppData, Band, Job, JobStep, Tier } from "./types";
 export type { Job, JobStep } from "./types";
 
 // The customer's data lives in the backend; the store loads it once and saves every change there.
-// The bearer token is saved by api.ts; with a token the app skips onboarding. Language lives in memory only.
+// The bearer token is saved by api.ts; with a token the app skips onboarding. Language is saved under "ilp.lang".
 
 type Status = "loading" | "ready" | "error";
 
@@ -25,7 +25,7 @@ type Store = Omit<AppData, "insurances"> & {
   insurances: AppData["insurances"];
   jobs: Record<string, Job>;
   bookJob: (j: Omit<Job, "step">) => void;
-  advanceJob: (riskId: string) => void;
+  advanceJob: (riskId: string) => Promise<void>;
   completed: string[];
   /** Each insurance's own score, from the backend. */
   scores: Record<InsuranceId, number>;
@@ -70,7 +70,8 @@ export function tierFor(score: number, tiers: Tier[]) {
 const Ctx = createContext<Store | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>("en");
+  const [lang, setLangState] = useState<Lang>("en");
+  const setLang = useCallback((l: Lang) => { setLangState(l); api.setLang(l); }, []);
   const [onboarded, setOnboarded] = useState(false);
   const [data, setData] = useState<AppData>(EMPTY);
   const [status, setStatus] = useState<Status>("loading");
@@ -88,7 +89,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     );
   }, []);
   useEffect(() => {
-    api.restore().then((has) => {
+    Promise.all([api.restore(), api.getLang()]).then(([has, l]) => {
+      if (l === "en" || l === "fi" || l === "sv") setLangState(l);
       if (!has) return setStatus("ready");
       setOnboarded(true);
       reload();
@@ -100,10 +102,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Show the change at once, then take the backend's answer (it recomputes the scores).
+  // Only the latest request's reply is applied. A failed save refetches quietly, so the screen stays put.
+  const seq = useRef(0);
   const save = useCallback((optimistic: (d: AppData) => AppData, request: () => Promise<AppData>) => {
+    const mine = ++seq.current;
+    const apply = (d: AppData) => { if (mine === seq.current) setData(d); };
     setData(optimistic);
-    request().then(setData, () => reload());
-  }, [reload]);
+    return request().then(apply, () => api.load().then(apply, () => {}));
+  }, []);
 
   const value = useMemo<Store>(() => {
     const jobs: Record<string, Job> = Object.fromEntries(
@@ -143,7 +149,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return b && { percent: b.percent, min: b.min, pointsTo: b.min - score };
       },
     };
-  }, [lang, onboarded, data, status, error, reload, save, claimHome]);
+  }, [lang, setLang, onboarded, data, status, error, reload, save, claimHome]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

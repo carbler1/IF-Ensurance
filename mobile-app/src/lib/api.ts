@@ -10,10 +10,25 @@ const BASE = (process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000").replac
 const KEY = "ilp.token";
 let token = "";
 
-const storage = {
-  get: async () => (Platform.OS === "web" ? localStorage.getItem(KEY) : AsyncStorage.getItem(KEY)),
-  set: async (v: string) => (Platform.OS === "web" ? localStorage.setItem(KEY, v) : AsyncStorage.setItem(KEY, v)),
-  del: async () => (Platform.OS === "web" ? localStorage.removeItem(KEY) : AsyncStorage.removeItem(KEY)),
+// Browser storage can throw (private mode), so values also stay in memory.
+const mem: Record<string, string> = {};
+const raw = (k: string) => (Platform.OS === "web" ? Promise.resolve(localStorage.getItem(k)) : AsyncStorage.getItem(k));
+export const storage = {
+  get: async (k: string) => {
+    try { return (await raw(k)) ?? mem[k] ?? null; } catch { return mem[k] ?? null; }
+  },
+  set: async (k: string, v: string) => {
+    mem[k] = v;
+    try { await (Platform.OS === "web" ? localStorage.setItem(k, v) : AsyncStorage.setItem(k, v)); } catch {}
+  },
+  /** Deletes the key; with `only`, deletes it just when the stored value still equals it. */
+  del: async (k: string, only?: string) => {
+    delete mem[k];
+    try {
+      if (only !== undefined && (await raw(k)) !== only) return;
+      await (Platform.OS === "web" ? localStorage.removeItem(k) : AsyncStorage.removeItem(k));
+    } catch {}
+  },
 };
 
 export type HomeOption = { home_id: string; address: string; city: string; taken: boolean };
@@ -45,22 +60,25 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 const call = (path: string, init?: RequestInit) => request<AppData>(path, init);
 
 function forget() {
+  const old = token;
   token = "";
-  void storage.del();
+  void storage.del(KEY, old); // another tab may have stored a newer token
 }
 
 export const api = {
   /** Reads the stored token. True when the visitor already has a home. */
   restore: async () => {
-    token = (await storage.get()) ?? "";
+    token = (await storage.get(KEY)) ?? "";
     return token !== "";
   },
+  getLang: () => storage.get("ilp.lang"),
+  setLang: (l: string) => storage.set("ilp.lang", l),
   homes: () => request<{ homes: HomeOption[] }>("/homes-available").then((r) => r.homes),
   /** Claims a free home or signs in to a taken one, then keeps the token. */
   claim: async (homeId: string, password: string) => {
     const r = await request<{ token: string }>("/claim", { method: "POST", body: JSON.stringify({ home_id: homeId, password }) });
     token = r.token;
-    await storage.set(token);
+    await storage.set(KEY, token);
   },
   load: () => call("/me/app"),
   book: (riskId: string, bidId: string, mode: "hire" | "diy") =>

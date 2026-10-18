@@ -35,6 +35,8 @@ export class ApiError extends Error {}
 
 export const api = {
   restore: () => Promise.resolve(signedIn),
+  getLang: () => Promise.resolve(null as string | null),
+  setLang: (_l: string) => Promise.resolve(),
   homes: () => Promise.resolve([
     { home_id: "home_02", address: "Lehtotie 16, 13185 Hämeenlinna", city: "Hämeenlinna", taken: false },
     { home_id: "home_03", address: "Puutarhakatu 6, 65057 Vaasa", city: "Vaasa", taken: true },

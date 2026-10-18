@@ -65,6 +65,7 @@ export function Onboarding() {
   }, []);
   const submit = () => {
     if (!chosen || busy) return;
+    if (!chosen.taken && password.length < 8) return setProblem(t("ob.passwordShort"));
     setBusy(true);
     setProblem(null);
     claimHome(chosen.home_id, password).then(
