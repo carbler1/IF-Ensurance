@@ -39,6 +39,7 @@ export { default as TrendingDown } from "lucide-react-native/icons/trending-down
 export { default as TrendingUp } from "lucide-react-native/icons/trending-up";
 export { default as User } from "lucide-react-native/icons/user";
 export { default as UserPlus } from "lucide-react-native/icons/user-plus";
+export { default as Wind } from "lucide-react-native/icons/wind";
 export { default as Warehouse } from "lucide-react-native/icons/warehouse";
 export { default as Wrench } from "lucide-react-native/icons/wrench";
 export { default as X } from "lucide-react-native/icons/x";

@@ -20,7 +20,7 @@ import {
 import { Link, router, type Href } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, G, Line, Text as SvgText } from "react-native-svg";
-import { Bone, Car, ChevronLeft, CircleGauge, Cog, Dog, Droplets, Flame, Home as HomeIcon, Layers, Loader2, Sailboat, Snowflake, Syringe, TreePine, Warehouse, Wrench, Zap, type LucideIcon } from "@/lib/icons";
+import { Bone, Car, ChevronLeft, CircleGauge, Cog, Dog, Droplets, Flame, Home as HomeIcon, Layers, Loader2, Sailboat, Snowflake, Syringe, TreePine, Warehouse, Wind, Wrench, Zap, type LucideIcon } from "@/lib/icons";
 import type { InsuranceId, RiskArea } from "@/data/mock";
 import type { Band, Tier } from "@/lib/types";
 import { useStore } from "@/lib/store";
@@ -40,6 +40,7 @@ export const areaIcon: Record<RiskArea, LucideIcon> = {
   service: Wrench,
   vaccine: Syringe,
   joints: Bone,
+  ventilation: Wind,
 };
 
 export const insuranceIcon: Record<InsuranceId, LucideIcon> = {

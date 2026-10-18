@@ -15,7 +15,8 @@ export type RiskArea =
   | "tyres"
   | "service"
   | "vaccine"
-  | "joints";
+  | "joints"
+  | "ventilation";
 
 export type InsuranceId = "house" | "cottage" | "boat" | "car" | "dog";
 
