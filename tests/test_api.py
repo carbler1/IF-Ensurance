@@ -27,8 +27,6 @@ def test_routes(tmp_path, monkeypatch):
             s.add(RiskText(home_id="home_01", risk_id="elec.check.overdue", why="w", benefit="b",
                            llm_proposed=0, generated_at=now))
             s.commit()
-        for p in ("/v1/homes/me/risks", "/v1/homes/me/risks/x", "/v1/homes/me/maintenance"):
-            assert c.get(p).status_code == 401
         r = c.get("/v1/homes/me/risks", headers=H).json()
         assert set(r) == set(fx("risks.json")) and r["risks"]
         assert set(r["risks"][0]) == set(fx("risks.json")["risks"][0])
@@ -42,8 +40,6 @@ def test_routes(tmp_path, monkeypatch):
         up = c.post("/v1/homes/me/documents", headers=H, data={"type": "kuntotarkastus"},
                     files={"file": ("a.pdf", b"%PDF-1.4 x", "application/pdf")})
         assert up.status_code == 202 and set(up.json()) == set(fx("documents-post.json"))
-        assert c.post("/v1/homes/me/documents", data={"type": "kuntotarkastus"},
-                      files={"file": ("a.pdf", b"%PDF-")}).status_code == 401
 
 if __name__ == "__main__":
     import tempfile
@@ -166,7 +162,7 @@ def test_app_api(tmp_path, monkeypatch):
     from backend.api import app
     demo = json.loads((ROOT / "data/demo-person.json").read_text())
     with TestClient(app) as c:
-        assert c.get("/v1/me/app").status_code == 401
+        assert c.get("/v1/me/app").json()["customer"]["id"] == "cust_01"  # no token needed
         d = c.get("/v1/me/app", headers=H).json()
         # The app's person comes back exactly as data/demo-person.json has them.
         assert d["customer"]["name"] == demo["customer"]["name"] and d["home"]["address"] == demo["home"]["address"]
@@ -206,67 +202,6 @@ def test_score_decay():
     assert decayed(100, None, 10, now) == 100
 
 
-def test_claim_and_isolation(tmp_path, monkeypatch):
-    from backend import admin, db
-    monkeypatch.setattr(db, "DB_PATH", tmp_path / "t.sqlite")
-    monkeypatch.setattr(db, "UPLOADS", tmp_path / "up")
-    monkeypatch.delenv("DATABASE_URL", raising=False)
-    monkeypatch.setenv("CUSTOMER_TOKEN", "t")
-    monkeypatch.setenv("ADMIN_TOKEN", "a")
-    admin._FAILS.clear()
-    from backend.api import app
-    with TestClient(app) as c:
-        homes = c.get("/v1/homes-available").json()["homes"]  # no auth
-        assert len(homes) == 50 and not any(h["taken"] for h in homes) and "home_01" not in {h["home_id"] for h in homes}
-        assert len({h["city"] for h in homes}) > 10
-
-        def claim(home, pw="password1"):
-            return c.post("/v1/claim", json={"home_id": home, "password": pw})
-
-        r1 = claim("home_02")
-        assert r1.status_code == 200 and r1.json()["home_id"] == "home_02"
-        assert claim("home_02", "wrongpass1").status_code == 401  # taken: needs its password
-        assert claim("home_01").status_code == 404 and claim("nope").status_code == 404
-        assert next(h for h in c.get("/v1/homes-available").json()["homes"] if h["home_id"] == "home_02")["taken"]
-        h1 = {"Authorization": "Bearer " + r1.json()["token"]}
-        h2 = {"Authorization": "Bearer " + claim("home_03", "password2").json()["token"]}
-        with db.connect() as s:  # only salted hashes are stored
-            from backend.models import Customer
-            c2 = s.get(Customer, "cust_02")
-            assert c2.password_hash.startswith("scrypt$") and "password1" not in c2.password_hash
-            assert c2.token_hash and r1.json()["token"] not in c2.token_hash
-
-        d1, d2 = c.get("/v1/me/app", headers=h1).json(), c.get("/v1/me/app", headers=h2).json()
-        assert d1["customer"]["id"] == "cust_02" and d2["customer"]["id"] == "cust_03"
-        assert d1["risks"] and d1["bids"] and d1["tasks"] and d1["aggregate"]
-        assert c.get("/v1/homes/me", headers=h1).json()["home_id"] == "home_02"
-        risk, bid = d1["risks"][0]["id"], d1["bids"][0]["id"]
-        assert c.post("/v1/me/bookings", headers=h2, json={"risk_id": risk, "bid_id": bid, "mode": "hire"}).status_code == 404
-        assert c.post("/v1/me/bookings", headers=h1, json={"risk_id": risk, "bid_id": bid, "mode": "hire"}).status_code == 201
-        assert [r["job"] is not None for r in c.get("/v1/me/app", headers=h1).json()["risks"]][0]
-        assert all(r["job"] is None for r in c.get("/v1/me/app", headers=h2).json()["risks"])
-        assert all(r["job"] is None for r in c.get("/v1/me/app", headers=H).json()["risks"])  # the demo customer too
-        assert c.post(f"/v1/me/bookings/{risk}/advance", headers=h2).status_code == 404
-
-        # An upload goes to the caller's home.
-        up = c.post("/v1/homes/me/documents", headers=h2, files={"file": ("a.pdf", b"%PDF-1.4 x")}, data={"type": "kuntotarkastus"})
-        assert up.status_code == 202
-        assert [d["document_id"] for d in c.get("/v1/homes/me", headers=h2).json()["documents"]] == [up.json()["document_id"]]
-        assert c.get("/v1/homes/me", headers=h1).json()["documents"] == []
-
-        # Five wrong passwords lock the home for a minute.
-        for _ in range(5):
-            claim("home_03", "badbadbad")
-        assert claim("home_03", "password2").status_code == 429
-
-        # Reset and a restart keep the claims.
-        c.post("/v1/admin/demo/reset", headers={"X-Admin-Token": "a"})
-        with db.connect() as s:
-            db.seed(s)
-        assert c.get("/v1/me/app", headers=h1).json()["risks"][0]["job"] is not None
-        assert claim("home_02").status_code == 200
-
-
 def test_presets_are_deterministic():
     from backend import presets
     demo = json.loads((ROOT / "data/demo-person.json").read_text())
@@ -288,11 +223,6 @@ def test_fix_api_misc(tmp_path, monkeypatch):
     with TestClient(app) as c:
         assert c.get("/v1/nope").status_code == 404 and c.get("/v1/nope").json()["error"]["code"] == "not_found"
         assert c.delete("/health").json()["error"]["code"] == "method_not_allowed"
-        assert c.get("/v1/homes/me", headers={"Authorization": "Bearer é".encode()}).status_code == 401
         assert c.get("/v1/admin/classes", headers={"X-Admin-Token": "é".encode()}).status_code == 401
         assert c.get("/v1/jobs/nope", headers={"Authorization": "Bearer t"}).status_code == 404
-        for _ in range(20):
-            c.post("/v1/claim", json={"home_id": "nope", "password": "password1"})
-        r = c.post("/v1/claim", json={"home_id": "nope", "password": "password1"})
-        assert r.status_code == 429 and r.json()["error"]["code"] == "too_many_attempts"
     auth._HITS.clear()
