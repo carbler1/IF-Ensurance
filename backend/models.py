@@ -1,4 +1,4 @@
-"""The database tables as SQLAlchemy 2.0 models. DESIGN.md §5. On Postgres (docker compose,
+"""The database tables as SQLAlchemy 2.0 models. docs/DESIGN.md §7. On Postgres (docker compose,
 DATABASE_URL) the Alembic migrations in backend/migrations/ build the schema; after a change here,
 add one: alembic -c backend/alembic.ini revision --autogenerate -m "...". A SQLite file (local
 runs, tests) is built straight from these models. To reset: drop the database and seed again.
@@ -67,7 +67,6 @@ class RiskText(Base):
     generated_at: Mapped[str] = mapped_column(Text)
 
 
-# Maybe: booking, confirm, score.
 class WorkOrder(Base):
     __tablename__ = "work_orders"
 

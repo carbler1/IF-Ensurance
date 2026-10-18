@@ -1,4 +1,4 @@
-"""The endpoints, the bearer token check, CORS, the upload. Shapes: docs/systemdesign/api-contract.md."""
+"""The endpoints, the bearer token check, CORS, the upload. Shapes: docs/API.md."""
 
 import hmac
 import json

@@ -1,4 +1,4 @@
-"""Risk list, partners, maintenance dates. Code decides. DESIGN.md §7."""
+"""Risk list, partners, maintenance dates. Code decides. docs/DESIGN.md §5."""
 
 import json
 import sys
@@ -113,5 +113,5 @@ def risk_detail(s, home_id: str, risk_id: str) -> dict:
 
 
 def maintenance(s, home_id: str) -> list[dict]:
-    """Due date = last known date + check_interval_years, or today."""
+    """Unused stub. The real code is backend/maintenance.py."""
     raise NotImplementedError

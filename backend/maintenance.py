@@ -1,4 +1,4 @@
-"""GET /homes/me/maintenance. DESIGN.md §7. Code decides every date."""
+"""GET /homes/me/maintenance. docs/DESIGN.md §6. Code decides every date."""
 
 import json
 import re

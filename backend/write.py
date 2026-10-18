@@ -1,4 +1,4 @@
-"""Pipeline steps match and write. DESIGN.md section 6, steps 5 and 6."""
+"""Pipeline steps match and write. docs/DESIGN.md §4."""
 
 import copy
 import json

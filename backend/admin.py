@@ -1,6 +1,6 @@
 """The If staff dashboard API (frontend/). The dashboard calls these from its server, never from
 the browser, and never touches the database itself. Auth: header X-Admin-Token = ADMIN_TOKEN.
-Shapes: docs/systemdesign/api-contract.md, section "Admin"."""
+Shapes: docs/API.md, admin routes."""
 
 import hmac
 import json

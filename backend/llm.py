@@ -1,4 +1,4 @@
-"""Ollama chat call. See DESIGN.md section 6."""
+"""Ollama chat call. See docs/DESIGN.md §4."""
 import json
 import logging
 import os

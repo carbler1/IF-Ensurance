@@ -1,4 +1,4 @@
-"""POST /homes/me/documents. DESIGN.md §6 step 1."""
+"""POST /homes/me/documents. docs/DESIGN.md §4."""
 
 import secrets
 from datetime import datetime, timezone
