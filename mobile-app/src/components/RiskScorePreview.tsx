@@ -103,8 +103,8 @@ export function RiskScorePreview({ score, addedPoints, label }: { score: number;
         </View>
       )}
       {/* The discount this insurance earns, and the higher one once the fix lands in a new band. */}
-      <View style={{ marginTop: 12, borderRadius: 999, backgroundColor: getBand(score) || (rising && getBand(projectedScore)) ? colors.successSoft : colors.secondary, paddingHorizontal: 14, paddingVertical: 4 }}>
-        <Text size="sm" weight={600} color={getBand(score) || (rising && getBand(projectedScore)) ? "success" : "mutedForeground"}>
+      <View style={{ marginTop: 12, borderRadius: 999, backgroundColor: getBand(score) || (rising && getBand(projectedScore)) ? colors.successSoft : colors.secondary, paddingHorizontal: 14, paddingVertical: 4, maxWidth: "100%" }}>
+        <Text size="sm" weight={600} center color={getBand(score) || (rising && getBand(projectedScore)) ? "success" : "mutedForeground"}>
           {getBand(score) ? fmt(t("band.off"), { pct: getBand(score) }) : t("band.none")}
           {getBand(projectedScore) > getBand(score) ? ` → ${fmt(t("band.off"), { pct: getBand(projectedScore) })}` : ""}
         </Text>

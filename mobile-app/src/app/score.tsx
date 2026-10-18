@@ -8,8 +8,8 @@ import { colors, radius, shadows, tierColors } from "@/lib/theme";
 function Row({ label, points, first }: { label: string; points: number; first: boolean }) {
   return (
     <View style={[{ flexDirection: "row", justifyContent: "space-between", gap: 12, paddingVertical: 12 }, !first && { borderTopWidth: 1, borderTopColor: colors.border }]}>
-      <Text style={{ flexShrink: 1 }}>{label}</Text>
-      <Text weight={600} color={points > 0 ? "success" : "destructive"}>{points > 0 ? `+${points}` : `−${Math.abs(points)}`}</Text>
+      <Text style={{ flex: 1, minWidth: 0 }}>{label}</Text>
+      <Text weight={600} style={{ flexShrink: 0 }} color={points > 0 ? "success" : "destructive"}>{points > 0 ? `+${points}` : `−${Math.abs(points)}`}</Text>
     </View>
   );
 }
@@ -36,9 +36,9 @@ export default function ScoreBreakdown() {
           <Text size="6xl" display weight={600} tabular maxFontSizeMultiplier={1.3}>{aggregate}</Text>
           <Text size="lg" color="mutedForeground" tabular>/ {model.maxScore}</Text>
         </View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: radius.full, backgroundColor: colors.card, paddingHorizontal: 16, paddingVertical: 6, boxShadow: shadows.sm }}>
-          <View style={{ height: 12, width: 12, borderRadius: radius.full, backgroundColor: tierColors[tier.id].solid }} />
-          <Text weight={600}>{tier.name}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, maxWidth: "100%", borderRadius: radius.full, backgroundColor: colors.card, paddingHorizontal: 16, paddingVertical: 6, boxShadow: shadows.sm }}>
+          <View style={{ flexShrink: 0, height: 12, width: 12, borderRadius: radius.full, backgroundColor: tierColors[tier.id].solid }} />
+          <Text weight={600} style={{ flexShrink: 1 }}>{tier.name}</Text>
         </View>
         <Text weight={500} color="mutedForeground" center>{nextTier ? `${nextTier.min - aggregate} ${t("home.toNext")} ${nextTier.name}` : t("home.topTier")}</Text>
         <Text size="sm" color="mutedForeground" center style={{ marginTop: 6, maxWidth: 300 }}>{t("score.average")}</Text>
@@ -56,15 +56,15 @@ export default function ScoreBreakdown() {
             const fill = next ? (scores[id] - from) / (next.min - from) : 1;
             return (
               <View key={id} style={[{ flexDirection: "row", alignItems: "flex-start", gap: 12, paddingVertical: 16 }, n > 0 && { borderTopWidth: 1, borderTopColor: colors.border }]}>
-                <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: radius.xl, backgroundColor: colors.secondary }}>
+                <View style={{ flexShrink: 0, height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: radius.xl, backgroundColor: colors.secondary }}>
                   <Icon size={22} color={colors.secondaryForeground} />
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                    <Text weight={600} numberOfLines={1} style={{ flexShrink: 1 }}>{t(`ins.${id}`)}</Text>
-                    <Text size="2xl" display weight={600} tabular>{scores[id]}</Text>
+                    <Text weight={600} style={{ flexShrink: 1 }}>{t(`ins.${id}`)}</Text>
+                    <Text size="2xl" display weight={600} tabular style={{ flexShrink: 0 }}>{scores[id]}</Text>
                   </View>
-                  <Text size="sm" color="mutedForeground" numberOfLines={1}>{object}</Text>
+                  <Text size="sm" color="mutedForeground">{object}</Text>
                   <View style={{ marginTop: 10, height: 6, borderRadius: radius.full, backgroundColor: colors.muted, overflow: "hidden" }}>
                     <View style={{ height: 6, width: `${Math.max(0, Math.min(1, fill)) * 100}%`, borderRadius: radius.full, backgroundColor: next ? colors.primary : colors.success }} />
                   </View>
@@ -88,9 +88,9 @@ export default function ScoreBreakdown() {
             const held = insurances.filter(({ id }) => currentBand(getBand(scores[id])) === b.min).length;
             return (
               // A blue border marks the bands where at least one of your insurances sits now.
-              <View key={b.min} style={{ flex: 1, borderRadius: radius.xl, borderWidth: 2, borderColor: held > 0 ? colors.primary : "transparent", padding: 10, backgroundColor: softColors[i] ?? colors.secondary, alignItems: "center" }}>
-                <Text size="sm" color="mutedForeground">{b.min === 0 ? fmt(t("score.below"), { min: bands[0].min }) : `${b.min}+`}</Text>
-                <Text size="lg" weight={600}>{b.percent ? `${b.percent}%` : "—"}</Text>
+              <View key={b.min} style={{ flex: 1, minWidth: 0, borderRadius: radius.xl, borderWidth: 2, borderColor: held > 0 ? colors.primary : "transparent", paddingVertical: 10, paddingHorizontal: 4, backgroundColor: softColors[i] ?? colors.secondary, alignItems: "center" }}>
+                <Text size="sm" color="mutedForeground" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} center>{b.min === 0 ? fmt(t("score.below"), { min: bands[0].min }) : `${b.min}+`}</Text>
+                <Text size="lg" weight={600} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} center>{b.percent ? `${b.percent}%` : "—"}</Text>
               </View>
             );
           })}
@@ -117,18 +117,18 @@ export default function ScoreBreakdown() {
       <Heading size="xl" style={{ paddingTop: 8 }}>{t("score.ladder")}</Heading>
       {[...tiers].reverse().map((tier) => (
         <Card key={tier.id} style={tier.id === current && { boxShadow: `0 0 0 2px ${colors.ring}, ${shadows.soft}` }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <View style={{ height: 16, width: 16, borderRadius: radius.full, backgroundColor: tierColors[tier.id].solid }} />
-              <Text size="lg" weight={600}>{tier.name}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <View style={{ flexShrink: 1, flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View style={{ flexShrink: 0, height: 16, width: 16, borderRadius: radius.full, backgroundColor: tierColors[tier.id].solid }} />
+              <Text size="lg" weight={600} style={{ flexShrink: 1 }}>{tier.name}</Text>
             </View>
-            <Text size="sm" color="mutedForeground">{tier.id === current ? t("score.current") : `${tier.min}+`}</Text>
+            <Text size="sm" color="mutedForeground" style={{ flexShrink: 0, maxWidth: "40%", textAlign: "right" }}>{tier.id === current ? t("score.current") : `${tier.min}+`}</Text>
           </View>
           <View style={{ marginTop: 8, gap: 4 }}>
             {tier.rewards.map((r) => (
               <View key={r} style={{ flexDirection: "row", gap: 8 }}>
-                <Check size={16} color={colors.primary} style={{ marginTop: 4 }} />
-                <Text color="mutedForeground" style={{ flex: 1 }}>{r}</Text>
+                <Check size={16} color={colors.primary} style={{ flexShrink: 0, marginTop: 4 }} />
+                <Text color="mutedForeground" style={{ flex: 1, minWidth: 0 }}>{r}</Text>
               </View>
             ))}
           </View>

@@ -23,7 +23,7 @@ export function Entry({ onChoose }: { onChoose: (c: Choice) => void }) {
               style={{ flexBasis: "45%", flexGrow: 1, minHeight: 160, alignItems: "center", justifyContent: "center", gap: 12, borderRadius: radius["2xl"], backgroundColor: colors.card, boxShadow: shadows.soft }}
             >
               <Icon size={64} color={colors.primary} />
-              <Text size="lg" weight={600}>{label}</Text>
+              <Text size="lg" weight={600} center>{label}</Text>
             </PressCard>
           );
         })}
