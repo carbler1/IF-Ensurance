@@ -23,6 +23,7 @@ class Home(Base):
     postal_code: Mapped[str] = mapped_column(Text)
     city: Mapped[str] = mapped_column(Text)
     created_at: Mapped[str] = mapped_column(Text)
+    customer_id: Mapped[str | None] = mapped_column(Text, ForeignKey("customers.customer_id"), nullable=True)
 
 
 class Profile(Base):
@@ -179,6 +180,8 @@ class Customer(Base):
     customer_id: Mapped[str] = mapped_column(Text, primary_key=True)
     name: Mapped[str] = mapped_column(Text)
     created_at: Mapped[str] = mapped_column(Text)
+    password_hash: Mapped[str | None] = mapped_column(Text, nullable=True)  # "scrypt$salt_hex$hash_hex"; null = home is free
+    token_hash: Mapped[str | None] = mapped_column(Text, unique=True, nullable=True)  # SHA-256 of the bearer token
 
 
 class InsuredObject(Base):
@@ -223,6 +226,7 @@ class Bid(Base):
     bid_id: Mapped[str] = mapped_column(Text, primary_key=True)
     name: Mapped[str] = mapped_column(Text)
     rating: Mapped[float] = mapped_column(REAL)
+    customer_id: Mapped[str | None] = mapped_column(Text, ForeignKey("customers.customer_id"), nullable=True)
     reviews: Mapped[int] = mapped_column(Integer)
     price: Mapped[int] = mapped_column(Integer)  # euros, before the tier discount
     earliest: Mapped[str] = mapped_column(Text)  # display text, e.g. "Tue 20 Oct"
@@ -274,3 +278,12 @@ if __name__ == "__main__":
     engine = create_engine("sqlite://")
     for table in Base.metadata.sorted_tables:
         print(str(CreateTable(table).compile(engine)).strip() + ";\n")
+
+
+class StaffAccount(Base):
+    """A staff dashboard login (a mock company). password_hash is null until someone claims it."""
+    __tablename__ = "staff_accounts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(Text, unique=True)
+    password_hash: Mapped[str | None] = mapped_column(Text, nullable=True)  # "scrypt$salt_hex$hash_hex"

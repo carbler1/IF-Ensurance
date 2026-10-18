@@ -1,20 +1,19 @@
 """The endpoints, the bearer token check, CORS, the upload. Shapes: docs/API.md."""
 
-import hmac
 import json
 import os
+import secrets
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from backend import admin, app_api, db, engine, insurance, maintenance
-from backend.models import Document, Home, Job, Profile, RiskText
-
-HOME_ID = "home_01"  # the single demo home
-CUSTOMER_ID = "cust_01"  # the demo customer who owns it, with a cottage, a boat, a car and a dog
+from backend.auth import DEMO_CUSTOMER, Who, require_token, sha
+from backend.models import Customer, Document, Home, Job, Profile, RiskText
 
 app = FastAPI(title="If Life Partner")
 app.add_middleware(
@@ -53,18 +52,43 @@ async def _server_error(request, exc):
     return _err(500, "internal_error", "Unexpected server error.")
 
 
-def require_token(authorization: str = Header(default="")):
-    token = os.environ.get("CUSTOMER_TOKEN", "")
-    scheme, _, given = authorization.partition(" ")
-    if not token or scheme.lower() != "bearer" or not hmac.compare_digest(given, token):
-        raise HTTPException(401, "Missing or wrong bearer token.")
-
-
 v1 = APIRouter(prefix="/v1", dependencies=[Depends(require_token)])
 
 
+@app.get("/v1/homes-available")
+def homes_available():
+    """The preset homes for the app's onboarding. No auth."""
+    with db.connect() as s:
+        rows = s.execute(select(Home, Customer.password_hash).join(Customer, Customer.customer_id == Home.customer_id)
+                         .where(Home.customer_id != DEMO_CUSTOMER).order_by(Home.home_id)).all()
+    return {"homes": [{"home_id": h.home_id, "address": f"{h.street}, {h.postal_code} {h.city}", "city": h.city,
+                       "taken": pw is not None} for h, pw in rows]}
+
+
+class ClaimBody(BaseModel):
+    home_id: str
+    password: str = Field(min_length=8, max_length=200)
+
+
+@app.post("/v1/claim")
+def claim(body: ClaimBody):
+    """Claim a free home (sets its password) or sign in to a taken one. Answers with a new bearer token.
+    shortcut: one token per home, so a sign-in on a second device signs the first one out."""
+    with db.connect() as s:
+        home = s.get(Home, body.home_id)
+        c = s.get(Customer, home.customer_id) if home else None
+        if c is None or c.customer_id == DEMO_CUSTOMER:
+            raise HTTPException(404, "Unknown home.")
+        admin.claim_or_verify(s, c, "home:" + home.home_id, Customer.customer_id == c.customer_id, body.password)
+        token = secrets.token_urlsafe(32)
+        c.token_hash = sha(token)
+        s.commit()
+    return {"token": token, "home_id": body.home_id}
+
+
 @v1.get("/homes/me")
-def get_home():
+def get_home(who: Who = Depends(require_token)):
+    HOME_ID = who.home_id
     with db.connect() as s:
         home = s.get(Home, HOME_ID)
         prof = s.get(Profile, HOME_ID)
@@ -105,31 +129,32 @@ def get_job(job_id: str):
     }
 
 
-def _read(fn, *args):
+def _read(who, fn, *args):
     with db.connect() as s:
-        return fn(s, HOME_ID, *args)
+        return fn(s, who.home_id, *args)
 
 
 @v1.get("/homes/me/risks")
-def get_risks():
-    return _read(engine.risk_list)
+def get_risks(who: Who = Depends(require_token)):
+    return _read(who, engine.risk_list)
 
 
 @v1.get("/homes/me/risks/{risk_id}")
-def get_risk(risk_id: str):
+def get_risk(risk_id: str, who: Who = Depends(require_token)):
     try:
-        return _read(engine.risk_detail, risk_id)
+        return _read(who, engine.risk_detail, risk_id)
     except LookupError:
         raise HTTPException(404, f"Risk {risk_id} not found.")
 
 
 @v1.get("/me/insurances")
-def get_insurances():
+def get_insurances(who: Who = Depends(require_token)):
     """Every insured object of the customer with the fixes that apply, their points and premium cuts."""
     with db.connect() as s:
-        result = insurance.simulate(s, insurance.customer_objects(s, CUSTOMER_ID))
-        texts = {t.risk_id: t for t in s.scalars(select(RiskText).where(RiskText.home_id == HOME_ID))}
-        assigned = {r["id"]: r for r in insurance.assigned_risks(s)}
+        objects = insurance.customer_objects(s, who.customer_id)
+        result = insurance.simulate(s, objects)
+        texts = {t.risk_id: t for t in s.scalars(select(RiskText).where(RiskText.home_id == who.home_id))}
+        assigned = {r["id"]: r for r in insurance.assigned_risks(s, [o["object_id"] for o in objects])}
     hints = {r["id"]: r for d in insurance.definitions() for r in d["risks"]}
     for o in result["objects"]:
         for f in o["fixes"]:
@@ -145,8 +170,8 @@ def get_insurances():
 
 
 @v1.get("/homes/me/maintenance")
-def get_maintenance():
-    return _read(maintenance.maintenance)
+def get_maintenance(who: Who = Depends(require_token)):
+    return _read(who, maintenance.maintenance)
 
 
 try:

@@ -7,7 +7,7 @@ import type { AppData, Band, Job, JobStep, Tier } from "./types";
 export type { Job, JobStep } from "./types";
 
 // The customer's data lives in the backend; the store loads it once and saves every change there.
-// Language and onboarding live in memory only; they are not saved.
+// The bearer token is saved by api.ts; with a token the app skips onboarding. Language lives in memory only.
 
 type Status = "loading" | "ready" | "error";
 
@@ -20,6 +20,8 @@ type Store = Omit<AppData, "insurances"> & {
   reload: () => void;
   onboarded: boolean;
   finishOnboarding: () => void;
+  /** Claims a home (or signs in to it) and loads its data, without leaving onboarding. */
+  claimHome: (homeId: string, password: string) => Promise<void>;
   insurances: AppData["insurances"];
   jobs: Record<string, Job>;
   bookJob: (j: Omit<Job, "step">) => void;
@@ -78,10 +80,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setStatus("loading");
     api.load().then(
       (d) => { setData(d); setStatus("ready"); setError(null); },
-      (e: Error) => { setError(e.message); setStatus("error"); },
+      (e: Error & { status?: number }) => {
+        if (e.status === 401) { setOnboarded(false); setStatus("ready"); return; } // the token is gone: choose a home again
+        setError(e.message);
+        setStatus("error");
+      },
     );
   }, []);
-  useEffect(reload, [reload]);
+  useEffect(() => {
+    api.restore().then((has) => {
+      if (!has) return setStatus("ready");
+      setOnboarded(true);
+      reload();
+    });
+  }, [reload]);
+  const claimHome = useCallback(async (homeId: string, password: string) => {
+    await api.claim(homeId, password);
+    setData(await api.load());
+  }, []);
 
   // Show the change at once, then take the backend's answer (it recomputes the scores).
   const save = useCallback((optimistic: (d: AppData) => AppData, request: () => Promise<AppData>) => {
@@ -107,6 +123,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       reload,
       onboarded,
       finishOnboarding: () => setOnboarded(true),
+      claimHome,
       jobs,
       bookJob: (j) => save(setJob(j.riskId, () => ({ bidId: j.bidId, mode: j.mode, step: 0 })), () => api.book(j.riskId, j.bidId, j.mode)),
       advanceJob: (id) =>
@@ -126,7 +143,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return b && { percent: b.percent, min: b.min, pointsTo: b.min - score };
       },
     };
-  }, [lang, onboarded, data, status, error, reload, save]);
+  }, [lang, onboarded, data, status, error, reload, save, claimHome]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

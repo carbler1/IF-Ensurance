@@ -32,8 +32,9 @@ def _load(s, home_id):
 def fix_value(rules, entry: dict, profile: dict) -> dict:
     """Points and decay of one fix for this home. The first rule in priority
     order whose context matches the profile wins; without one the catalogue points stand."""
+    rid = entry["id"].split("@")[0]  # a preset home's risk "panel@home_07" uses the rules of "panel"
     for r in rules:
-        if r.risk_id == entry["id"] and (r.context is None or matches(json.loads(r.context), profile)):
+        if r.risk_id == rid and (r.context is None or matches(json.loads(r.context), profile)):
             return {"rule_id": r.rule_id, "points": r.points, "half_life_years": r.half_life_years}
     # An assigned risk has no points of its own; without an active rule it is worth 0.
     return {"rule_id": None, "points": entry.get("points") or 0, "half_life_years": entry.get("half_life_years")}

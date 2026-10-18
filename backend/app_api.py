@@ -4,31 +4,31 @@ Field names follow the app (mobile-app/src/lib/types.ts). Scores come from insur
 
 import json
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
 
 from backend import db, engine, insurance
+from backend.auth import Who, require_token
 from backend.models import AssignedRisk, Bid, Booking, Customer, InsuredObject, MaintenanceTask, Reminder
 
-CUSTOMER_ID = "cust_01"  # the demo customer (data/demo-person.json)
 TIER_IDS = ["bronze", "silver", "gold", "platinum"]  # the app's tier colours, by tier index
 
 router = APIRouter(prefix="/me")
 
 
-def app_data(s) -> dict:
-    customer = s.get(Customer, CUSTOMER_ID)
+def app_data(s, customer_id: str) -> dict:
+    customer = s.get(Customer, customer_id)
     if customer is None:
-        raise HTTPException(404, "The demo customer is missing.")
-    objects = insurance.customer_objects(s, CUSTOMER_ID)
+        raise HTTPException(404, "The customer is missing.")
+    objects = insurance.customer_objects(s, customer_id)
     sim = insurance.simulate(s, objects)
     by_object = {o["object_id"]: o for o in objects}
-    rows = {o.object_id: o for o in s.scalars(select(InsuredObject).where(InsuredObject.customer_id == CUSTOMER_ID))}
+    rows = {o.object_id: o for o in s.scalars(select(InsuredObject).where(InsuredObject.customer_id == customer_id))}
     house = next((rows[o["object_id"]] for o in objects if o["class_id"] == "house"), None)
     st = db.settings(s)
     rules = db.fix_rules(s)
-    bookings = {b.risk_id: b for b in s.scalars(select(Booking).where(Booking.customer_id == CUSTOMER_ID))}
+    bookings = {b.risk_id: b for b in s.scalars(select(Booking).where(Booking.customer_id == customer_id))}
 
     risks = []
     for r in s.scalars(select(AssignedRisk).where(AssignedRisk.object_id.in_(list(by_object))).order_by(AssignedRisk.sort_order)):
@@ -55,18 +55,18 @@ def app_data(s) -> dict:
         "history": [{"insurance": o["class_id"], "label": h["label"], "points": h["points"]}
                     for o in objects for h in o["history"]],
         "bids": [{"id": b.bid_id, "name": b.name, "rating": b.rating, "reviews": b.reviews, "price": b.price, "date": b.earliest}
-                 for b in s.scalars(select(Bid).order_by(Bid.sort_order))],
+                 for b in s.scalars(select(Bid).where(Bid.customer_id == customer_id).order_by(Bid.sort_order))],
         "tasks": [{"id": t.task_id, "season": t.season, "title": t.title, "due": t.due, "reason": t.reason, "reasonText": t.reason_text}
-                  for t in s.scalars(select(MaintenanceTask).where(MaintenanceTask.customer_id == CUSTOMER_ID)
+                  for t in s.scalars(select(MaintenanceTask).where(MaintenanceTask.customer_id == customer_id)
                                      .order_by(MaintenanceTask.sort_order))],
-        "reminders": list(s.scalars(select(Reminder.task_id).where(Reminder.customer_id == CUSTOMER_ID))),
+        "reminders": list(s.scalars(select(Reminder.task_id).where(Reminder.customer_id == customer_id))),
     }
 
 
 @router.get("/app")
-def get_app():
+def get_app(who: Who = Depends(require_token)):
     with db.connect() as s:
-        return app_data(s)
+        return app_data(s, who.customer_id)
 
 
 class BookingIn(BaseModel):
@@ -76,35 +76,36 @@ class BookingIn(BaseModel):
 
 
 @router.post("/bookings", status_code=201)
-def book(body: BookingIn):
+def book(body: BookingIn, who: Who = Depends(require_token)):
     """Book a partner for a risk. Answers with the whole app data, so the app needs one call."""
     if body.mode not in ("hire", "diy"):
         raise HTTPException(400, "mode must be hire or diy.")
     with db.connect() as s:
         risk = s.get(AssignedRisk, body.risk_id)
-        if risk is None or s.get(Bid, body.bid_id) is None:
+        bid = s.get(Bid, body.bid_id)
+        if risk is None or bid is None or bid.customer_id != who.customer_id or s.get(InsuredObject, risk.object_id).customer_id != who.customer_id:
             raise HTTPException(404, "Unknown risk or bid.")
         if s.get(Booking, body.risk_id) is not None:
             raise HTTPException(409, "This risk is already booked.")
-        s.add(Booking(risk_id=body.risk_id, customer_id=CUSTOMER_ID, object_id=risk.object_id, bid_id=body.bid_id,
+        s.add(Booking(risk_id=body.risk_id, customer_id=who.customer_id, object_id=risk.object_id, bid_id=body.bid_id,
                       mode=body.mode, step=0, created_at=db.now_iso()))
         s.commit()
-        return app_data(s)
+        return app_data(s, who.customer_id)
 
 
 @router.post("/bookings/{risk_id}/advance")
-def advance(risk_id: str):
+def advance(risk_id: str, who: Who = Depends(require_token)):
     """Move a booking one step on (the demo's "simulate next step"). Step 2 confirms the fix."""
     with db.connect() as s:
         b = s.get(Booking, risk_id)
-        if b is None:
+        if b is None or b.customer_id != who.customer_id:
             raise HTTPException(404, f"No booking for {risk_id}.")
         if b.step < 2:
             b.step += 1
             if b.step == 2:
                 b.confirmed_at = db.now_iso()
         s.commit()
-        return app_data(s)
+        return app_data(s, who.customer_id)
 
 
 class ReminderIn(BaseModel):
@@ -112,15 +113,15 @@ class ReminderIn(BaseModel):
 
 
 @router.put("/reminders/{task_id}")
-def set_reminder(task_id: str, body: ReminderIn):
+def set_reminder(task_id: str, body: ReminderIn, who: Who = Depends(require_token)):
     with db.connect() as s:
         task = s.get(MaintenanceTask, task_id)
-        if task is None or task.customer_id != CUSTOMER_ID:
+        if task is None or task.customer_id != who.customer_id:
             raise HTTPException(404, f"Task {task_id} not found.")
-        row = s.get(Reminder, (CUSTOMER_ID, task_id))
+        row = s.get(Reminder, (who.customer_id, task_id))
         if body.on and row is None:
-            s.add(Reminder(customer_id=CUSTOMER_ID, task_id=task_id))
+            s.add(Reminder(customer_id=who.customer_id, task_id=task_id))
         elif not body.on and row is not None:
             s.delete(row)
         s.commit()
-        return app_data(s)
+        return app_data(s, who.customer_id)
