@@ -30,7 +30,7 @@ async function List() {
                 <span>{p.partner_id}</span>
               </p>
             </div>
-            {p.if_vetted ? <Pill tone="success">If vetted</Pill> : <Pill>Not vetted</Pill>}
+            {p.if_vetted ? <Pill>Vetted</Pill> : <Pill>Not vetted</Pill>}
           </div>
           <div className="mt-2.5 flex flex-wrap gap-1.5">
             {p.categories.map((c) => <Pill key={c}>{humanize(c)}</Pill>)}
@@ -50,7 +50,7 @@ async function List() {
               </Label>
             </div>
             <div className="mt-3 flex items-center gap-3">
-              <Switch name="if_vetted" defaultChecked={p.if_vetted} label={`${p.name} is If vetted`}>Show to customers (If vetted)</Switch>
+              <Switch name="if_vetted" defaultChecked={p.if_vetted} label={`${p.name} is vetted`}>Show to customers (vetted)</Switch>
             </div>
           </SaveForm>
           </Disclosure>
