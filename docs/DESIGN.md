@@ -56,11 +56,16 @@ flowchart LR
 | PDF text | pypdfium2 |
 | LLM | Ollama, `qwen3.5:9b` by default (`OLLAMA_MODEL`), called with httpx |
 | Validation | jsonschema |
-| Deployment | `docker-compose.yml`: postgres, backend (API and worker), frontend, mobile web build |
+| Deployment | `docker-compose.yml`, 4 containers (below). Ollama runs on the host, not in a container |
 | Dev shell | Nix flake (`flake.nix`) |
-| Config | `.env` (not in git): `CUSTOMER_TOKEN`, `ADMIN_TOKEN`, `CORS_ORIGINS`, `OLLAMA_URL`, `DATABASE_URL`, Postgres settings |
+| Config | `.env` (not in git): `CUSTOMER_TOKEN` (required), `ADMIN_TOKEN`, `CORS_ORIGINS`, `OLLAMA_URL` (must be reachable from inside the backend container), `EXPO_PUBLIC_API_URL` (mobile build, default `http://localhost:8082`), `DATABASE_URL`, Postgres settings |
 
-Postgres sits on a private compose network with the backend only. The dashboard reaches data through `/v1/admin`.
+| Container | Role |
+|---|---|
+| `postgres` | Postgres 17, the only database. Private `db` network, no host port |
+| `backend` | FastAPI API (:8000) and job worker. Runs migrations on start. PDFs in the `backend-var` volume. Talks to Postgres and host Ollama |
+| `frontend` | Staff dashboard, Next.js (:3000). Calls `/v1/admin` with `ADMIN_TOKEN` server-side |
+| `mobile` | Web demo of the customer app: Expo static export on nginx (:8082 to 80). nginx proxies `/v1/` to the backend |
 
 ## 4. Pipeline
 
