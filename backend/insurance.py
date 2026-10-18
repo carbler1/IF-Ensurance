@@ -11,6 +11,7 @@ average of a customer's insurance scores and sets the tier; tier bonuses are dis
 """
 
 import json
+from datetime import datetime, timezone
 from functools import cache
 from pathlib import Path
 
@@ -154,11 +155,28 @@ def _next_tier(score: int, tiers: list[dict]) -> dict | None:
     return {"name": up[0]["name"], "min_score": up[0]["min_score"], "points_to": up[0]["min_score"] - score} if up else None
 
 
-def _confirmed(s: Session, object_id: str) -> set[str]:
-    """Risk ids confirmed for this object: a confirmed work order (house API) or an app booking at step 2."""
-    orders = s.scalars(select(WorkOrder.risk_id).where(WorkOrder.home_id == object_id, WorkOrder.status == "confirmed"))
-    booked = s.scalars(select(Booking.risk_id).where(Booking.object_id == object_id, Booking.step == 2))
-    return {*orders, *booked}
+def _confirmed(s: Session, object_id: str) -> dict[str, str | None]:
+    """{risk_id: confirmed_at} for this object: a confirmed work order (house API) or an app booking at step 2."""
+    orders = s.execute(select(WorkOrder.risk_id, WorkOrder.confirmed_at)
+                       .where(WorkOrder.home_id == object_id, WorkOrder.status == "confirmed"))
+    booked = s.execute(select(Booking.risk_id, Booking.confirmed_at)
+                       .where(Booking.object_id == object_id, Booking.step == 2))
+    return {**dict(orders.all()), **dict(booked.all())}
+
+
+@cache
+def _default_half_lives() -> dict:
+    return json.loads((ROOT / "fixtures" / "half-lives.json").read_text())["defaults"]
+
+
+def decayed(points: int, confirmed_at: str | None, half_life: int | None, now: datetime | None = None) -> int:
+    """points * 0.5 ** (years since confirmed_at / half_life). No decay without a date or a half-life."""
+    if not confirmed_at or not half_life:
+        return points
+    t = datetime.fromisoformat(confirmed_at)
+    t = t if t.tzinfo else t.replace(tzinfo=timezone.utc)
+    years = max(0.0, ((now or datetime.now(timezone.utc)) - t).total_seconds() / (365.25 * 86400))
+    return round(points * 0.5 ** (years / half_life))
 
 
 def simulate(s: Session, objects: list[dict]) -> dict:
@@ -176,16 +194,19 @@ def simulate(s: Session, objects: list[dict]) -> dict:
         d = definition(o["class_id"])
         cls = classes[o["class_id"]]
         profile = o.get("profile") or {}
-        done = _confirmed(s, o["object_id"]) if o.get("object_id") else set()
+        confirmed = _confirmed(s, o["object_id"]) if o.get("object_id") else {}
         assigned = assigned_risks(s, [o["object_id"]]) if o.get("object_id") else []
-        fixes, done_points = [], 0
+        fixes, done_rows, done_points = [], [], 0
         for e in [*d["risks"], *assigned]:
             # Catalogue risks apply when their condition matches; assigned risks always apply.
             if not e.get("assigned") and not engine.matches(e["applies_when"], profile):
                 continue
             v = engine.fix_value(rules, e, profile)
-            if e["id"] in done:
-                done_points += v["points"]
+            if e["id"] in confirmed:
+                hl = v["half_life_years"] or _default_half_lives().get(e["category"])
+                cur = decayed(v["points"], confirmed[e["id"]], hl)
+                done_rows.append({"risk_id": e["id"], "base_points": v["points"], "points": cur})
+                done_points += cur
                 continue
             fixes.append({"risk_id": e["id"], "title": e["title"], "category": e["category"],
                           "action": e["mitigation"]["action"], "assigned": bool(e.get("assigned")), **v,
@@ -199,7 +220,7 @@ def simulate(s: Session, objects: list[dict]) -> dict:
         base = cls.base_annual_premium_eur
         out.append({
             "object_id": o.get("object_id"), "class_id": o["class_id"], "class_name": cls.name,
-            "name": o.get("name") or cls.name, "history": history, "fixes": fixes,
+            "name": o.get("name") or cls.name, "history": history, "fixes": fixes, "done": done_rows,
             "points": sum(f["points"] for f in fixes),
             "score": {"now": now, "after": after, "next_band": next_band(now, bands)},
             "band": {"now": band(now, bands), "after": band(after, bands)},
