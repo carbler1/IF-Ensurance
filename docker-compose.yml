@@ -63,6 +63,8 @@ services:
       # Server-side calls over the compose network; the browser never sees the token.
       BACKEND_URL: http://backend:8000
       ADMIN_TOKEN: ${ADMIN_TOKEN:?Set ADMIN_TOKEN in .env}
+      # Signs the dashboard login cookie (16+ random characters).
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
     networks:
       - app
     depends_on:
@@ -76,7 +78,6 @@ services:
       args:
         # The public origin of the app; nginx proxies its /v1/ to the backend.
         EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://localhost:8082}
-        EXPO_PUBLIC_API_TOKEN: ${CUSTOMER_TOKEN:?Set CUSTOMER_TOKEN in .env}
     networks:
       - app
     depends_on:
