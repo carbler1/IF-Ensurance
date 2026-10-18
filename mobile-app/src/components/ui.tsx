@@ -243,7 +243,7 @@ export function Input({ style, ...props }: TextInputProps) {
 
 // A settings row that is one switch: a screen reader gets one element with its role, label and state.
 // The track is only drawn; the whole row takes the tap.
-export function SwitchRow({ value, onValueChange, label, style, children }: { value: boolean; onValueChange: (v: boolean) => void; label: string; style?: StyleProp<ViewStyle>; children: ReactNode }) {
+export function SwitchRow({ value, onValueChange, label, tint = colors.primary, style, children }: { tint?: string; value: boolean; onValueChange: (v: boolean) => void; label: string; style?: StyleProp<ViewStyle>; children: ReactNode }) {
   const x = useRef(new Animated.Value(value ? 16 : 0)).current;
   useEffect(() => {
     Animated.timing(x, { toValue: value ? 16 : 0, duration: 150, easing: Easing.bezier(0.4, 0, 0.2, 1), useNativeDriver: true }).start();
@@ -257,7 +257,7 @@ export function SwitchRow({ value, onValueChange, label, style, children }: { va
       style={({ pressed }) => [{ minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, pressed && { opacity: 0.7 }, style]}
     >
       <View style={{ flexShrink: 1 }}>{children}</View>
-      <View style={{ height: 20, width: 36, borderRadius: radius.full, justifyContent: "center", paddingHorizontal: 2, backgroundColor: value ? colors.primary : colors.control, boxShadow: shadows.sm }}>
+      <View style={{ height: 20, width: 36, borderRadius: radius.full, justifyContent: "center", paddingHorizontal: 2, backgroundColor: value ? tint : colors.control, boxShadow: shadows.sm }}>
         <Animated.View style={{ height: 16, width: 16, borderRadius: radius.full, backgroundColor: colors.background, boxShadow: shadows.lg, transform: [{ translateX: x }] }} />
       </View>
     </Pressable>

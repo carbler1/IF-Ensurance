@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Bone, Car, CircleGauge, Cog, Dog, Droplets, Flame, HeartPulse, Home, Layers, Sailboat, Snowflake, Syringe, TreePine, Warehouse, Wind, Wrench, Zap, type LucideIcon } from "lucide-react";
+import { Bone, Car, ChevronDown, CircleGauge, Cog, Dog, Droplets, Flame, HeartPulse, Home, Layers, Sailboat, Snowflake, Syringe, TreePine, Warehouse, Wind, Wrench, Zap, type LucideIcon } from "lucide-react";
 
 // Building blocks of the staff dashboard: flat panels with hairline borders, small tags.
 
@@ -55,6 +55,21 @@ export function PageHeader({ title, sub, children }: { title: string; sub: strin
 export function Card({ className = "", tone = "card", flush = false, children }: { className?: string; tone?: "card" | "line" | "danger" | "accent"; flush?: boolean; children?: ReactNode }) {
   const tones = { card: "border bg-card", line: "border bg-border", danger: "bg-danger-soft", accent: "bg-accent" };
   return <div className={`rounded-xl ${tones[tone]} ${flush ? "" : "p-5"} ${className}`}>{children}</div>;
+}
+
+/** Collapsed by default: the title row stays visible, the body opens on demand (native <details>, no script).
+ * `inline` sits inside an existing card as a divided row; otherwise it is a card of its own. */
+export function Disclosure({ title, meta, open, inline = false, className = "", children }: { title: ReactNode; meta?: ReactNode; open?: boolean; inline?: boolean; className?: string; children: ReactNode }) {
+  return (
+    <details open={open} className={`group ${inline ? "mt-4 border-t" : "rounded-xl border bg-card"} ${className}`}>
+      <summary className={`flex cursor-pointer list-none items-center gap-3 rounded-xl hover:bg-secondary/40 [&::-webkit-details-marker]:hidden ${inline ? "min-h-11 px-1 font-medium" : "px-5 py-4"}`}>
+        <div className="min-w-0 flex-1">{title}</div>
+        {meta && <div className="shrink-0 text-right text-sm text-muted-foreground">{meta}</div>}
+        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+      </summary>
+      <div className={inline ? "pt-2" : "px-5 pb-5"}>{children}</div>
+    </details>
+  );
 }
 
 export function IconTile({ icon: Icon, size = "md" }: { icon: LucideIcon; size?: "md" | "lg" }) {

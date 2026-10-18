@@ -7,13 +7,24 @@ import { Award, Calculator, FlaskConical, Home, Store, Users } from "lucide-reac
 import { signOut } from "@/app/login/actions";
 import mark from "./mark.png";
 
-const links = [
-  { href: "/", label: "Overview", Icon: Home },
-  { href: "/scoring", label: "Score & pricing", Icon: Calculator },
-  { href: "/simulator", label: "Simulator", Icon: FlaskConical },
-  { href: "/customers", label: "Customers", Icon: Users },
-  { href: "/partners", label: "Partners", Icon: Store },
-  { href: "/tiers", label: "Tiers & rewards", Icon: Award },
+// Grouped by task: what staff configure, then where they check the result.
+const groups = [
+  { title: null, links: [{ href: "/", label: "Overview", Icon: Home }] },
+  {
+    title: "Set the rules",
+    links: [
+      { href: "/scoring", label: "Score & pricing", Icon: Calculator },
+      { href: "/tiers", label: "Tiers & rewards", Icon: Award },
+      { href: "/partners", label: "Partners", Icon: Store },
+    ],
+  },
+  {
+    title: "See the result",
+    links: [
+      { href: "/simulator", label: "Simulator", Icon: FlaskConical },
+      { href: "/customers", label: "Customers", Icon: Users },
+    ],
+  },
 ];
 
 export function Nav({ company }: { company: string | null }) {
@@ -33,7 +44,9 @@ export function Nav({ company }: { company: string | null }) {
         </Link>
       </div>
       <ul className="grid grid-cols-2 gap-1 px-3 pb-3 sm:grid-cols-3 md:block md:space-y-1">
-        {links.map(({ href, label, Icon }) => {
+        {groups.flatMap((g) => [
+          g.title && <li key={g.title} className="hidden px-3 pt-4 pb-1 text-sm font-medium text-muted-foreground lg:block">{g.title}</li>,
+          ...g.links.map(({ href, label, Icon }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (
             <li key={href}>
@@ -48,7 +61,8 @@ export function Nav({ company }: { company: string | null }) {
               </Link>
             </li>
           );
-        })}
+          }),
+        ])}
       </ul>
       <form action={signOut} className="mx-3 mt-1 mb-4 border-t px-2 pt-4 text-sm md:hidden lg:absolute lg:inset-x-0 lg:bottom-0 lg:mt-0 lg:block lg:px-3">
         <p className="truncate font-medium" title={company}>{company}</p>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { saveTier } from "@/app/actions";
 import { Data } from "@/components/Data";
 import { Label, SaveForm } from "@/components/form";
-import { Card, PageHeader, Pill, inputClass, tierColor } from "@/components/ui";
+import { Card, Disclosure, PageHeader, Pill, inputClass, tierColor } from "@/components/ui";
 import { getTiers } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Tiers & rewards · If Ensurance Staff" };
@@ -21,9 +21,10 @@ async function Ladder() {
             </h2>
             {t.min_score === 0 ? <Pill tone="accent">Starting tier</Pill> : <span className="text-sm text-muted-foreground">Care Score {t.min_score}+</span>}
           </div>
+          <Disclosure inline title="Edit tier" meta={`${t.partner_discount_percent} % partner discount · ${t.bonuses.length} ${t.bonuses.length === 1 ? "bonus" : "bonuses"}`}>
           <SaveForm action={saveTier}>
             <input type="hidden" name="index" value={t.index} />
-            <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <div className="mt-2 grid gap-4 md:grid-cols-3">
               <Label text="Name"><input name="name" required maxLength={40} defaultValue={t.name} className={inputClass} /></Label>
               <Label text="Minimum Care Score" hint="The average of the insurance scores."><input name="min_score" type="number" min={0} required defaultValue={t.min_score} className={inputClass} /></Label>
               <Label text="Partner discount %"><input name="partner_discount_percent" type="number" min={0} max={100} required defaultValue={t.partner_discount_percent} className={inputClass} /></Label>
@@ -33,6 +34,7 @@ async function Ladder() {
               </Label>
             </div>
           </SaveForm>
+          </Disclosure>
         </Card>
       ))}
     </div>

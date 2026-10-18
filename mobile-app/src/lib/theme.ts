@@ -34,10 +34,12 @@ export const colors = {
 
 export type ColorName = keyof typeof colors;
 
-// Maintenance seasons: warm for autumn and summer, the app's blues for winter and spring. Text-safe on their soft colour.
+// Maintenance seasons: warm for autumn and summer, blue for winter, green for spring. Text-safe on their soft colour.
 export const seasonColors = {
   autumn: { solid: "#a8432a", soft: "#f4ddd2" },
   summer: { solid: "#8a5f00", soft: "#f9e8c4" },
+  winter: { solid: "#1241a2", soft: "#dbe6f8" },
+  spring: { solid: "#217331", soft: "#e0f0db" },
 } as const;
 
 export const tierColors = {

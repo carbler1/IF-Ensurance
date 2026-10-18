@@ -45,13 +45,13 @@ export default function Dashboard() {
         href="/score"
         accessibilityLabel={insurances.map(({ id }) => `${t(`ins.${id}`)} ${scores[id]}, ${getBand(scores[id]) ? fmt(t("band.off"), { pct: getBand(scores[id]) }) : t("band.none")}`).join("; ")}
       >
-        <Card style={{ flexDirection: "row", paddingHorizontal: 4, paddingVertical: 16 }}>
+        <Card style={{ flexDirection: "row", paddingHorizontal: 4, paddingVertical: 10 }}>
           {insurances.map(({ id }, i) => {
             const Icon = insuranceIcon[id];
             const pct = getBand(scores[id]);
             return (
-              <View key={id} style={[{ flex: 1, alignItems: "center", gap: 4 }, i > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border }]}>
-                <Icon size={20} color={colors.mutedForeground} />
+              <View key={id} style={[{ flex: 1, alignItems: "center", gap: 1 }, i > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border }]}>
+                <Icon size={18} color={colors.primary} />
                 <Text size="xl" display weight={600} tabular maxFontSizeMultiplier={1.3}>{scores[id]}</Text>
                 <Text size="xs" weight={600} color={pct ? "success" : "mutedForeground"} maxFontSizeMultiplier={1.3} numberOfLines={1} adjustsFontSizeToFit>{pct ? fmt(t("band.off"), { pct }) : "—"}</Text>
               </View>
@@ -65,9 +65,9 @@ export default function Dashboard() {
         const Icon = areaIcon[nextRisk.area];
         return (
           <LinkBlock href={{ pathname: "/risks/[id]", params: { id: nextRisk.id } }}>
-            <Card style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 16 }}>
-              <View style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: radius.full, backgroundColor: colors.accent }}>
-                <Icon size={20} color={colors.primary} />
+            <Card style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10 }}>
+              <View style={{ height: 32, width: 32, alignItems: "center", justifyContent: "center", borderRadius: radius.full, backgroundColor: colors.accent }}>
+                <Icon size={18} color={colors.primary} />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text size="sm" color="mutedForeground">{t("home.next")}</Text>
@@ -84,8 +84,8 @@ export default function Dashboard() {
       })()}
 
       <Card flat style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 16, backgroundColor: colors.accent }}>
-        <View style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: radius.full, backgroundColor: colors.card }}>
-          <Snowflake size={20} color={colors.primary} />
+        <View style={{ height: 32, width: 32, alignItems: "center", justifyContent: "center", borderRadius: radius.full, backgroundColor: colors.card }}>
+          <Snowflake size={18} color={colors.primary} />
         </View>
         <View style={{ flex: 1 }}>
           <Text size="sm" weight={600} color="accentForeground">{t("home.alert")}</Text>
