@@ -47,7 +47,6 @@ export const tierColors = {
   platinum: { solid: "#0054f0", soft: "#dbe4fb" },
 } as const;
 
-// --radius is 0.75rem; the theme derives the other radii from it.
 export const radius = { md: 10, lg: 12, xl: 16, "2xl": 20, full: 9999 } as const;
 
 export const shadows = {
@@ -57,7 +56,7 @@ export const shadows = {
   lg: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)",
 } as const;
 
-// Tailwind font-size / line-height pairs. "body" is the 17px base the body element sets.
+// Font size / line height pairs. "body" is the 17 px base text size.
 export const sizes = {
   xs: [12, 16],
   sm: [14, 20],

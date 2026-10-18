@@ -99,7 +99,7 @@ def risk_detail(s, home_id: str, risk_id: str) -> dict:
             evidence.append({k: ev[k] for k in ("document_id", "page", "quote")})
     city = s.get(Home, home_id).city
     cat = e["mitigation"]["partner_category"]
-    # Partners live in SQLite so If staff can change prices and vetting in the dashboard.
+    # Partners live in the database so If staff can change prices and vetting in the dashboard.
     partners = [p for p in db.partners(s)
                 if cat in p["categories"] and p["area"] == city and p["if_vetted"]]
     partners.sort(key=lambda p: -p["rating"])

@@ -13,7 +13,6 @@ export default function Dashboard() {
 
   return (
     <Screen>
-      {/* The web wordmark is an inline link, so the list spacing never applied below it. */}
       <View style={{ alignItems: "center" }}>
         <Wordmark />
         <Text color="mutedForeground" center>{t("home.hello")}, {customer.name}</Text>

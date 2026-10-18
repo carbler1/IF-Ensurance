@@ -15,7 +15,7 @@ def now() -> str:
 
 def run(s: Session, document_id: str, stage, check) -> None:
     """stage(name) records the stage; check() raises when the job is over time."""
-    from backend import extract, write  # lazy: written by other modules
+    from backend import extract, write
 
     home_id = s.get(Document, document_id).home_id
     stage("extracting")

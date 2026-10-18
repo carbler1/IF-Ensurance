@@ -7,7 +7,7 @@ import type { AppData, Band, Job, JobStep, Tier } from "./types";
 export type { Job, JobStep } from "./types";
 
 // The customer's data lives in the backend; the store loads it once and saves every change there.
-// Language and onboarding stay on the device.
+// Language and onboarding live in memory only; they are not saved.
 
 type Status = "loading" | "ready" | "error";
 

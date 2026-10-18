@@ -34,7 +34,7 @@ def doc(document_id, page, quote):
 
 
 def none():
-    """A field the document did not state (spec section 3.2, decision 36).
+    """A field the document did not state.
 
     The merge step fills it with value "unknown", confidence 0, source "none",
     evidence null and doubt false. Never give such a field source "document".
@@ -54,7 +54,7 @@ def stated_unknown(document_id, page, quote):
 
 
 def check_profile(name: str, profile: dict) -> None:
-    """Fail when a field breaks the profile rules of spec section 3.2."""
+    """Fail when a field breaks the profile rules."""
     for key, f in profile.items():
         if f["source"] == "none":
             assert f["value"] == "unknown" and f["confidence"] == 0 and f["evidence"] is None, \

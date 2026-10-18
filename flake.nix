@@ -24,7 +24,7 @@
               || { echo "claude: not installed. Install Claude Code first: https://claude.com/claude-code" >&2; exit 1; }
             exec "$real" --plugin-dir ${ponytail} "$@"
           '';
-          # Runs the customer app on a USB-connected Android phone in Expo Go (mobile-app/README.md).
+          # Runs the customer app on a USB-connected Android phone in Expo Go.
           phone = pkgs.writeShellScriptBin "phone" ''
             port="''${1:-8083}"
             adb wait-for-device
