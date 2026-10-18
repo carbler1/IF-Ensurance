@@ -1,5 +1,5 @@
 {
-  "_note": "12 reserved demo profiles for the customer app, one distinct customer each (cust_p01 .. cust_p12). Each profile has the data/demo-person.json shape, split per table: customer -> customers; home (null when the customer has no house) -> homes (customer_id = customer); objects -> insured_objects (object_id, class_id, name, history as JSON, details as JSON; profile as JSON for cottage/boat/car/dog; the house keeps object_id = home_id and no profile column, its profile is in profiles instead); the house object's house_profile_values -> profiles.profile, expanded to the 20 fields of data/home-profile.schema.json the way backend/presets.py build does (value, confidence 0.9, source register, evidence {register: preset}, doubt false; every other field unknown); risks -> assigned_risks (texts from demo-person.json; risk_id is <template>@<object_id>, so engine.fix_value uses the rule default.<template>, which seed already creates); bids -> bids (customer_id = customer; firm names from fixtures/partners.json, each once per profile); tasks -> maintenance_tasks (customer_id = customer); reminders -> reminders (task ids). Scores: each insurance starts at 500 and adds its history points; the aggregate is the average; history sets score, band and tier. Premiums come from the class base premiums. Loader: the code of backend/db.py seed_presets, once per profile. profile_id, summary and classes are for people and checks; the loader ignores them.",
+  "_note": "12 reserved demo profiles for the customer app, one distinct customer each (cust_p01 .. cust_p12). Each profile has the data/demo-person.json shape, split per table: customer -> customers; home (null when the customer has no house) -> homes (customer_id = customer); objects -> insured_objects (object_id, class_id, name, history as JSON, details as JSON; profile as JSON for cottage/boat/car/dog, with a unique typeable key first: boat reg_no, car plate, dog chip_id, cottage property_id; the house is found by its address; the house keeps object_id = home_id and no profile column, its profile is in profiles instead); the house object's house_profile_values -> profiles.profile, expanded to the 20 fields of data/home-profile.schema.json the way backend/presets.py build does (value, confidence 0.9, source register, evidence {register: preset}, doubt false; every other field unknown); risks -> assigned_risks (texts from demo-person.json; risk_id is <template>@<object_id>, so engine.fix_value uses the rule default.<template>, which seed already creates); bids -> bids (customer_id = customer; firm names from fixtures/partners.json, each once per profile); tasks -> maintenance_tasks (customer_id = customer); reminders -> reminders (task ids). Scores: each insurance starts at 500 and adds its history points; the aggregate is the average; history sets score, band and tier. Premiums come from the class base premiums. Loader: the code of backend/db.py seed_presets, once per profile. profile_id, summary and classes are for people and checks; the loader ignores them.",
   "profiles": [
     {
       "profile_id": "p01",
@@ -220,6 +220,7 @@
           "class_id": "dog",
           "name": "Pyry, Dachshund",
           "profile": {
+            "chip_id": "933001234567891",
             "breed_size": "small",
             "birth_year": 2021,
             "vaccinations_valid": "no"
@@ -414,6 +415,7 @@
           "class_id": "car",
           "name": "Volvo V70 2012",
           "profile": {
+            "plate": "KLM-482",
             "model_year": 2012,
             "winter_tyres_year": 2017,
             "last_service": "2024-02-20"
@@ -606,6 +608,7 @@
           "class_id": "car",
           "name": "Toyota Yaris 2009",
           "profile": {
+            "plate": "RTS-905",
             "model_year": 2009,
             "winter_tyres_year": 2018,
             "last_service": "2024-05-14"
@@ -715,6 +718,7 @@
           "class_id": "dog",
           "name": "Karhu, Bernese Mountain Dog",
           "profile": {
+            "chip_id": "933001234567893",
             "breed_size": "large",
             "birth_year": 2017,
             "vaccinations_valid": "yes"
@@ -806,6 +810,7 @@
           "class_id": "boat",
           "name": "Nordic 22 sailboat",
           "profile": {
+            "reg_no": "FIN-5530-H",
             "boat_type": "sailboat",
             "last_engine_service": "2023-06-20",
             "winter_storage": "indoor"
@@ -905,6 +910,7 @@
           "class_id": "cottage",
           "name": "Log cottage, Taivassalo",
           "profile": {
+            "property_id": "529-411-3-27",
             "building_year": 1955,
             "heating": "wood",
             "water_winterized": "no",
@@ -927,6 +933,7 @@
           "class_id": "boat",
           "name": "Yamarin 5130 motorboat",
           "profile": {
+            "reg_no": "FIN-2276-T",
             "boat_type": "motorboat",
             "last_engine_service": "2022-09-02",
             "winter_storage": "outdoor_uncovered"
@@ -1129,6 +1136,7 @@
           "class_id": "cottage",
           "name": "Lakeside cottage, Kuusamo",
           "profile": {
+            "property_id": "564-876-5-112",
             "building_year": 1991,
             "heating": "electric",
             "water_winterized": "no",
@@ -1151,6 +1159,7 @@
           "class_id": "boat",
           "name": "Linder 445 fishing boat",
           "profile": {
+            "reg_no": "FIN-7013-O",
             "boat_type": "motorboat",
             "last_engine_service": "2023-08-12",
             "winter_storage": "outdoor_covered"
@@ -1172,6 +1181,7 @@
           "class_id": "car",
           "name": "Mazda CX-5 2019",
           "profile": {
+            "plate": "XYZ-317",
             "model_year": 2019,
             "winter_tyres_year": 2021,
             "last_service": "2025-03-10"
@@ -1193,6 +1203,7 @@
           "class_id": "dog",
           "name": "Nuppu, Border Collie",
           "profile": {
+            "chip_id": "933001234567894",
             "breed_size": "medium",
             "birth_year": 2019,
             "vaccinations_valid": "no"
@@ -1425,6 +1436,7 @@
           "class_id": "cottage",
           "name": "Island cottage, Nauvo",
           "profile": {
+            "property_id": "091-415-8-63",
             "building_year": 1982,
             "heating": "electric",
             "water_winterized": "yes",
@@ -1565,6 +1577,7 @@
           "class_id": "boat",
           "name": "Nimbus 280 sailboat",
           "profile": {
+            "reg_no": "FIN-3345-E",
             "boat_type": "sailboat",
             "last_engine_service": "2024-04-18",
             "winter_storage": "outdoor_covered"
@@ -1744,6 +1757,7 @@
           "class_id": "car",
           "name": "Volkswagen Golf 2020",
           "profile": {
+            "plate": "HJN-630",
             "model_year": 2020,
             "winter_tyres_year": 2018,
             "last_service": "2025-09-20"
@@ -1765,6 +1779,7 @@
           "class_id": "dog",
           "name": "Sisu, Golden Retriever",
           "profile": {
+            "chip_id": "933001234567895",
             "breed_size": "large",
             "birth_year": 2016,
             "vaccinations_valid": "no"
@@ -1937,6 +1952,7 @@
           "class_id": "cottage",
           "name": "Pine cottage, Parainen",
           "profile": {
+            "property_id": "738-402-9-14",
             "building_year": 2008,
             "heating": "electric",
             "water_winterized": "no",
@@ -1959,6 +1975,7 @@
           "class_id": "dog",
           "name": "Tipsu, Papillon",
           "profile": {
+            "chip_id": "933001234567896",
             "breed_size": "small",
             "birth_year": 2022,
             "vaccinations_valid": "yes"

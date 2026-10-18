@@ -44,6 +44,7 @@
       "class_id": "cottage",
       "name": "Summer cottage, Nauvo",
       "profile": {
+        "property_id": "430-402-12-34",
         "building_year": 1968,
         "heating": "wood",
         "water_winterized": "no",
@@ -61,6 +62,7 @@
       "class_id": "boat",
       "name": "Buster XL motorboat",
       "profile": {
+        "reg_no": "FIN-4821-K",
         "boat_type": "motorboat",
         "last_engine_service": "2023-09-15",
         "winter_storage": "outdoor_uncovered"
@@ -77,6 +79,7 @@
       "class_id": "car",
       "name": "Škoda Octavia 2016",
       "profile": {
+        "plate": "ABC-123",
         "model_year": 2016,
         "winter_tyres_year": 2019,
         "last_service": "2025-03-10"
@@ -97,6 +100,7 @@
       "class_id": "dog",
       "name": "Ruska, Labrador",
       "profile": {
+        "chip_id": "933001234567890",
         "breed_size": "large",
         "birth_year": 2018,
         "vaccinations_valid": "no"
