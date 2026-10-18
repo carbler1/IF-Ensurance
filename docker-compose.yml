@@ -34,11 +34,12 @@ services:
         required: false
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ilp}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ilp}
-      # Ollama runs on the host, outside the container.
-      OLLAMA_URL: ${OLLAMA_URL_DOCKER:-http://host.docker.internal:11434}
+      # Ollama runs outside the container; the default is the host.
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
       ADMIN_TOKEN: ${ADMIN_TOKEN:?Set ADMIN_TOKEN in .env}
-      # The browser origins that may call the API: the app demo below and Expo's web dev server.
-      CORS_ORIGINS: http://localhost:${MOBILE_PORT:-8082},http://localhost:8081
+      CUSTOMER_TOKEN: ${CUSTOMER_TOKEN:?Set CUSTOMER_TOKEN in .env}
+      # The browser origins that may call the API (default: the app demo below and Expo's web dev server).
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:${MOBILE_PORT:-8082},http://localhost:8081}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -78,7 +79,7 @@ services:
       context: ./mobile-app
       args:
         # The public origin of the app; nginx proxies its /v1/ to the backend.
-        EXPO_PUBLIC_API_URL: https://<app-domain>
+        EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://localhost:8082}
         EXPO_PUBLIC_API_TOKEN: ${CUSTOMER_TOKEN:?Set CUSTOMER_TOKEN in .env}
     ports:
       - "${MOBILE_PORT:-8082}:80"
