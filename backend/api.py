@@ -2,17 +2,20 @@
 
 import json
 import os
+import re
+import secrets
 
-from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from backend import admin, app_api, db, engine, insurance, maintenance
-from backend.auth import Who, require_token
-from backend.models import Document, Home, Job, Profile, RiskText
+from backend.auth import Who, client_ip, rate_limit, require_token, sha
+from backend.models import Customer, Document, Home, InsuredObject, Job, Profile, RiskText
 
 app = FastAPI(title="If Life Partner")
 app.add_middleware(
@@ -54,9 +57,71 @@ async def _server_error(request, exc):
 v1 = APIRouter(prefix="/v1", dependencies=[Depends(require_token)])
 
 
+_KEYS = {"boat": "reg_no", "car": "plate", "dog": "chip_id", "cottage": "property_id"}
+
+
+def _norm(x: str) -> str:
+    return re.sub(r"[\s-]", "", x or "").lower()
+
+
+def _mask(key: str) -> str:
+    """Keep the first 3 and the last character, star the letters and digits between."""
+    k = key.strip()
+    return k if len(k) <= 4 else k[:3] + re.sub(r"[^\W_]", "*", k[3:-1]) + k[-1]
+
+
+@app.get("/v1/profiles/search")
+def profiles_search(request: Request, cls: str = Query(alias="class"), q: str = ""):
+    """Find a customer by a register key, for the sign-in. No auth; masked labels, at most 5 hits.
+    A q shorter than 4 characters (after dropping case, spaces and dashes) is a 400."""
+    rate_limit(request, "search")
+    if cls != "house" and cls not in _KEYS:
+        raise HTTPException(400, "Unknown class.")
+    nq = _norm(q)
+    if len(nq) < 4:
+        raise HTTPException(400, "Type at least 4 characters.")
+    hits = []  # (customer_id, label)
+    with db.connect() as s:
+        if cls == "house":
+            for h in s.scalars(select(Home).where(Home.customer_id.is_not(None)).order_by(Home.home_id)):
+                if nq in _norm(h.street + h.postal_code) or _norm(f"{h.street}{h.postal_code}").startswith(nq):
+                    name, _, num = h.street.partition(" ")
+                    hits.append((h.customer_id, f"{name[:3]}*** {num}, {h.city}" if len(name) > 3 else f"{h.street}, {h.city}"))
+        else:
+            for o in s.scalars(select(InsuredObject).where(InsuredObject.class_id == cls).order_by(InsuredObject.object_id)):
+                key = (json.loads(o.profile) if o.profile else {}).get(_KEYS[cls])
+                if isinstance(key, str) and _norm(key) == nq:
+                    hits.append((o.customer_id, _mask(key)))
+        taken = set(s.scalars(select(Customer.customer_id).where(Customer.password_hash.is_not(None))))
+    return {"hits": [{"customer_id": c, "label": l, "taken": c in taken} for c, l in hits[:5]]}
+
+
+class ClaimBody(BaseModel):
+    customer_id: str
+    password: str = Field(min_length=8, max_length=200)
+
+
+@app.post("/v1/claim")
+def claim(body: ClaimBody, request: Request):
+    """First claim sets the password, later calls verify it. Answers with a new bearer token.
+    shortcut: one token per customer, so a sign-in on a second device signs the first one out."""
+    rate_limit(request, "claim")
+    with db.connect() as s:
+        c = s.get(Customer, body.customer_id)
+        if c is None:
+            raise HTTPException(404, "Unknown customer.")
+        admin.claim_or_verify(s, c, f"cust:{c.customer_id}:{client_ip(request)}", Customer.customer_id == c.customer_id, body.password)
+        token = secrets.token_urlsafe(32)
+        c.token_hash = sha(token)
+        s.commit()
+    return {"token": token}
+
+
 @v1.get("/homes/me")
 def get_home(who: Who = Depends(require_token)):
     HOME_ID = who.home_id
+    if HOME_ID is None:
+        raise HTTPException(404, "Home not found.")
     with db.connect() as s:
         home = s.get(Home, HOME_ID)
         prof = s.get(Profile, HOME_ID)
@@ -99,6 +164,8 @@ def get_job(job_id: str, who: Who = Depends(require_token)):
 
 
 def _read(who, fn, *args):
+    if who.home_id is None:
+        raise HTTPException(404, "Home not found.")
     with db.connect() as s:
         return fn(s, who.home_id, *args)
 

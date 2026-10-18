@@ -3,7 +3,7 @@
 import secrets
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 
 from backend import db
@@ -20,6 +20,8 @@ def _err(code: str, message: str) -> JSONResponse:
 
 @router.post("/homes/me/documents", status_code=202)
 async def post_document(file: UploadFile = File(...), type: str = Form(...), who: Who = Depends(require_token)):
+    if who.home_id is None:
+        raise HTTPException(409, "No home to attach the document to.")
     if type != "kuntotarkastus":
         return _err("unsupported_document", "type must be kuntotarkastus")
     data = await file.read(MAX_BYTES + 1)  # bounded read

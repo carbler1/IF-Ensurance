@@ -1,16 +1,23 @@
-"""The customer caller: the app has no sign-in, so every call resolves to the demo customer and home."""
+"""The customer bearer token: resolves the caller's customer and home."""
 
+import hashlib
+import hmac
+import os
 import time
 from typing import NamedTuple
 
-from fastapi import HTTPException, Request
+from fastapi import Header, HTTPException, Request
+from sqlalchemy import select
 
-DEMO_CUSTOMER, DEMO_HOME = "cust_01", "home_01"  # the one customer the app shows (cottage, boat, car and dog too)
+from backend import db
+from backend.models import Customer, Home
+
+DEMO_CUSTOMER, DEMO_HOME = "cust_01", "home_01"  # CUSTOMER_TOKEN opens this one (cottage, boat, car and dog too)
 
 
 class Who(NamedTuple):
     customer_id: str
-    home_id: str
+    home_id: str | None  # None: the customer has no house
 
 
 def client_ip(request: Request) -> str:
@@ -33,6 +40,19 @@ def rate_limit(request: Request, bucket: str) -> None:
     _HITS[key] = hits + [now]
 
 
-def require_token() -> Who:
-    """The customer app has no sign-in for now: every call is the demo customer (CUSTOMER_TOKEN is not read)."""
-    return Who(DEMO_CUSTOMER, DEMO_HOME)
+def sha(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def require_token(authorization: str = Header(default="")) -> Who:
+    """The caller's customer and home, from the bearer token. CUSTOMER_TOKEN is the demo customer."""
+    scheme, _, given = authorization.partition(" ")
+    demo = os.environ.get("CUSTOMER_TOKEN", "")
+    if scheme.lower() == "bearer" and given:
+        if demo and hmac.compare_digest(given.encode(), demo.encode()):
+            return Who(DEMO_CUSTOMER, DEMO_HOME)
+        with db.connect() as s:
+            cid = s.scalar(select(Customer.customer_id).where(Customer.token_hash == sha(given)))
+            if cid is not None:
+                return Who(cid, s.scalar(select(Home.home_id).where(Home.customer_id == cid).order_by(Home.home_id)))
+    raise HTTPException(401, "Missing or wrong bearer token.")
