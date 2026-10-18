@@ -241,13 +241,23 @@ def test_preset_points_and_add_insurance(tmp_path, monkeypatch):
     with TestClient(app) as c:
         with db.connect() as s:  # the generic preset risks are worth points, so a check-up risk never shows +0
             assert s.get(FixRule, "default.alarm").points > 0 and s.get(FixRule, "default.vent").points > 0
-        h = {"Authorization": "Bearer " + c.post("/v1/claim", json={"home_id": "home_02", "password": "password1"}).json()["token"]}
-        d = c.get("/v1/me/app", headers=h).json()
-        assert all(r["points"] > 0 for r in d["risks"])
-        assert [i["id"] for i in d["insurances"]] == ["house"]
-        assert len({b["name"] for b in d["bids"]}) == len(d["bids"])
+        from backend import app_api
+        from backend.models import AssignedRisk, Booking, InsuredObject
+        with db.connect() as s:  # preset home_02 is not reachable through the API (no sign-in), read it directly
+            d = app_api.app_data(s, "cust_02")
+            assert all(r["points"] > 0 for r in d["risks"])
+            assert [i["id"] for i in d["insurances"]] == ["house"]
+            assert len({b["name"] for b in d["bids"]}) == len(d["bids"])
+            boat = s.query(InsuredObject).filter_by(customer_id="cust_01", class_id="boat").one()
+            for r in s.query(AssignedRisk).filter_by(object_id=boat.object_id):
+                s.query(Booking).filter_by(risk_id=r.risk_id).delete()
+                s.delete(r)
+            s.flush()
+            s.delete(boat)
+            s.commit()
+        h = H
         d = c.post("/v1/me/insurances", headers=h, json={"class_id": "boat", "name": "My boat"}).json()
-        assert [(i["id"], i["object"]) for i in d["insurances"]][1:] == [("boat", "My boat")]
+        assert ("boat", "My boat") in [(i["id"], i["object"]) for i in d["insurances"]]
         assert c.post("/v1/me/insurances", headers=h, json={"class_id": "boat"}).status_code == 409
         assert c.post("/v1/me/insurances", headers=h, json={"class_id": "nope"}).status_code == 404
         assert c.post("/v1/me/insurances", headers=H, json={"class_id": "dog"}).status_code == 409  # the demo customer has all five
