@@ -25,6 +25,15 @@ function rescore() {
 
 const answer = () => Promise.resolve(structuredClone(state));
 
+export class ApiError extends Error {
+  constructor(message: string, readonly status = 0) {
+    super(message);
+  }
+}
+
+// A test of the add action starts from a customer who lacks one insurance.
+export const dropInsuranceFromFakeApi = (id: string) => { state.insurances = state.insurances.filter((i) => i.id !== id); };
+
 export const api = {
   getLang: () => Promise.resolve(null as string | null),
   setLang: (_l: string) => Promise.resolve(),
@@ -36,6 +45,14 @@ export const api = {
   advance: (riskId: string) => {
     state.risks = state.risks.map((r) => (r.id === riskId && r.job ? { ...r, job: { ...r.job, step: Math.min(2, r.job.step + 1) as 0 | 1 | 2 } } : r));
     rescore();
+    return answer();
+  },
+  // Like POST /v1/me/insurances: a new insurance starts at the model's start score, one per class.
+  addInsurance: (classId: string) => {
+    if (state.insurances.some((i) => i.id === classId)) return Promise.reject(new ApiError("You already have this insurance.", 409));
+    const score = state.model.insuranceStart;
+    state.insurances = [...state.insurances, { id: classId as AppData["insurances"][number]["id"], objectId: `fake_${classId}`, object: classId, premium: 100, score, band: state.model.bands.reduce((p, b) => (score >= b.min ? b.percent : p), 0) }];
+    state.aggregate = Math.round(state.insurances.reduce((a, i) => a + i.score, 0) / state.insurances.length);
     return answer();
   },
   setReminder: (taskId: string, on: boolean) => {

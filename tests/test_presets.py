@@ -29,3 +29,9 @@ def test_preset_rules():
             assert "Inspect drainage well" not in titles
         if "Change heat pump filter" in titles:
             assert prof["heating"]["value"] in ("air_heat_pump", "ground_heat")
+        names = [b["name"] for b in p["bids"]]
+        assert len(set(names)) == len(names)  # each firm once per home
+
+
+def test_generic_risks_have_points():
+    assert all(r["points"] > 0 for r in presets.EXTRA_RISKS.values())

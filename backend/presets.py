@@ -28,10 +28,10 @@ HISTORY = [("Smoke alarms registered", 20), ("Roof check aged", -10), ("Missed g
 RISK_IDS = ["panel", "pipes", "leak", "roof", "attic"]  # the house risks of demo-person.json
 # Generic risks so that a young flat still gets 3: they exist only here, not in demo-person.json.
 EXTRA_RISKS = {
-    "vent": {"area": "ventilation", "title": "Ventilation filters not changed", "why": "Clogged filters raise damp and energy use.",
+    "vent": {"area": "ventilation", "points": 25, "title": "Ventilation filters not changed", "why": "Clogged filters raise damp and energy use.",
              "explain": "Ventilation filters need changing about once a year; clogged ones let damp build up.",
              "fix": "A partner cleans the ducts and changes the filters.", "diy": "Change the filters yourself, then book a duct check."},
-    "alarm": {"area": "fire", "title": "Smoke alarms not tested", "why": "A dead battery gives no warning in a fire.",
+    "alarm": {"area": "fire", "points": 30, "title": "Smoke alarms not tested", "why": "A dead battery gives no warning in a fire.",
               "explain": "Smoke alarms should be tested every few months and replaced after about ten years.",
               "fix": "A partner tests the alarms and replaces old ones.", "diy": "Press the test button on each alarm, then book a check if one fails."},
 }
@@ -85,7 +85,8 @@ def build(i: int, demo: dict, schema_fields: list[str]) -> dict:
             mat = values["pipe_material"].replace("_", " ")
             risks[-1].update(why=f"{mat.capitalize()} pipes from {year} are over {(2026 - year) // 10 * 10} years old.",
                              explain=f"Pipes from {year} ({mat}) are near the end of their life. Small leaks inside walls can go unnoticed for months.")
-    bids = [{"bid_id": f"{hid}_b{k}", "name": f"{city[:4]} {rng.choice(BID_NAMES)}", "rating": round(rng.uniform(4.3, 5.0), 1),
+    names = rng.sample(BID_NAMES, 3)  # one bid per firm
+    bids = [{"bid_id": f"{hid}_b{k}", "name": f"{city[:4]} {names[k]}", "rating": round(rng.uniform(4.3, 5.0), 1),
              "reviews": rng.randint(20, 300), "price": rng.randint(110, 260),
              "earliest": rng.choice(["Mon 19 Oct", "Tue 20 Oct", "Thu 22 Oct", "Fri 23 Oct", "Mon 26 Oct"]), "sort_order": k}
             for k in range(3)]

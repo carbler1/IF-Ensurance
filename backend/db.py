@@ -107,6 +107,8 @@ def seed(s: Session) -> None:
 
     entries = json.loads((ROOT / "data" / "catalogue.json").read_text())["entries"]
     entries += [{"id": r["risk_id"], "points": r["points"], "category": r["area"]} for r in demo["risks"]]
+    # The preset homes' generic risks (vent, alarm) need a rule too, or they are worth 0 points.
+    entries += [{"id": k, "points": r["points"], "category": r["area"]} for k, r in presets.EXTRA_RISKS.items()]
     half_lives = json.loads((ROOT / "fixtures" / "half-lives.json").read_text())["defaults"]
     for e in entries:
         add_missing(FixRule, f"default.{e['id']}", FixRule(

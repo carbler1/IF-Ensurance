@@ -29,6 +29,7 @@ type Store = Omit<AppData, "insurances"> & {
   aggregate: number;
   bands: Band[];
   toggleReminder: (id: string) => void;
+  addInsurance: (classId: InsuranceId) => Promise<void>;
   getTier: (score: number) => { tier: Tier; next: Tier | undefined; index: number };
   getBand: (score: number) => number;
   nextBand: (score: number) => { percent: number; min: number; pointsTo: number } | undefined;
@@ -123,6 +124,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       scores,
       aggregate: data.aggregate,
       bands,
+      addInsurance: (classId) => api.addInsurance(classId).then(setData),
       toggleReminder: (id) => {
         const on = !data.reminders.includes(id);
         save((d) => ({ ...d, reminders: on ? [...d.reminders, id] : d.reminders.filter((x) => x !== id) }), () => api.setReminder(id, on));
