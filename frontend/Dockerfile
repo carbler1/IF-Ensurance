@@ -22,7 +22,6 @@ ENV NODE_ENV=production \
 # server.js does not serve public/ or .next/static unless they sit next to it.
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
-COPY --from=build --chown=node:node /app/public ./public
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
