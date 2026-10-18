@@ -3,9 +3,9 @@
 # backend's /v1/admin API. Postgres is on the private "db" network with the backend only and has
 # no host port, so the dashboard (on the "app" network) cannot reach it at all.
 # The backend runs the Alembic migrations (backend/migrations/) on start.
-# Setup: cp .env.example .env and set POSTGRES_PASSWORD, ADMIN_TOKEN and the tokens.
+# Setup: cp .env.example .env and set POSTGRES_PASSWORD, ADMIN_TOKEN, the tokens and the two domains.
 # Then: docker compose up --build
-# Dashboard: http://localhost:3000   App demo: http://localhost:8082   API: http://localhost:8000
+# Only Caddy publishes ports (80 and 443): the app at APP_DOMAIN, the dashboard at DASHBOARD_DOMAIN.
 services:
   postgres:
     image: postgres:17-alpine
@@ -42,8 +42,6 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:${MOBILE_PORT:-8082},http://localhost:8081}
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    ports:
-      - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - backend-var:/app/var # uploaded PDFs
     networks:
@@ -65,8 +63,6 @@ services:
       # Server-side calls over the compose network; the browser never sees the token.
       BACKEND_URL: http://backend:8000
       ADMIN_TOKEN: ${ADMIN_TOKEN:?Set ADMIN_TOKEN in .env}
-    ports:
-      - "${FRONTEND_PORT:-3000}:3000"
     networks:
       - app
     depends_on:
@@ -81,12 +77,28 @@ services:
         # The public origin of the app; nginx proxies its /v1/ to the backend.
         EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://localhost:8082}
         EXPO_PUBLIC_API_TOKEN: ${CUSTOMER_TOKEN:?Set CUSTOMER_TOKEN in .env}
-    ports:
-      - "${MOBILE_PORT:-8082}:80"
     networks:
       - app
     depends_on:
       - backend
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN in .env}
+      DASHBOARD_DOMAIN: ${DASHBOARD_DOMAIN:?Set DASHBOARD_DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data # HTTPS certificates
+    networks:
+      - app
+    depends_on:
+      - mobile
+      - frontend
 
 networks:
   db:
@@ -94,5 +106,6 @@ networks:
   app:
 
 volumes:
+  caddy-data:
   postgres-data:
   backend-var:

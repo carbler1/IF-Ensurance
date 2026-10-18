@@ -1,0 +1,8 @@
+# HTTPS reverse proxy: Caddy gets and renews the certificates itself (Let's Encrypt).
+{$APP_DOMAIN} {
+	reverse_proxy mobile:80
+}
+
+{$DASHBOARD_DOMAIN} {
+	reverse_proxy frontend:3000
+}
