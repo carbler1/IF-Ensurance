@@ -10,14 +10,14 @@ import secrets
 import time
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
-from backend import auth, db, insurance
+from backend import db, insurance
 from backend.models import (Booking, Customer, DiscountBand, Document, FixRule, Home, InsuranceClass, InsuredObject,
-                            InsuranceSettings, Partner, StaffAccount, Tier, WorkOrder)
+                            InsuranceSettings, Partner, Tier, WorkOrder)
 
 
 def require_admin(x_admin_token: str = Header(default="")):
@@ -44,7 +44,7 @@ def _class_dict(c: InsuranceClass) -> dict:
     return {"base_annual_premium_eur": c.base_annual_premium_eur}
 
 
-# --- Staff accounts ---------------------------------------------------------------------------
+# --- Password claim (shared with the customer claim in api.py) ---------------------------------------------------------------------------
 
 # shortcut: failures are counted in this process's memory (reset on restart, per worker), enough for one backend.
 _FAILS: dict[str, list[float]] = {}  # name -> [failure count, locked until (monotonic seconds)]
@@ -53,17 +53,6 @@ MAX_FAILS, LOCK_SECONDS = 5, 60
 
 def _hash(password: str, salt: bytes) -> str:
     return hashlib.scrypt(password.encode(), salt=salt, n=2**14, r=8, p=1).hex()
-
-
-class LoginBody(BaseModel):
-    name: str
-    password: str = Field(min_length=8, max_length=200)
-
-
-@router.get("/accounts")
-def accounts(s: Session = Depends(_session)):
-    rows = s.scalars(select(StaffAccount).order_by(StaffAccount.name)).all()
-    return {"accounts": [{"name": a.name, "claimed": a.password_hash is not None} for a in rows]}
 
 
 def claim_or_verify(s: Session, row, key: str, where, password: str) -> None:
@@ -91,27 +80,6 @@ def claim_or_verify(s: Session, row, key: str, where, password: str) -> None:
         fails = [0, time.monotonic() + LOCK_SECONDS]
     _FAILS[key] = fails
     raise HTTPException(401, "Wrong password.")
-
-
-@router.post("/login")
-def login(body: LoginBody, request: Request, s: Session = Depends(_session)):
-    """Claim an unclaimed account (sets its password) or verify the password of a claimed one."""
-    auth.rate_limit(request, "login")
-    acc = s.scalar(select(StaffAccount).where(StaffAccount.name == body.name))
-    if acc is None:
-        raise HTTPException(404, "Unknown account.")
-    claim_or_verify(s, acc, f"staff:{acc.name}:{auth.client_ip(request)}", StaffAccount.id == acc.id, body.password)
-    return {"name": acc.name, "claimed": True}
-
-
-@router.post("/accounts/unclaim")
-def unclaim_accounts(s: Session = Depends(_session)):
-    """Free every staff account (scripts/reset-demo.sh). Customer homes stay claimed."""
-    s.execute(update(StaffAccount).values(password_hash=None))
-    s.commit()
-    for k in [k for k in _FAILS if k.startswith("staff:")]:
-        del _FAILS[k]
-    return {"status": "unclaimed"}
 
 
 # --- Overview and customers -------------------------------------------------------------------

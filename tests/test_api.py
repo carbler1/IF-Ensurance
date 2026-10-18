@@ -261,7 +261,6 @@ def test_claim_and_isolation(tmp_path, monkeypatch):
 
         # Reset and a restart keep the claims.
         c.post("/v1/admin/demo/reset", headers={"X-Admin-Token": "a"})
-        c.post("/v1/admin/accounts/unclaim", headers={"X-Admin-Token": "a"})
         with db.connect() as s:
             db.seed(s)
         assert c.get("/v1/me/app", headers=h1).json()["risks"][0]["job"] is not None
@@ -290,7 +289,7 @@ def test_fix_api_misc(tmp_path, monkeypatch):
         assert c.get("/v1/nope").status_code == 404 and c.get("/v1/nope").json()["error"]["code"] == "not_found"
         assert c.delete("/health").json()["error"]["code"] == "method_not_allowed"
         assert c.get("/v1/homes/me", headers={"Authorization": "Bearer é".encode()}).status_code == 401
-        assert c.get("/v1/admin/accounts", headers={"X-Admin-Token": "é".encode()}).status_code == 401
+        assert c.get("/v1/admin/classes", headers={"X-Admin-Token": "é".encode()}).status_code == 401
         assert c.get("/v1/jobs/nope", headers={"Authorization": "Bearer t"}).status_code == 404
         for _ in range(20):
             c.post("/v1/claim", json={"home_id": "nope", "password": "password1"})

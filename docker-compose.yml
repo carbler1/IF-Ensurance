@@ -64,7 +64,6 @@ services:
       BACKEND_URL: http://backend:8000
       ADMIN_TOKEN: ${ADMIN_TOKEN:?Set ADMIN_TOKEN in .env}
       # Signs the dashboard login cookie (16+ random characters).
-      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
     networks:
       - app
     depends_on:
