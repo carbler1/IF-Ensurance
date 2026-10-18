@@ -30,11 +30,15 @@ async function Tiles() {
 }
 
 const sections = [
-  { href: "/scoring", title: "Score & pricing", text: "Set the insurance scores, the discount bands and the points of each fix, per insurance and context." },
-  { href: "/simulator", title: "Simulator", text: "Try a customer and see each insurance score, discount and premium, and their Care Score tier, with every fix confirmed." },
-  { href: "/customers", title: "Customers", text: "Each customer, their insured objects and what they could still gain." },
-  { href: "/partners", title: "Partners", text: "Price ranges, the If discount and vetting for each partner." },
-  { href: "/tiers", title: "Tiers & rewards", text: "Care Score thresholds and the reward of each tier." },
+  { title: "Set the rules", items: [
+    { href: "/scoring", title: "Score & pricing", text: "Set the insurance scores, the discount bands and the points of each fix, per insurance and context." },
+    { href: "/tiers", title: "Tiers & rewards", text: "Care Score thresholds and the reward of each tier." },
+    { href: "/partners", title: "Partners", text: "Price ranges, the If discount and vetting for each partner." },
+  ] },
+  { title: "See the result", items: [
+    { href: "/simulator", title: "Simulator", text: "Try a customer and see each insurance score, discount and premium, and their Care Score tier, with every fix confirmed." },
+    { href: "/customers", title: "Customers", text: "Each customer, their insured objects and what they could still gain." },
+  ] },
 ];
 
 export default function OverviewPage() {
@@ -42,17 +46,24 @@ export default function OverviewPage() {
     <>
       <PageHeader title="Overview" sub="Good to see you. This is what is happening across If Ensurance right now." />
       <Data load={() => Tiles()} />
-      <Card flush className="mt-6 divide-y overflow-hidden">
-        {sections.map((s) => (
-          <Link key={s.href} href={s.href} className="group flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-secondary/60">
-            <span>
-              <span className="block font-medium">{s.title}</span>
-              <span className="mt-0.5 block text-sm text-muted-foreground">{s.text}</span>
-            </span>
-            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" aria-hidden />
-          </Link>
-        ))}
-      </Card>
+      <div className="mt-10 grid items-start gap-x-6 gap-y-10 xl:grid-cols-2">
+      {sections.map((g) => (
+        <section key={g.title}>
+          <h2 className="mb-3 text-lg font-semibold">{g.title}</h2>
+          <Card flush className="divide-y overflow-hidden">
+            {g.items.map((s) => (
+              <Link key={s.href} href={s.href} className="group flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-secondary/60">
+                <span>
+                  <span className="block font-medium">{s.title}</span>
+                  <span className="mt-0.5 block text-sm text-muted-foreground">{s.text}</span>
+                </span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" aria-hidden />
+              </Link>
+            ))}
+          </Card>
+        </section>
+      ))}
+      </div>
     </>
   );
 }

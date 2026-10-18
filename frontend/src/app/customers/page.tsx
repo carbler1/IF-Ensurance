@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 import { resetDemo } from "@/app/actions";
 import { Data } from "@/components/Data";
 import { ConfirmSubmit } from "@/components/form";
-import { Card, PageHeader, classIcon, eur, formatDate, tierColor } from "@/components/ui";
+import { Card, Disclosure, PageHeader, classIcon, eur, formatDate, tierColor } from "@/components/ui";
 import { getCustomers } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Customers · If Ensurance Staff" };
@@ -41,7 +41,8 @@ async function List() {
               </div>
             </div>
           </div>
-          <div className="mt-5 grid gap-px overflow-hidden rounded-lg border bg-border md:grid-cols-2 xl:grid-cols-5">
+          <Disclosure inline title="Insurances and what they could gain" meta={`${c.objects.length} insurances`}>
+          <div className="grid gap-px overflow-hidden rounded-lg border bg-border md:grid-cols-2 xl:grid-cols-5">
             {c.objects.map((o) => {
               const Icon = classIcon[o.class_id] ?? classIcon.house;
               const pct = Math.round((o.profile_known / Math.max(1, o.profile_total)) * 100);
@@ -78,6 +79,7 @@ async function List() {
             </div>
             <Link href="/simulator" className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-primary hover:bg-card">Open the simulator</Link>
           </div>
+          </Disclosure>
         </Card>
       ))}
     </div>

@@ -16,7 +16,8 @@ function Row({ label, points, first }: { label: string; points: number; first: b
 
 export default function ScoreBreakdown() {
   const { t, scores, aggregate, completed, insurances, risks, history: scoreHistory, tiers, bands, model, getBand, getTier, nextBand } = useStore();
-  const current = getTier(aggregate).tier.id;
+  const { tier, next: nextTier } = getTier(aggregate);
+  const current = tier.id;
   const currentBand = (pct: number) => bands.reduce((m, b) => (b.percent === pct ? b.min : m), 0);
   const items = [
     ...scoreHistory.map((h) => ({ label: `${t(`ins.${h.insurance}`)} · ${h.label}`, points: h.points })),
@@ -27,8 +28,21 @@ export default function ScoreBreakdown() {
   const ladder = [{ min: 0, percent: 0 }, ...bands];
 
   return (
-    <Screen back title={t("score.title")} sub={`${aggregate} / ${model.maxScore}`}>
-      <Text color="mutedForeground" center style={{ marginTop: -8 }}>{t("score.average")}</Text>
+    <Screen back>
+      {/* One centred stack: title, the score as the hero number, the tier and next goal, then the one-line meaning. */}
+      <View style={{ alignItems: "center", gap: 6, paddingBottom: 8 }}>
+        <Heading size="2xl" center>{t("score.title")}</Heading>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
+          <Text size="6xl" display weight={600} tabular maxFontSizeMultiplier={1.3}>{aggregate}</Text>
+          <Text size="lg" color="mutedForeground" tabular>/ {model.maxScore}</Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: radius.full, backgroundColor: colors.card, paddingHorizontal: 16, paddingVertical: 6, boxShadow: shadows.sm }}>
+          <View style={{ height: 12, width: 12, borderRadius: radius.full, backgroundColor: tierColors[tier.id].solid }} />
+          <Text weight={600}>{tier.name}</Text>
+        </View>
+        <Text weight={500} color="mutedForeground" center>{nextTier ? `${nextTier.min - aggregate} ${t("home.toNext")} ${nextTier.name}` : t("home.topTier")}</Text>
+        <Text size="sm" color="mutedForeground" center style={{ marginTop: 6, maxWidth: 300 }}>{t("score.average")}</Text>
+      </View>
 
       <Card>
         <Heading size="lg">{t("score.insurances")}</Heading>

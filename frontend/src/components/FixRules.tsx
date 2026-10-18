@@ -6,7 +6,7 @@ import { addRule, deleteRule, saveClass, saveRule } from "@/app/actions";
 import { describe, fieldLabel, rowsToCondition, type FieldInfo, type Row } from "@/lib/context";
 import type { InsuranceClass, Risk, Rule } from "@/lib/types";
 import { Button, ConfirmSubmit, Label, SaveForm, Switch } from "./form";
-import { Card, IconTile, Pill, Segmented, categoryIcon, classIcon, humanize, inputClass } from "./ui";
+import { Card, Disclosure, IconTile, Pill, Segmented, categoryIcon, classIcon, eur, humanize, inputClass } from "./ui";
 
 function RuleEditor({ rule }: { rule: Rule }) {
   return (
@@ -141,7 +141,9 @@ function FixCard({ risk, rules, fields }: { risk: Risk; rules: Rule[]; fields: F
   const def = rules.find((r) => r.is_default);
   const contextRules = rules.filter((r) => !r.is_default).sort((a, b) => b.priority - a.priority || a.rule_id.localeCompare(b.rule_id));
   return (
-    <section className="rounded-xl border bg-card p-5">
+    <Disclosure
+      meta={def && <><span className="text-lg font-medium text-primary tabular-nums">+{def.points}</span> points{contextRules.length > 0 && <> · {contextRules.length} {contextRules.length === 1 ? "context" : "contexts"}</>}</>}
+      title={
       <div className="flex items-start gap-4">
         <IconTile icon={Icon} />
         <div className="min-w-0 flex-1">
@@ -153,14 +155,8 @@ function FixCard({ risk, rules, fields }: { risk: Risk; rules: Rule[]; fields: F
             {risk.severity !== undefined && <Pill>Severity {risk.severity} × probability {risk.probability}</Pill>}
           </div>
         </div>
-        {def && (
-          <div className="hidden shrink-0 text-right sm:block">
-            <p className="text-[1.75rem] leading-tight font-light text-primary tabular-nums">+{def.points}</p>
-            <p className="text-sm text-muted-foreground">points by default</p>
-          </div>
-        )}
-      </div>
-      <div className="mt-4 space-y-3">
+      </div>}>
+      <div className="space-y-3">
         {contextRules.map((r) => <RuleEditor key={r.rule_id} rule={r} />)}
         {def && <RuleEditor rule={def} />}
         {adding ? (
@@ -169,23 +165,22 @@ function FixCard({ risk, rules, fields }: { risk: Risk; rules: Rule[]; fields: F
           <Button type="button" variant="outline" big={false} onClick={() => setAdding(true)}><Plus className="h-4 w-4" />Add a context</Button>
         )}
       </div>
-    </section>
+    </Disclosure>
   );
 }
 
 function ClassPremium({ cls }: { cls: InsuranceClass }) {
   return (
-    <section className="rounded-xl border bg-card p-5">
-      <h3 className="font-semibold">{cls.name} insurance premium</h3>
+    <Disclosure title={<h3 className="font-semibold">{cls.name} insurance premium</h3>} meta={`Base ${eur(cls.base_annual_premium_eur)} / year`}>
       <SaveForm action={saveClass}>
         <input type="hidden" name="class_id" value={cls.class_id} />
-        <div className="mt-3 max-w-sm">
+        <div className="max-w-sm">
           <Label text="Base premium € / year" hint="Before the discount band of the insurance's score.">
             <input name="base_annual_premium_eur" type="number" min={0} required defaultValue={cls.base_annual_premium_eur} className={inputClass} />
           </Label>
         </div>
       </SaveForm>
-    </section>
+    </Disclosure>
   );
 }
 

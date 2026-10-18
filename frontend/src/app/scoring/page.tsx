@@ -4,7 +4,7 @@ import { BandsEditor } from "@/components/Bands";
 import { Data } from "@/components/Data";
 import { FixRules } from "@/components/FixRules";
 import { Label, SaveForm } from "@/components/form";
-import { Card, PageHeader, inputClass } from "@/components/ui";
+import { Card, Disclosure, PageHeader, inputClass } from "@/components/ui";
 import { getBands, getClasses, getRules, getSettings } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Score & pricing · If Ensurance Staff" };
@@ -46,15 +46,14 @@ export default function ScoringPage() {
         sub="Set how insurance scores work, which discount each score earns, and how many points each fix is worth in each context."
       />
       <Data load={() => Model()} />
-      <Card tone="accent" className="mt-4">
-        <h2 className="font-semibold text-accent-foreground">How it adds up</h2>
-        <ol className="mt-2 list-decimal space-y-1 pl-5 text-[0.9375rem] text-accent-foreground">
+      <Disclosure title={<h2 className="font-semibold">How it adds up</h2>} meta="4 steps" className="mt-4">
+        <ol className="list-decimal space-y-1 pl-5 text-[0.9375rem]">
           <li>Each insurance starts at the new-insurance score. A confirmed fix adds its points to that insurance&apos;s score.</li>
           <li>A fix&apos;s points come from its active context with the highest priority that matches the object, else its default rule.</li>
           <li>The insurance&apos;s score picks its discount band: that percent comes off that insurance&apos;s premium.</li>
           <li>The Care Score is the average of all the customer&apos;s insurance scores. It sets the tier and its bonuses (Tiers &amp; rewards).</li>
         </ol>
-      </Card>
+      </Disclosure>
       <h2 className="mt-12 mb-5 text-xl font-semibold">Insurances and their fixes</h2>
       <Data load={() => Rules()} />
     </>

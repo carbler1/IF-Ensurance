@@ -7,7 +7,7 @@ import { describe, fieldLabel } from "@/lib/context";
 import type { Customer, Field, InsuranceClass, ProfileValue, Simulation } from "@/lib/types";
 import { BandBar } from "./Bands";
 import { ScoreRing } from "./ScoreRing";
-import { Card, IconTile, Pill, categoryIcon, classIcon, eur, humanize, inputClass, tierColor } from "./ui";
+import { Card, Disclosure, IconTile, Pill, categoryIcon, classIcon, eur, humanize, inputClass, tierColor } from "./ui";
 
 const UNKNOWN = "unknown";
 
@@ -186,9 +186,8 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
             </Card>
 
             {result.history.length > 0 && (
-              <Card>
-                <h3 className="font-semibold">Since insured ({sim.model.insurance_score_start})</h3>
-                <ul className="mt-2 text-sm">
+              <Disclosure title={<h3 className="font-semibold">Since insured</h3>} meta={`Started at ${sim.model.insurance_score_start} · ${result.history.length} events`}>
+                <ul className="text-sm">
                   {result.history.map((h, n) => (
                     <li key={h.label} className={`flex justify-between gap-3 py-2 ${n ? "border-t" : ""}`}>
                       <span>{h.label}</span>
@@ -196,7 +195,7 @@ export function Simulator({ customers, classes }: { customers: Customer[]; class
                     </li>
                   ))}
                 </ul>
-              </Card>
+              </Disclosure>
             )}
 
             <h2 className="pt-3 text-lg font-semibold">{result.fixes.length} {result.fixes.length === 1 ? "fix applies" : "fixes apply"}</h2>
