@@ -1,4 +1,4 @@
-"""Takes the next queued job, runs the pipeline, sets status and stage. DESIGN.md §6."""
+"""Takes the next queued job, runs the pipeline, sets status and stage. docs/DESIGN.md §4."""
 
 import json
 import time

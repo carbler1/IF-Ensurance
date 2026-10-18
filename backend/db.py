@@ -1,4 +1,4 @@
-"""Opens the database through SQLAlchemy, creates the tables, seeds home_01. DESIGN.md §5.
+"""Opens the database through SQLAlchemy, creates the tables, seeds home_01. docs/DESIGN.md §7.
 The tables are the models in models.py.
 
 DATABASE_URL picks the database: Postgres in docker compose, for example

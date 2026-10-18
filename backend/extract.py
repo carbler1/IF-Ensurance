@@ -1,4 +1,4 @@
-"""Extract step: PDF -> field candidates, then merge into the profile. DESIGN.md section 6."""
+"""Extract step: PDF -> field candidates, then merge into the profile. docs/DESIGN.md §4."""
 import copy, json, logging, re
 from pathlib import Path
 

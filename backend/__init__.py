@@ -1,1 +1,1 @@
-"""If Life Partner backend, phase 1. Design: docs/systemdesign/DESIGN.md."""
+"""If Life Partner backend. Design: docs/DESIGN.md."""

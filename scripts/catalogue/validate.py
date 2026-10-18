@@ -43,7 +43,7 @@ UNKNOWN = "unknown"
 
 
 # ---------------------------------------------------------------------------
-# Reference matcher (decision 37 semantics)
+# Reference matcher (docs/DESIGN.md, Condition semantics)
 # ---------------------------------------------------------------------------
 
 def profile_value(profile: dict, field: str):

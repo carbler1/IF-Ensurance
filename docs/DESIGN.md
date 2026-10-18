@@ -136,7 +136,7 @@ Static files:
 | `data/home-profile.schema.json` | The 20 profile fields and their allowed values |
 | `data/score-model.json` | Seed for the score model |
 | `data/demo-person.json` | The demo customer. The backend refreshes it from this file at every start |
-| `fixtures/partners.json` | Mock partner seed (20 partners) |
+| `fixtures/partners.json` | Mock partner seed (27 partners) |
 
 ### Score model (seeded from `data/score-model.json`)
 

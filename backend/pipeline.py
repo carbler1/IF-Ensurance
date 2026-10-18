@@ -1,4 +1,4 @@
-"""Glue for the steps extract -> merge -> match -> write. DESIGN.md §6."""
+"""Glue for the steps extract -> merge -> match -> write. docs/DESIGN.md §4."""
 
 import json
 from datetime import datetime, timezone
