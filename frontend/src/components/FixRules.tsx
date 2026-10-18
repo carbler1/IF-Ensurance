@@ -192,8 +192,9 @@ export function FixRules({ classes, rules }: { classes: InsuranceClass[]; rules:
   if (!cls) return <Card className="text-sm text-muted-foreground">No insurance classes yet.</Card>;
   const categories = [...new Set(cls.risks.map((r) => r.category))].sort();
   // The app's risks first, then the catalogue.
-  const shown = [...cls.risks].sort((a, b) => Number(!!b.assigned) - Number(!!a.assigned)).filter(
-    (r) => (category === "all" || r.category === category) && (!query || `${r.title} ${r.id}`.toLowerCase().includes(query.toLowerCase())),
+  const perHome = cls.risks.filter((r) => r.id.includes("@")).length;
+  const shown = cls.risks.filter(
+    (r) => !r.id.includes("@") && (category === "all" || r.category === category) && (!query || `${r.title} ${r.id}`.toLowerCase().includes(query.toLowerCase())),
   );
 
   return (
@@ -216,6 +217,7 @@ export function FixRules({ classes, rules }: { classes: InsuranceClass[]; rules:
           </div>
         )}
         {shown.map((r) => <FixCard key={r.id} risk={r} rules={rules.filter((x) => x.risk_id === r.id)} fields={cls.fields} />)}
+        {perHome > 0 && <p className="text-sm text-muted-foreground">{perHome} per-home assigned risks hidden.</p>}
         {shown.length === 0 && <p className="text-sm text-muted-foreground">No fix matches.</p>}
       </div>
     </>

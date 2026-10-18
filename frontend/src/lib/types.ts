@@ -48,6 +48,8 @@ export type Rule = {
 };
 
 export type ProfileValue = number | string;
+/** A profile field as the API stores it; `evidence` is null when unknown. */
+export type ProfileField = { value: ProfileValue; confidence?: number; source?: string; evidence?: unknown; doubt?: boolean };
 
 export type SimFix = {
   risk_id: string;
@@ -59,6 +61,7 @@ export type SimFix = {
   rule_context: Condition | null;
   points: number;
   half_life_years: number | null;
+  assigned?: boolean;
 };
 
 export type Band = { min_score: number; percent: number };
@@ -91,7 +94,7 @@ export type Simulation = {
   model: { insurance_score_start: number; max_score: number; bands: Band[]; tiers: TierRow[] };
 };
 
-export type CustomerObject = SimObject & { profile: Record<string, ProfileValue>; profile_known: number; profile_total: number };
+export type CustomerObject = SimObject & { profile: Record<string, ProfileValue>; profile_known: number; profile_total: number; done?: { risk_id: string; base_points: number; points: number }[] };
 export type Customer = Omit<Simulation, "objects"> & { customer_id: string; name: string; created_at: string; objects: CustomerObject[] };
 
 export type Partner = {
