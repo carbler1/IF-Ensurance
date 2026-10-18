@@ -30,7 +30,7 @@ def upgrade() -> None:
     # The demo customer owns the existing demo home and bids.
     op.execute("UPDATE homes SET customer_id = 'cust_01' WHERE home_id = 'home_01' AND EXISTS "
                "(SELECT 1 FROM customers WHERE customer_id = 'cust_01')")
-    op.execute("UPDATE bids SET customer_id = 'cust_01' WHERE EXISTS (SELECT 1 FROM customers WHERE customer_id = 'cust_01')")
+    op.execute("UPDATE bids SET customer_id = 'cust_01' WHERE bid_id NOT LIKE 'home\\_%' ESCAPE '\\' AND EXISTS (SELECT 1 FROM customers WHERE customer_id = 'cust_01')")
 
 
 def downgrade() -> None:

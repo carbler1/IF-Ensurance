@@ -10,19 +10,19 @@ import secrets
 import time
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
-from backend import db, insurance
-from backend.models import (Booking, Customer, DiscountBand, Document, FixRule, Home, InsuranceClass,
+from backend import auth, db, insurance
+from backend.models import (Booking, Customer, DiscountBand, Document, FixRule, Home, InsuranceClass, InsuredObject,
                             InsuranceSettings, Partner, StaffAccount, Tier, WorkOrder)
 
 
 def require_admin(x_admin_token: str = Header(default="")):
     token = os.environ.get("ADMIN_TOKEN", "")
-    if not token or not hmac.compare_digest(x_admin_token, token):
+    if not token or not hmac.compare_digest(x_admin_token.encode(), token.encode()):
         raise HTTPException(401, "Missing or wrong admin token.")
 
 
@@ -94,12 +94,13 @@ def claim_or_verify(s: Session, row, key: str, where, password: str) -> None:
 
 
 @router.post("/login")
-def login(body: LoginBody, s: Session = Depends(_session)):
+def login(body: LoginBody, request: Request, s: Session = Depends(_session)):
     """Claim an unclaimed account (sets its password) or verify the password of a claimed one."""
+    auth.rate_limit(request, "login")
     acc = s.scalar(select(StaffAccount).where(StaffAccount.name == body.name))
     if acc is None:
         raise HTTPException(404, "Unknown account.")
-    claim_or_verify(s, acc, "staff:" + acc.name, StaffAccount.id == acc.id, body.password)
+    claim_or_verify(s, acc, f"staff:{acc.name}:{auth.client_ip(request)}", StaffAccount.id == acc.id, body.password)
     return {"name": acc.name, "claimed": True}
 
 
@@ -248,8 +249,17 @@ class RuleCreate(RuleNumbers):
     priority: int = Field(ge=1, le=1000)
 
 
+def _free_priority(s: Session, risk_id: str, priority: int, rule_id: str | None = None) -> None:
+    """Equal priorities have no defined order, so a risk's rules need distinct ones."""
+    if s.scalar(select(FixRule.rule_id).where(FixRule.risk_id == risk_id, FixRule.priority == priority,
+                                              FixRule.rule_id != (rule_id or ""))):
+        raise HTTPException(409, f"Risk {risk_id} already has a rule with priority {priority}.")
+
+
 @router.post("/rules", status_code=201)
 def create_rule(body: RuleCreate, s: Session = Depends(_session)):
+    if "@" in body.risk_id:
+        raise HTTPException(400, "A risk id must not contain @.")
     class_id = insurance.risk_class(s, body.risk_id)
     if class_id is None:
         raise HTTPException(404, f"Risk {body.risk_id} not found.")
@@ -257,6 +267,7 @@ def create_rule(body: RuleCreate, s: Session = Depends(_session)):
         insurance.validate_context(body.context, class_id)
     except ValueError as e:
         raise HTTPException(400, str(e))
+    _free_priority(s, body.risk_id, body.priority)
     r = FixRule(rule_id=f"rule_{secrets.token_hex(4)}", risk_id=body.risk_id, label=body.label.strip(),
                 context=json.dumps(body.context), priority=body.priority, points=body.points,
                 half_life_years=body.half_life_years, active=1,
@@ -275,6 +286,7 @@ def patch_rule(rule_id: str, body: RulePatch, s: Session = Depends(_session)):
     r.active = int(body.active)
     # The default rule is the fallback, so its priority stays 0.
     if body.priority is not None and not rule_id.startswith("default."):
+        _free_priority(s, r.risk_id, body.priority, rule_id)
         r.priority = body.priority
     r.updated_at = db.now_iso()
     s.commit()
@@ -315,7 +327,16 @@ def simulate(body: SimRequest, s: Session = Depends(_session)):
     valid = {d["class_id"] for d in insurance.definitions()}
     if any(o.class_id not in valid for o in body.objects):
         raise HTTPException(400, "Unknown insurance class.")
-    return insurance.simulate(s, [o.model_dump() for o in body.objects])
+    objs = [o.model_dump() for o in body.objects]
+    for o in objs:
+        if o["object_id"] is not None:
+            row = s.get(InsuredObject, o["object_id"])
+            if row is None:
+                raise HTTPException(404, f"Object {o['object_id']} not found.")
+            if row.class_id != o["class_id"]:
+                raise HTTPException(400, "The object belongs to another insurance class.")
+        o["profile"] = {k: int(v) if isinstance(v, str) and v.isdigit() else v for k, v in o["profile"].items()}
+    return insurance.simulate(s, objs)
 
 
 @router.post("/demo/reset")
@@ -371,6 +392,8 @@ def patch_tier(tier_index: int, body: TierPatch, s: Session = Depends(_session))
     t = next((x for x in tiers if x.tier_index == tier_index), None)
     if t is None:
         raise HTTPException(404, f"Tier {tier_index} not found.")
+    if (tier_index == 0 and body.min_score != 0) or body.min_score > db.settings(s).max_score:
+        raise HTTPException(400, "Tier 0 starts at 0 and no tier starts above the maximum score.")
     # Tiers are a ladder: each one starts above the tier below it.
     below = [x.min_score for x in tiers if x.tier_index < tier_index]
     above = [x.min_score for x in tiers if x.tier_index > tier_index]

@@ -10,6 +10,7 @@ insurance's score sets its discount band (percent off its own premium). The aggr
 average of a customer's insurance scores and sets the tier; tier bonuses are display texts only.
 """
 
+import math
 import json
 from datetime import datetime, timezone
 from functools import cache
@@ -169,14 +170,22 @@ def _default_half_lives() -> dict:
     return json.loads((ROOT / "fixtures" / "half-lives.json").read_text())["defaults"]
 
 
+def _round(x: float) -> int:
+    """Half up, not Python's half-to-even."""
+    return math.floor(x + 0.5)
+
+
 def decayed(points: int, confirmed_at: str | None, half_life: int | None, now: datetime | None = None) -> int:
     """points * 0.5 ** (years since confirmed_at / half_life). No decay without a date or a half-life."""
-    if not confirmed_at or not half_life:
+    if not confirmed_at or not half_life or half_life <= 0:
         return points
-    t = datetime.fromisoformat(confirmed_at)
+    try:
+        t = datetime.fromisoformat(confirmed_at)
+    except ValueError:
+        return points
     t = t if t.tzinfo else t.replace(tzinfo=timezone.utc)
     years = max(0.0, ((now or datetime.now(timezone.utc)) - t).total_seconds() / (365.25 * 86400))
-    return round(points * 0.5 ** (years / half_life))
+    return _round(points * 0.5 ** (years / half_life))
 
 
 def simulate(s: Session, objects: list[dict]) -> dict:
@@ -224,11 +233,11 @@ def simulate(s: Session, objects: list[dict]) -> dict:
             "points": sum(f["points"] for f in fixes),
             "score": {"now": now, "after": after, "next_band": next_band(now, bands)},
             "band": {"now": band(now, bands), "after": band(after, bands)},
-            "premium": {"base": base, "now": round(base * (1 - band(now, bands) / 100)),
-                        "after": round(base * (1 - band(after, bands) / 100))},
+            "premium": {"base": base, "now": _round(base * (1 - band(now, bands) / 100)),
+                        "after": _round(base * (1 - band(after, bands) / 100))},
         })
-    agg_now = round(sum(o["score"]["now"] for o in out) / len(out)) if out else 0
-    agg_after = round(sum(o["score"]["after"] for o in out) / len(out)) if out else 0
+    agg_now = _round(sum(o["score"]["now"] for o in out) / len(out)) if out else 0
+    agg_after = _round(sum(o["score"]["after"] for o in out) / len(out)) if out else 0
     return {
         "objects": out,
         "aggregate": {"now": agg_now, "after": agg_after, "tier_now": _tier(agg_now, tiers),
