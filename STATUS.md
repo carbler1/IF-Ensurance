@@ -2,6 +2,45 @@
 
 Where the project stands, checked against the code.
 
+## First deploy: minimum steps (one at a time)
+
+Goal: `docker compose up` serves the dashboard, the app demo and the API on one host. Tests and polish are skipped on purpose.
+
+1. Finalize docs. Done.
+2. Backend.
+3. Hosting.
+4. DNS and domains.
+5. First working version.
+
+### 2. Backend
+
+Code and compose wiring. Values that need the host or domain stay as `.env` variables here and get filled in steps 3 and 4.
+
+- `docker-compose.yml:81`: the mobile build bakes in the placeholder `https://<app-domain>`. Read it from `.env` (`EXPO_PUBLIC_API_URL`).
+- `docker-compose.yml:41`: `CORS_ORIGINS` is fixed to `localhost` values. Read it from `.env`.
+- `docker-compose.yml:38`: compose ignores `OLLAMA_URL` in `.env` and uses `OLLAMA_URL_DOCKER`. Keep one name.
+- `docker-compose.yml`: the backend gets `CUSTOMER_TOKEN` only from the optional `.env`. Pass it in `environment`, or every customer route returns 401.
+- Run `docker compose build`. Nothing in the compose file has been built end to end yet.
+- Run `docker compose up` and check `/health`, the dashboard (`:3000`) and the app demo (`:8082`).
+
+### 3. Hosting
+
+- Pick the host. Unknown today.
+- Run Ollama on the host with `qwen3.5:9b` pulled, or PDF upload fails. `ollama` is not on this machine's PATH.
+- Set `OLLAMA_URL` in `.env` to the host's Ollama address.
+- Put a reverse proxy in front of the three ports (3000, 8082, 8000).
+
+### 4. DNS and domains
+
+- Pick the public URL of the app and point DNS at the host.
+- Get an HTTPS certificate for it.
+- Set `EXPO_PUBLIC_API_URL` and `CORS_ORIGINS` in `.env` to that URL, then rebuild the mobile image (the URL is baked in at build time).
+
+### 5. First working version
+
+- Open the dashboard and the app demo on the public URL.
+- Upload one sample PDF from `samples/synthetic/` and check that a risk list comes back.
+
 ## Working
 
 ### Core rule: "code decides, models read and write"
@@ -146,3 +185,14 @@ The catalogue holds 20 risks. These 38 more are planned, not built (source: the 
 ### Water heater re-check interval
 
 The research says the interval should drop from 10 to 5 years. `plumbing/water_heater.age.json` still has 10.
+
+### Later: known gaps accepted for the first version
+
+- A confirmed booking does not remove a risk or move the maintenance date.
+- Dashboard partner edits never reach the app: the app reads `Bid`, not `Partner`.
+- Onboarding ignores the user's input and always shows the demo home.
+- The customer token ships in the public web bundle (`EXPO_PUBLIC_API_TOKEN`). Anyone who loads the demo can read it.
+- "Reset all demo data" resets only bookings and reminders.
+- The app loses language and onboarding state on every reload.
+- `half_life_years` is editable but the score math ignores it (see Scoring above).
+- Every customer and every upload uses the single demo home `home_01` (see Flow above).
