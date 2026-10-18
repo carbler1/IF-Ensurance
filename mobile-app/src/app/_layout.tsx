@@ -12,6 +12,8 @@ import { Figtree_700Bold } from "@expo-google-fonts/figtree/700Bold";
 import { Fraunces_600SemiBold } from "@expo-google-fonts/fraunces/600SemiBold";
 import { TabBar } from "@/components/TabBar";
 import { Button, Heading, Spinner, Text } from "@/components/ui";
+import { Entry } from "@/components/Entry";
+import { useChoice } from "@/lib/choice";
 import { StoreProvider, useStore } from "@/lib/store";
 import { dictionaries } from "@/lib/i18n";
 import { colors, shadows } from "@/lib/theme";
@@ -46,6 +48,7 @@ const PHONE = { width: 390, height: 844 };
 // On web at 600 px or wider the app sits in the phone frame; elsewhere it fills the screen up to 430 px.
 function AppFrame() {
   const { status, error, reload, t } = useStore();
+  const [choice, choose] = useChoice();
   const window = useWindowDimensions();
   const phoneFrame = Platform.OS === "web" && window.width >= 600;
   return (
@@ -57,7 +60,9 @@ function AppFrame() {
             : { flex: 1, width: "100%", maxWidth: 430, backgroundColor: colors.background, boxShadow: shadows.soft }
         }
       >
-        {status === "loading" ? (
+        {choice === undefined ? null : choice === null ? (
+          <Entry onChoose={choose} />
+        ) : status === "loading" ? (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 16 }}>
             <Spinner size={48} color={colors.primary} />
             <Text color="mutedForeground">{t("app.loading")}</Text>

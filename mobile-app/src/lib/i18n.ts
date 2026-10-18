@@ -106,6 +106,8 @@ const en = {
   "score.bandsSub": "Each insurance's own score sets the discount on that insurance.",
   "score.below": "Below {min}",
   "app.loading": "Loading your home…",
+  "entry.title": "Who do you want to insure?",
+  "entry.cat": "Cat",
   "app.error": "We could not load your data",
   "app.retry": "Try again",
 };
@@ -218,6 +220,8 @@ const fi: Dict = {
   "score.bandsSub": "Kunkin vakuutuksen omat pisteet määräävät sen alennuksen.",
   "score.below": "Alle {min}",
   "app.loading": "Ladataan kotiasi…",
+  "entry.title": "Mitä haluat vakuuttaa?",
+  "entry.cat": "Kissa",
   "app.error": "Tietojasi ei voitu ladata",
   "app.retry": "Yritä uudelleen",
 };
@@ -328,6 +332,8 @@ const sv: Dict = {
   "score.bandsSub": "Varje försäkrings egna poäng ger rabatten på just den försäkringen.",
   "score.below": "Under {min}",
   "app.loading": "Laddar ditt hem…",
+  "entry.title": "Vad vill du försäkra?",
+  "entry.cat": "Katt",
   "app.error": "Vi kunde inte ladda dina uppgifter",
   "app.retry": "Försök igen",
 };

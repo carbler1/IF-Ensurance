@@ -7,8 +7,17 @@ import recorded from "./app.json";
 
 let state: AppData = structuredClone(recorded as AppData);
 
+// The entry choice is preset so tests open on the dashboard; the entry test clears it.
+export const memStorage = new Map<string, string>();
+export const storage = {
+  get: (k: string) => Promise.resolve(memStorage.get(k) ?? null),
+  set: (k: string, v: string) => { memStorage.set(k, v); return Promise.resolve(); },
+};
+
 export function resetFakeApi() {
   state = structuredClone(recorded as AppData);
+  memStorage.clear();
+  memStorage.set("ilp.choice", "house");
 }
 
 function rescore() {

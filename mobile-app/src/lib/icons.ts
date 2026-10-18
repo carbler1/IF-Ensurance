@@ -7,6 +7,7 @@ export { default as CalendarCheck } from "lucide-react-native/icons/calendar-che
 export { default as CalendarDays } from "lucide-react-native/icons/calendar-days";
 export { default as Camera } from "lucide-react-native/icons/camera";
 export { default as Car } from "lucide-react-native/icons/car";
+export { default as Cat } from "lucide-react-native/icons/cat";
 export { default as Check } from "lucide-react-native/icons/check";
 export { default as CheckCircle2 } from "lucide-react-native/icons/circle-check";
 export { default as ChevronLeft } from "lucide-react-native/icons/chevron-left";
