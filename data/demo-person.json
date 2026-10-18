@@ -125,7 +125,7 @@
       "risk_id": "panel",
       "object_id": "home_01",
       "area": "electricity",
-      "title": "Electrical panel from 1978",
+      "title": "Electrical panel from 1975",
       "why": "Old fuses can overheat and cause fires.",
       "points": 45,
       "explain": "Your panel is original. Panels this old often lack residual-current protection, which is a common cause of house fires.",
@@ -176,7 +176,7 @@
       "title": "Thin attic insulation",
       "why": "Heat loss can cause ice dams on the roof.",
       "points": 20,
-      "explain": "Insulation from 1978 is usually thinner than today's standard.",
+      "explain": "Insulation from 1975 is usually thinner than today's standard.",
       "fix": "A partner measures and adds blown insulation.",
       "diy": "Measure the insulation depth in the attic, then book a check.",
       "sort_order": 4
