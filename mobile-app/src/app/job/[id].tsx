@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { View } from "react-native";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { BadgeCheck, Check, ShieldCheck } from "@/lib/icons";
@@ -9,6 +10,7 @@ import { colors, radius } from "@/lib/theme";
 export default function JobStatus() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, jobs, advanceJob, scores, aggregate, bids, risks, model, getBand, getTier } = useStore();
+  const [busy, setBusy] = useState(false);
   const job = jobs[id];
   const risk = risks.find((r) => r.id === id);
   if (!job || !risk) {
@@ -44,7 +46,7 @@ export default function JobStatus() {
       </Card>
 
       {job.step < 2 ? (
-        <Button big variant="outline" style={{ backgroundColor: colors.card }} onPress={() => advanceJob(id)}>
+        <Button big variant="outline" style={{ backgroundColor: colors.card }} disabled={busy} onPress={() => { setBusy(true); advanceJob(id).finally(() => setBusy(false)); }}>
           {t("job.simulate")}
         </Button>
       ) : (
