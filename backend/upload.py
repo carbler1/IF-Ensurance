@@ -27,13 +27,18 @@ async def post_document(file: UploadFile = File(...), type: str = Form(...), who
         return _err("too_large", "File is larger than 20 MB")
     if not data.startswith(b"%PDF-"):
         return _err("unsupported_document", "File is not a PDF")
-    doc_id = "doc_" + secrets.token_hex(4)
-    job_id = "job_" + secrets.token_hex(4)
+    doc_id = "doc_" + secrets.token_hex(8)
+    job_id = "job_" + secrets.token_hex(8)
     with db.connect() as s:  # connect() also creates db.UPLOADS
-        (db.UPLOADS / f"{doc_id}.pdf").write_bytes(data)
+        path = db.UPLOADS / f"{doc_id}.pdf"
         now = datetime.now(timezone.utc).isoformat()
         s.add(Document(document_id=doc_id, home_id=who.home_id, type=type, uploaded_at=now, status="queued"))
         s.flush()  # the job references the document
         s.add(Job(job_id=job_id, document_id=doc_id, status="queued", queued_at=now))
-        s.commit()
+        try:
+            s.commit()
+            path.write_bytes(data)  # after the commit, so a failed commit leaves no file
+        except Exception:
+            path.unlink(missing_ok=True)
+            raise
     return {"document_id": doc_id, "job_id": job_id}

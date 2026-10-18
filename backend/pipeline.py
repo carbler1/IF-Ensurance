@@ -19,7 +19,7 @@ def run(s: Session, document_id: str, stage, check) -> None:
 
     home_id = s.get(Document, document_id).home_id
     stage("extracting")
-    candidates, pages = extract.run(UPLOADS / f"{document_id}.pdf", document_id)
+    candidates, pages = extract.run(UPLOADS / f"{document_id}.pdf", document_id, check)
     check()
     row = s.get(Profile, home_id)
     profile = extract.merge(json.loads(row.profile), candidates, pages, document_id)
@@ -32,7 +32,7 @@ def run(s: Session, document_id: str, stage, check) -> None:
     if not matched:
         return
     stage("writing")
-    texts = write.texts(profile, matched)
+    texts = write.texts(profile, matched, check)
     check()
     for risk_id, t in texts.items():
         # merge() inserts the text, or replaces the one already stored for this home and risk.

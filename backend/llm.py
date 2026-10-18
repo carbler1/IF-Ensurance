@@ -17,7 +17,7 @@ class LlmError(RuntimeError):
         self.code = code
 
 
-def chat(system: str, user: str, schema: dict) -> dict:
+def chat(system: str, user: str, schema: dict, timeout: float = 170) -> dict:
     model = os.environ.get("OLLAMA_MODEL", "qwen3.5:9b")
     url = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
     body = {
@@ -29,16 +29,20 @@ def chat(system: str, user: str, schema: dict) -> dict:
         "options": {"temperature": 0, "num_ctx": NUM_CTX},
     }
     try:
-        r = httpx.post(f"{url}/api/chat", json=body, timeout=170)
+        r = httpx.post(f"{url}/api/chat", json=body, timeout=min(170, timeout))
         r.raise_for_status()
         resp = r.json()
+    except httpx.TimeoutException as e:
+        raise LlmError("timeout", "The model was too slow") from e
     except (httpx.HTTPError, ValueError) as e:
         raise LlmError("llm_unreachable", str(e)) from e
     content = resp.get("message", {}).get("content", "")
     count = resp.get("prompt_eval_count") or 0
     version = _VERSION.read_text().splitlines()[0].strip() if _VERSION.exists() else "?"
     log.info("prompt_version=%s model=%s prompt_eval_count=%s content=%s", version, model, count, content)
-    if resp.get("done_reason") == "length" or count >= NUM_CTX:
+    if resp.get("done_reason") == "length" or count >= NUM_CTX - 512:
+        raise LlmError("llm_truncated")
+    if count and count < (len(system) + len(user)) / 4 / 2:  # Ollama silently trimmed the start
         raise LlmError("llm_truncated")
     try:
         return json.loads(content)
