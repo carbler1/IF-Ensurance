@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Data } from "@/components/Data";
 import { Card, PageHeader, eur } from "@/components/ui";
+import { ResetProfiles } from "@/components/ResetProfiles";
 import { getClasses, getOverview } from "@/lib/api";
 
 function Stat({ label, value, sub }: { label: string; value: string | number; sub: string }) {
@@ -64,6 +65,7 @@ export default function OverviewPage() {
         </section>
       ))}
       </div>
+      <ResetProfiles />
     </>
   );
 }
