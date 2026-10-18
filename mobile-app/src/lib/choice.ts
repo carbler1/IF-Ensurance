@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { router } from "expo-router";
 import { storage } from "./api";
 
-export const choices = ["house", "car", "dog", "cat"] as const;
+export const choices = ["house", "car", "dog", "boat"] as const;
 export type Choice = (typeof choices)[number];
 
 // The entry choice, saved under "ilp.choice". undefined: still reading; null: nothing chosen yet. Not sent to the backend.

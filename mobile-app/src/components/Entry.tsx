@@ -1,11 +1,10 @@
 import { View } from "react-native";
-import { Cat } from "@/lib/icons";
 import { Heading, PressCard, Screen, Text, insuranceIcon } from "@/components/ui";
 import { choices, type Choice } from "@/lib/choice";
 import { useStore } from "@/lib/store";
 import { colors, radius, shadows } from "@/lib/theme";
 
-const icon = { house: insuranceIcon.house, car: insuranceIcon.car, dog: insuranceIcon.dog, cat: Cat };
+const icon = { house: insuranceIcon.house, car: insuranceIcon.car, dog: insuranceIcon.dog, boat: insuranceIcon.boat };
 
 // The first screen: one tap on an icon picks it and opens the dashboard.
 export function Entry({ onChoose }: { onChoose: (c: Choice) => void }) {
@@ -16,7 +15,7 @@ export function Entry({ onChoose }: { onChoose: (c: Choice) => void }) {
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16, marginTop: 16 }}>
         {choices.map((c) => {
           const Icon = icon[c];
-          const label = c === "cat" ? t("entry.cat") : t(`ins.${c}`);
+          const label = t(`ins.${c}`);
           return (
             <PressCard
               key={c}
