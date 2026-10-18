@@ -7,7 +7,7 @@ import type { AppData, Band, Job, JobStep, Tier } from "./types";
 export type { Job, JobStep } from "./types";
 
 // The customer's data lives in the backend; the store loads it once and saves every change there.
-// The bearer token is saved by api.ts; with a token the app skips onboarding. Language is saved under "ilp.lang".
+// There is no sign-in: the app opens on the shared demo home. Language is saved under "ilp.lang".
 
 type Status = "loading" | "ready" | "error";
 
@@ -18,10 +18,6 @@ type Store = Omit<AppData, "insurances"> & {
   status: Status;
   error: string | null;
   reload: () => void;
-  onboarded: boolean;
-  finishOnboarding: () => void;
-  /** Claims a home (or signs in to it) and loads its data, without leaving onboarding. */
-  claimHome: (homeId: string, password: string) => Promise<void>;
   insurances: AppData["insurances"];
   jobs: Record<string, Job>;
   bookJob: (j: Omit<Job, "step">) => void;
@@ -72,7 +68,6 @@ const Ctx = createContext<Store | null>(null);
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
   const setLang = useCallback((l: Lang) => { setLangState(l); api.setLang(l); }, []);
-  const [onboarded, setOnboarded] = useState(false);
   const [data, setData] = useState<AppData>(EMPTY);
   const [status, setStatus] = useState<Status>("loading");
   const [error, setError] = useState<string | null>(null);
@@ -81,25 +76,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setStatus("loading");
     api.load().then(
       (d) => { setData(d); setStatus("ready"); setError(null); },
-      (e: Error & { status?: number }) => {
-        if (e.status === 401) { setOnboarded(false); setStatus("ready"); return; } // the token is gone: choose a home again
+      (e: Error) => {
         setError(e.message);
         setStatus("error");
       },
     );
   }, []);
   useEffect(() => {
-    Promise.all([api.restore(), api.getLang()]).then(([has, l]) => {
+    api.getLang().then((l) => {
       if (l === "en" || l === "fi" || l === "sv") setLangState(l);
-      if (!has) return setStatus("ready");
-      setOnboarded(true);
-      reload();
     });
+    reload();
   }, [reload]);
-  const claimHome = useCallback(async (homeId: string, password: string) => {
-    await api.claim(homeId, password);
-    setData(await api.load());
-  }, []);
 
   // Show the change at once, then take the backend's answer (it recomputes the scores).
   // Only the latest request's reply is applied. A failed save refetches quietly, so the screen stays put.
@@ -127,9 +115,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       status,
       error,
       reload,
-      onboarded,
-      finishOnboarding: () => setOnboarded(true),
-      claimHome,
       jobs,
       bookJob: (j) => save(setJob(j.riskId, () => ({ bidId: j.bidId, mode: j.mode, step: 0 })), () => api.book(j.riskId, j.bidId, j.mode)),
       advanceJob: (id) =>
@@ -149,7 +134,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return b && { percent: b.percent, min: b.min, pointsTo: b.min - score };
       },
     };
-  }, [lang, setLang, onboarded, data, status, error, reload, save, claimHome]);
+  }, [lang, setLang, data, status, error, reload, save]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
