@@ -15,11 +15,11 @@ export default function RiskList() {
         return (
           <View key={id} style={{ gap: 16 }}>
             <View style={{ paddingTop: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View style={{ flexShrink: 1, flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <InsIcon size={22} color={colors.primary} />
                 <Heading size="xl">{t(`ins.${id}`)}</Heading>
               </View>
-              <Text size="sm" color="mutedForeground">{scores[id]} · {pct ? fmt(t("band.off"), { pct }) : t("band.none")}</Text>
+              <Text size="sm" color="mutedForeground" style={{ flexShrink: 1, textAlign: "right" }}>{scores[id]} · {pct ? fmt(t("band.off"), { pct }) : t("band.none")}</Text>
             </View>
             {risks.filter((r) => r.insurance === id).map((r) => {
               const Icon = areaIcon[r.area];
@@ -29,7 +29,7 @@ export default function RiskList() {
                   <Card style={done && { opacity: 0.6 }}>
                     <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
                       <View style={{ flex: 1, minWidth: 0 }}>
-                        <View style={{ height: 48, width: 48, alignItems: "center", justifyContent: "center", borderRadius: radius.xl, backgroundColor: colors.secondary }}>
+                        <View style={{ flexShrink: 0, height: 48, width: 48, alignItems: "center", justifyContent: "center", borderRadius: radius.xl, backgroundColor: colors.secondary }}>
                           <Icon size={24} color={colors.secondaryForeground} />
                         </View>
                         <Heading size="xl" style={{ marginTop: 12 }}>{r.title}</Heading>
@@ -41,7 +41,7 @@ export default function RiskList() {
                           </View>
                         )}
                       </View>
-                      <View style={{ alignItems: "center" }}>
+                      <View style={{ alignItems: "center", flexShrink: 0 }}>
                         <Text size="3xl" weight={700} color="primary" tabular>+{r.points}</Text>
                         <Text size="sm" color="mutedForeground">{t("pts")}</Text>
                       </View>

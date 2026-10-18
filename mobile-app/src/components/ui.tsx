@@ -96,6 +96,8 @@ export function Text({ size = "body", weight = 400, display = false, color = "fo
         { fontFamily: fontFamily(display, weight), fontSize, lineHeight, color: colors[color] },
         center && { textAlign: "center" },
         tabular && { fontVariant: ["tabular-nums"] },
+        // A word longer than its box breaks instead of running off the card (web only).
+        Platform.OS === "web" && ({ overflowWrap: "anywhere" } as TextStyle),
         style,
       ]}
     />
@@ -218,7 +220,7 @@ export function Button({ children, onPress, variant = "default", big, disabled, 
         return (
           <>
             {Icon && <Icon size={16} color={colors[color]} />}
-            <Text size={big ? "lg" : "sm"} weight={500} color={color} center style={{ flexShrink: 1 }}>{children}</Text>
+            <Text size={big ? "lg" : "sm"} weight={500} color={color} center style={{ flexShrink: 1, minWidth: 0 }}>{children}</Text>
           </>
         );
       }}
@@ -258,8 +260,8 @@ export function SwitchRow({ value, onValueChange, label, tint = colors.primary, 
       onPress={() => onValueChange(!value)}
       style={({ pressed }) => [{ minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, pressed && { opacity: 0.7 }, style]}
     >
-      <View style={{ flexShrink: 1 }}>{children}</View>
-      <View style={{ height: 20, width: 36, borderRadius: radius.full, justifyContent: "center", paddingHorizontal: 2, backgroundColor: value ? tint : colors.control, boxShadow: shadows.sm }}>
+      <View style={{ flex: 1, minWidth: 0 }}>{children}</View>
+      <View style={{ flexShrink: 0, height: 20, width: 36, borderRadius: radius.full, justifyContent: "center", paddingHorizontal: 2, backgroundColor: value ? tint : colors.control, boxShadow: shadows.sm }}>
         <Animated.View style={{ height: 16, width: 16, borderRadius: radius.full, backgroundColor: colors.background, boxShadow: shadows.lg, transform: [{ translateX: x }] }} />
       </View>
     </Pressable>
@@ -442,7 +444,7 @@ export function CountUp({ value, once, ...props }: TextProps & TextOwnProps & { 
     run.start();
     return () => run.stop();
   }, [value, anim, reducedMotion]);
-  return <Text accessibilityLabel={String(value)} tabular maxFontSizeMultiplier={1.2} {...props}>{shown}</Text>;
+  return <Text accessibilityLabel={String(value)} tabular maxFontSizeMultiplier={1.2} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5} {...props}>{shown}</Text>;
 }
 
 // Arrives after the ring lands: rises 6 px and fades in. With Reduce Motion it is simply there.
@@ -460,5 +462,5 @@ export function Arrive({ delay = 0, once, style, children }: { delay?: number; o
 
 // Centres its children over a ScoreRing.
 export function RingOverlay({ children }: { children: ReactNode }) {
-  return <View pointerEvents="none" style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, alignItems: "center", justifyContent: "center" }}>{children}</View>;
+  return <View pointerEvents="none" style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, alignItems: "center", justifyContent: "center", paddingHorizontal: "16%" }}>{children}</View>;
 }

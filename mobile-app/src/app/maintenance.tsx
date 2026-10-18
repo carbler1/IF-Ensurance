@@ -36,19 +36,19 @@ export default function Maintenance() {
               <View style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center", borderRadius: radius.full, backgroundColor: colors.card }}>
                 <Icon size={20} color={solid} />
               </View>
-              <Heading size="xl" style={{ flex: 1, color: solid }}>{t(`m.${s}`)}</Heading>
+              <Heading size="xl" style={{ flex: 1, minWidth: 0, color: solid }}>{t(`m.${s}`)}</Heading>
               <Text weight={600} tabular style={{ color: solid }}>{list.length}</Text>
               <View style={{ transform: [{ rotate: isOpen ? "90deg" : "0deg" }] }}><ChevronRight size={20} color={solid} /></View>
             </Pressable>
             {isOpen && list.map((task) => (
               <Card key={task.id} style={{ borderWidth: 1, borderColor: soft }}>
                 <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-                  <View style={{ flexShrink: 1 }}>
+                  <View style={{ flex: 1, minWidth: 0 }}>
                     <Heading size="lg" display={false}>{task.title}</Heading>
                     <Text color="mutedForeground">{t("m.due")}: {task.due}</Text>
                   </View>
-                  <View style={{ borderRadius: radius.full, backgroundColor: soft, paddingHorizontal: 12, paddingVertical: 4 }}>
-                    <Text size="sm" weight={600} style={{ color: solid }}>{t(`m.reason.${task.reason}`)}</Text>
+                  <View style={{ flexShrink: 0, maxWidth: "45%", borderRadius: radius.full, backgroundColor: soft, paddingHorizontal: 12, paddingVertical: 4 }}>
+                    <Text size="sm" weight={600} center style={{ color: solid }}>{t(`m.reason.${task.reason}`)}</Text>
                   </View>
                 </View>
                 <Text size="sm" color="mutedForeground" style={{ marginTop: 8 }}>{task.reasonText}</Text>

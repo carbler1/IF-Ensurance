@@ -83,7 +83,7 @@ function RiskDetail({ risk }: { risk: Risk }) {
           <Icon size={28} color={colors.secondaryForeground} />
         </View>
         <Heading center>{risk.title}</Heading>
-        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, borderRadius: radius.full, backgroundColor: colors.accent, paddingHorizontal: 14, paddingVertical: 4 }}>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, borderRadius: radius.full, backgroundColor: colors.accent, paddingHorizontal: 14, paddingVertical: 4, maxWidth: "100%" }}>
           <Text size="lg" weight={700} color="primary" tabular>+{risk.points}</Text>
           <Text size="sm" color="accentForeground">{t("pts")}</Text>
         </View>
@@ -107,8 +107,8 @@ function RiskDetail({ risk }: { risk: Risk }) {
             onPress={() => { setMode(m); setBid(null); }}
             style={({ pressed }) => [...choice(mode === m), { flexDirection: "row", alignItems: "center", gap: 16 }, pressed && pressedChoice]}
           >
-            <MIcon size={28} color={colors.primary} />
-            <View style={{ flex: 1 }}>
+            <View style={{ flexShrink: 0 }}><MIcon size={28} color={colors.primary} /></View>
+            <View style={{ flex: 1, minWidth: 0 }}>
               <Text size="lg" weight={600}>{t(m === "hire" ? "rd.hire" : "rd.diy")}</Text>
               <Text color="mutedForeground">{t(m === "hire" ? "rd.hireSub" : "rd.diySub")}</Text>
             </View>
@@ -127,8 +127,8 @@ function RiskDetail({ risk }: { risk: Risk }) {
               return (
                 <Pressable key={b.id} accessibilityRole="radio" aria-checked={bid === b.id} onPress={() => setBid(b.id)} style={({ pressed }) => [...choice(bid === b.id), pressed && pressedChoice]}>
                   <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
-                    <Text weight={600} style={{ flexShrink: 1 }}>{b.name}</Text>
-                    <View style={{ alignItems: "flex-end" }}>
+                    <Text weight={600} style={{ flex: 1, minWidth: 0 }}>{b.name}</Text>
+                    <View style={{ alignItems: "flex-end", flexShrink: 0 }}>
                       <Text size="xl" weight={600}>{final} €</Text>
                       <Text size="sm" color="mutedForeground" style={{ textDecorationLine: "line-through" }}>{base} €</Text>
                     </View>

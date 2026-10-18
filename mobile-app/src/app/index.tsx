@@ -24,15 +24,15 @@ export default function Dashboard() {
         <View style={{ maxWidth: "100%" }}>
           <ScoreRing once="home" size={232} max={model.maxScore} score={score} showThresholds segments={tierSegmentsOf(tiers)} surface={colors.background} />
           <RingOverlay>
-            <Text size="sm" weight={500} color="mutedForeground" maxFontSizeMultiplier={1.3}>{t("home.ringLabel")}</Text>
+            <Text size="sm" weight={500} color="mutedForeground" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} center maxFontSizeMultiplier={1.3}>{t("home.ringLabel")}</Text>
             <CountUp once="home" size="6xl" display weight={600} value={score} />
-            <Text size="sm" color="mutedForeground" maxFontSizeMultiplier={1.3}>/ {model.maxScore}</Text>
+            <Text size="sm" color="mutedForeground" numberOfLines={1} maxFontSizeMultiplier={1.3}>/ {model.maxScore}</Text>
           </RingOverlay>
         </View>
         {/* Reading order as the score lands: the number, then the tier, then the next goal. */}
-        <Arrive once="home" delay={ringLandMs - 250} style={{ marginTop: -28, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: radius.full, backgroundColor: colors.card, paddingHorizontal: 16, paddingVertical: 6, boxShadow: shadows.sm }}>
-          <View style={{ height: 12, width: 12, borderRadius: radius.full, backgroundColor: tierColors[tier.id].solid }} />
-          <Text weight={600}>{tier.name}</Text>
+        <Arrive once="home" delay={ringLandMs - 250} style={{ marginTop: -28, flexDirection: "row", alignItems: "center", gap: 8, maxWidth: "100%", borderRadius: radius.full, backgroundColor: colors.card, paddingHorizontal: 16, paddingVertical: 6, boxShadow: shadows.sm }}>
+          <View style={{ flexShrink: 0, height: 12, width: 12, borderRadius: radius.full, backgroundColor: tierColors[tier.id].solid }} />
+          <Text weight={600} style={{ flexShrink: 1 }}>{tier.name}</Text>
         </Arrive>
         <Arrive once="home" delay={ringLandMs - 50}>
           <Text size="lg" weight={500} color="mutedForeground" center style={{ marginTop: 10 }}>
@@ -51,10 +51,10 @@ export default function Dashboard() {
             const Icon = insuranceIcon[id];
             const pct = getBand(own);
             return (
-              <View key={id} style={[{ flex: 1, alignItems: "center", gap: 1 }, i > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border }]}>
+              <View key={id} style={[{ flex: 1, minWidth: 0, paddingHorizontal: 2, alignItems: "center", gap: 1 }, i > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border }]}>
                 <Icon size={18} color={colors.primary} />
-                <Text size="xl" display weight={600} tabular maxFontSizeMultiplier={1.3}>{own}</Text>
-                <Text size="xs" weight={600} color={pct ? "success" : "mutedForeground"} maxFontSizeMultiplier={1.3} numberOfLines={1} adjustsFontSizeToFit>{pct ? fmt(t("band.off"), { pct }) : "—"}</Text>
+                <Text size="xl" display weight={600} tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.3}>{own}</Text>
+                <Text size="xs" weight={600} color={pct ? "success" : "mutedForeground"} maxFontSizeMultiplier={1.3} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} center>{pct ? fmt(t("band.off"), { pct }) : "—"}</Text>
               </View>
             );
           })}
@@ -74,7 +74,7 @@ export default function Dashboard() {
                 <Text size="sm" color="mutedForeground">{t("home.next")}</Text>
                 <Text weight={600}>{nextRisk.title}</Text>
               </View>
-              <View style={{ alignItems: "flex-end" }}>
+              <View style={{ alignItems: "flex-end", flexShrink: 0 }}>
                 <Text size="xl" weight={700} color="primary" tabular>+{nextRisk.points}</Text>
                 <Text size="xs" color="mutedForeground">{t("pts")}</Text>
               </View>
@@ -88,14 +88,14 @@ export default function Dashboard() {
         <View style={{ height: 32, width: 32, alignItems: "center", justifyContent: "center", borderRadius: radius.full, backgroundColor: colors.card }}>
           <Snowflake size={18} color={colors.primary} />
         </View>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, minWidth: 0 }}>
           <Text size="sm" weight={600} color="accentForeground">{t("home.alert")}</Text>
           <Text>{fmt(t("home.alertText"), { city })}</Text>
         </View>
       </Card>
 
       <LinkBlock href="/score" style={{ minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, borderRadius: radius["2xl"], paddingHorizontal: 8 }}>
-        <Text weight={500} color="primary">{t("home.seeScore")}</Text>
+        <Text weight={500} color="primary" center style={{ flexShrink: 1 }}>{t("home.seeScore")}</Text>
         <ChevronRight size={20} color={colors.primary} />
       </LinkBlock>
     </Screen>

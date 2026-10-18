@@ -46,11 +46,11 @@ export function TabBar() {
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             onPress={() => router.navigate(to)}
-            style={({ pressed }) => [{ flex: 1, minHeight: 64, paddingVertical: 8, alignItems: "center", justifyContent: "center", gap: 4 }, pressed && { backgroundColor: colors.accent }]}
+            style={({ pressed }) => [{ flex: 1, minHeight: 64, paddingVertical: 8, paddingHorizontal: 2, alignItems: "center", justifyContent: "center", gap: 4 }, pressed && { backgroundColor: colors.accent }]}
           >
             <TabIcon Icon={Icon} active={active} color={color} />
             {/* One line and a capped scale: at large font sizes "Maintenance" would break mid-word and push its icon up. */}
-            <Text size="sm" weight={active ? 600 : 400} color={active ? "primary" : "mutedForeground"} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>{t(key)}</Text>
+            <Text size="sm" weight={active ? 600 : 400} color={active ? "primary" : "mutedForeground"} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} center maxFontSizeMultiplier={1.3}>{t(key)}</Text>
           </Pressable>
         );
       })}

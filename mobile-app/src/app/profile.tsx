@@ -29,9 +29,9 @@ export default function Profile() {
               accessibilityRole="radio"
               aria-checked={lang === l.id}
               onPress={() => setLang(l.id)}
-              style={({ pressed }) => [{ flex: 1, minHeight: 48, alignItems: "center", justifyContent: "center", borderRadius: radius.xl, backgroundColor: lang === l.id ? colors.primary : colors.muted }, pressed && lang !== l.id && { backgroundColor: colors.accent }]}
+              style={({ pressed }) => [{ flex: 1, minWidth: 0, minHeight: 48, paddingHorizontal: 4, alignItems: "center", justifyContent: "center", borderRadius: radius.xl, backgroundColor: lang === l.id ? colors.primary : colors.muted }, pressed && lang !== l.id && { backgroundColor: colors.accent }]}
             >
-              <Text weight={600} color={lang === l.id ? "primaryForeground" : "foreground"}>{l.label}</Text>
+              <Text weight={600} center numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} color={lang === l.id ? "primaryForeground" : "foreground"}>{l.label}</Text>
             </Pressable>
           ))}
         </View>
@@ -81,10 +81,10 @@ export default function Profile() {
             <Input placeholder={t("s.phone")} accessibilityLabel={t("s.phone")} value={phone} onChangeText={setPhone} keyboardType="phone-pad" textContentType="telephoneNumber" />
             <View style={{ flexDirection: "row", gap: 8, borderRadius: radius.xl, backgroundColor: colors.accent, padding: 12 }}>
               <ShieldCheck size={20} color={colors.accentForeground} />
-              <Text size="sm" color="accentForeground" style={{ flex: 1 }}>{t("s.inviteNote")}</Text>
+              <Text size="sm" color="accentForeground" style={{ flex: 1, minWidth: 0 }}>{t("s.inviteNote")}</Text>
             </View>
             <Button big onPress={() => setInvite("sent")}>{t("s.sendInvite")}</Button>
-            <Button variant="ghost" style={{ height: 48 }} onPress={() => setInvite("idle")}>{t("s.cancel")}</Button>
+            <Button variant="ghost" style={{ minHeight: 48 }} onPress={() => setInvite("idle")}>{t("s.cancel")}</Button>
           </View>
         )}
         {invite === "sent" && (
@@ -98,8 +98,8 @@ export default function Profile() {
         )}
       </Card>
 
-      <LinkBlock href="/score" style={{ minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: radius["2xl"], backgroundColor: colors.card, paddingHorizontal: 20, boxShadow: shadows.soft }}>
-        <Text weight={500}>{t("s.scoreLink")}</Text>
+      <LinkBlock href="/score" style={{ minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderRadius: radius["2xl"], backgroundColor: colors.card, paddingHorizontal: 20, paddingVertical: 8, boxShadow: shadows.soft }}>
+        <Text weight={500} style={{ flex: 1, minWidth: 0 }}>{t("s.scoreLink")}</Text>
         <ChevronRight size={20} color={colors.foreground} />
       </LinkBlock>
     </Screen>
