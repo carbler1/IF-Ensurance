@@ -1,4 +1,4 @@
-// The customer app's score ring (mobile-app/src/components/ui.tsx) as plain SVG:
+// Score ring as plain SVG:
 // soft tier bands, the current score in blue, the projected gain in light blue.
 
 import { bandSoft } from "./Bands";

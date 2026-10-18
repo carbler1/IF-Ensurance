@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* The customer app's design tokens, 1:1 from mobile-app/src/lib/theme.ts. */
+/* The customer app's design tokens. */
 :root {
   /* Staff dashboard palette: the app's blue, tier and state colours on cool neutrals.
      The canvas, text and lines are cooler than the customer app's warm beige on purpose. */

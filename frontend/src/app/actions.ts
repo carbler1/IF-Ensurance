@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { ApiError, api } from "@/lib/api";
 import type { ProfileValue, Simulation } from "@/lib/types";
 
-// Server actions: each one calls the backend, which checks the values and writes the database.
+// Server actions: each one calls the backend.
 
 export type SaveState = { ok: boolean; message: string } | null;
 

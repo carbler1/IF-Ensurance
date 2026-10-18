@@ -15,7 +15,7 @@ export const categoryIcon: Record<string, LucideIcon> = {
   tyres: Snowflake,
   service: CircleGauge,
   health: HeartPulse,
-  // The app's risk areas (mobile-app/src/components/ui.tsx areaIcon).
+  // The app's risk areas.
   water: Droplets,
   insulation: Layers,
   frost: Snowflake,

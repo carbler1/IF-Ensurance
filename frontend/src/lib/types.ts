@@ -1,4 +1,4 @@
-// Shapes of the backend's /v1/admin responses (docs/systemdesign/api-contract.md, "Admin").
+// Shapes of the backend's /v1/admin responses.
 // Plain types, safe to use in client components.
 
 export type Condition =
