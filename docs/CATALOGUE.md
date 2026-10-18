@@ -24,7 +24,7 @@ Severity and probability use a scale from 1 (low) to 5 (high). The re-check inte
 | plumb.pipe_renovation.flat_overdue | Pipe renovation overdue in a 1960s to 1980s flat | Flat or row house, built 1960 to 1989, and no pipe renovation after 1995 | 4 | 4 | plumber | 10 | 150 |
 | plumb.pipes.copper_age | Copper water pipes over 40 years old | Copper pipes, renovated before 1986 (or never renovated and the house was built before 1986) | 4 | 3 | plumber | 10 | 140 |
 | plumb.pipes.galvanized_steel | Galvanized steel water pipes | Galvanized steel pipes, and no pipe renovation after 1990 | 4 | 4 | plumber | 10 | 150 |
-| plumb.water_heater.age | Hot-water tank past its service life | Tank installed before 2006 (or the year is unknown and the house was built before 2006) | 3 | 4 | plumber | 10 | 60 |
+| plumb.water_heater.age | Hot-water tank past its service life | Tank installed before 2006 (or the year is unknown and the house was built before 2006) | 3 | 4 | plumber | 5 | 60 |
 | roof.bitumen_felt.age | Bitumen felt roof over 25 years old | Bitumen felt roof, last renewed before 2001 (or never renewed and the house was built before 2001) | 4 | 4 | roofer | 5 | 130 |
 | roof.sheet_metal.seams_age | Steel sheet roof over 40 years old | Sheet metal roof, last renewed before 1986 (or never renewed and the house was built before 1986) | 3 | 3 | roofer | 5 | 100 |
 | roof.tile.underlay_age | Tile roof underlay over 30 years old | Tile roof, last renewed before 1996 (or never renewed and the house was built before 1996) | 4 | 3 | roofer | 5 | 120 |

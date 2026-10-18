@@ -4,11 +4,11 @@ This file lists the HTTP endpoints that the backend serves today. The backend is
 
 ## Conventions
 
-- Format: JSON in, JSON out. Document upload uses multipart form data.
-- Customer routes use the prefix `/v1`. They need the header `Authorization: Bearer <CUSTOMER_TOKEN>`. The server reads `CUSTOMER_TOKEN` from the environment.
+- Format: JSON in, JSON out. Document upload uses multipart form data. Neither app has an upload screen, so uploads are API only.
+- Customer routes use the prefix `/v1`. They need the header `Authorization: Bearer <token>`. The token is either `CUSTOMER_TOKEN` (from the environment; it opens the demo home) or the per-home token from `POST /v1/claim`.
 - Admin routes use the prefix `/v1/admin`. They need the header `X-Admin-Token: <ADMIN_TOKEN>`. The server reads `ADMIN_TOKEN` from the environment. The customer token does not work on admin routes.
 - CORS (cross-origin resource sharing): the server allows the origins in `CORS_ORIGINS` (comma-separated). It allows GET, POST and PUT. The admin PATCH, PUT and DELETE calls are made from the dashboard server, not from a browser.
-- The demo has one customer, `cust_01`, and one home, `home_01`. Every customer route works on these two records.
+- `home_01` (customer `cust_01`) is the shared demo home. There are also 50 preset homes, `home_02` to `home_51`. Every customer route works on the home that the token opens.
 - A job is one run of the document pipeline. A job has the stages `extracting`, `matching` and `writing`.
 
 ## Errors
@@ -23,10 +23,11 @@ Every error has this shape:
 |---|---|---|
 | 400 | `bad_request` | The body or a field is not valid, or a rule check fails (for example, a price minimum above the maximum). |
 | 400 | `unsupported_document` | Upload: `type` is not `kuntotarkastus`, or the file is not a PDF. |
-| 400 | `too_large` | Upload: the file is larger than 20 MB. |
+| 400 | `too_large` | Upload: the file is larger than 20 MB. The app's nginx accepts up to 21 MB, so the backend answers with this error. |
 | 401 | `unauthorized` | The token is missing or wrong. |
 | 404 | `not_found` | The home, job, risk, booking, task or admin record does not exist. |
 | 409 | `conflict` | The request conflicts with stored state. The server changes nothing. |
+| 429 | `too_many_attempts` | Claim or login: 5 wrong passwords lock that account and client IP for 60 s, and each IP gets at most 20 attempts per minute. |
 | 500 | `internal_error` | An unexpected server error. |
 
 ## Public
@@ -34,6 +35,14 @@ Every error has this shape:
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | GET | `/health` | none | Liveness check. Returns `{"status": "ok"}`. |
+| GET | `/v1/homes-available` | none | List the 50 preset homes: `home_id`, `address`, `city`, `taken`. |
+| POST | `/v1/claim` | none | Claim a free home or sign in to a taken one. |
+
+### POST /v1/claim
+
+Request: `home_id`, `password` (8 to 200 characters). A free home gets that password. A taken home needs its password. Response: `token` (new bearer token) and `home_id`. A new token replaces the old one, so a second sign-in signs the first device out.
+
+Errors: 400 (password too short), 401 (wrong password), 404 (unknown home, or `home_01`), 429 (see Errors).
 
 ## Customer routes
 
@@ -77,15 +86,15 @@ Errors: 400 `unsupported_document`, 400 `too_large`, 400 `bad_request` (missing 
 
 | Field | Meaning |
 |---|---|
-| `job_id` | Job id. |
+| `job_id` | Job id (`job_` and 16 hex characters). |
 | `status` | `queued`, `running`, `done` or `failed`. |
 | `stage` | `extracting`, `matching` or `writing` while `running`. Otherwise `null`. |
 | `started_at`, `finished_at` | Times, or `null`. |
 | `error` | `null`, or an object with `code` and `message` when the job failed. |
 
-The worker fails a job that runs longer than 180 s. It checks the time between pipeline stages, so a job can run past 180 s inside one stage. The error code is then `timeout`. A job that was running when the worker restarted fails with the code `worker_restart`. Other pipeline failures use the error's own code, or `pipeline_error`.
+A job has a 180 s budget. Each model call gets the remaining time as its timeout. A job that runs out fails with the code `timeout`. A job that was running when the worker restarted fails with the code `worker_restart`. Other failures use the error's own code, for example `no_text_layer`, `llm_unreachable`, `llm_bad_json` or `pipeline_error`. `document_too_long` means more than 150 pages, about 45,000 characters of text, or an estimated prompt over about 14,000 tokens. `llm_truncated` means the model output was cut, the prompt came within 512 tokens of the context size, or the model read far less than the input.
 
-Errors: 404 if the job does not exist.
+Errors: 404 if the job does not exist or belongs to another home.
 
 ### GET /v1/homes/me/risks
 
@@ -123,7 +132,7 @@ Response: `items`. Each item has `item_id`, `risk_id`, `title`, `due_at` (date),
 
 ### GET /v1/me/insurances
 
-Response: the simulation result. It has `objects` (one per insured object, with `fixes`, `score`, `band`, `premium`), `aggregate` (score and tier), `premium` totals and `model`. Each fix has `risk_id`, `title`, `points`, `why` and `benefit`.
+Response: the simulation result. It has `objects` (one per insured object, with `fixes`, `score`, `band`, `premium`), `aggregate` (score and tier), `premium` totals and `model`. Each fix has `risk_id`, `title`, `points`, `why` and `benefit`. Each object also has `done`: the confirmed fixes, each with `risk_id`, `base_points` and `points` (after decay).
 
 ## Mobile app routes
 
@@ -131,7 +140,7 @@ These routes use the customer bearer token. Each route returns the full app data
 
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
-| GET | `/v1/me/app` | bearer | Read all app data for `cust_01`. |
+| GET | `/v1/me/app` | bearer | Read all app data for the caller's customer. |
 | POST | `/v1/me/bookings` | bearer | Book a fix. Returns `201`. |
 | POST | `/v1/me/bookings/{risk_id}/advance` | bearer | Move a booking one step on. |
 | PUT | `/v1/me/reminders/{task_id}` | bearer | Switch a task reminder on or off. |
@@ -159,7 +168,7 @@ All admin routes need `X-Admin-Token`. A missing or wrong token returns 401.
 | Method | Path | Purpose | Request fields | Errors |
 |---|---|---|---|---|
 | GET | `/v1/admin/overview` | Counts of customers, homes, documents, work orders, bookings, rules, classes. | none | |
-| GET | `/v1/admin/customers` | Customers with simulated scores. | none | |
+| GET | `/v1/admin/customers` | Customers with simulated scores. Objects carry `done` like `/v1/me/insurances`. | none | |
 | GET | `/v1/admin/classes` | Insurance classes with risks and base premium. | none | |
 | PATCH | `/v1/admin/classes/{class_id}` | Set the base premium. | `base_annual_premium_eur` (0 to 1,000,000) | 404 |
 | GET | `/v1/admin/settings` | Read the starting score and maximum score. | none | |
@@ -167,14 +176,17 @@ All admin routes need `X-Admin-Token`. A missing or wrong token returns 401.
 | GET | `/v1/admin/bands` | Read the discount bands. | none | |
 | PUT | `/v1/admin/bands` | Replace all discount bands (1 to 10). | `bands[]`: `min_score`, `percent` | 400 if a band starts above the maximum, or scores and percents do not both rise |
 | GET | `/v1/admin/rules` | List fix rules. | none | |
-| POST | `/v1/admin/rules` | Create a fix rule. Returns `201`. | `risk_id`, `label`, `context`, `priority`, `points`, `half_life_years` | 404 unknown risk, 400 bad context |
-| PATCH | `/v1/admin/rules/{rule_id}` | Change a rule. | `points`, `half_life_years`, `active`, `priority` (optional) | 404 |
+| POST | `/v1/admin/rules` | Create a fix rule. Returns `201`. | `risk_id`, `label`, `context`, `priority`, `points`, `half_life_years` | 404 unknown risk, 400 bad context, 409 priority already used |
+| PATCH | `/v1/admin/rules/{rule_id}` | Change a rule. | `points`, `half_life_years`, `active`, `priority` (optional) | 404, 409 priority already used |
 | DELETE | `/v1/admin/rules/{rule_id}` | Delete a rule. Returns `204`. | none | 404, 409 for a default rule |
-| POST | `/v1/admin/simulate` | Simulate scores for given objects. | `objects[]`: `class_id`, `profile`, `history`, optional `object_id`, `name` | 400 unknown class |
+| POST | `/v1/admin/simulate` | Simulate scores for given objects. | `objects[]`: `class_id`, `profile`, `history`, optional `object_id`, `name` | 400 unknown class or an `object_id` of another class, 404 unknown `object_id` |
+| POST | `/v1/admin/login` | Claim a staff account (first use sets its password) or sign in. Returns `name`, `claimed`. | `name`, `password` (8 to 200 characters) | 400, 401 wrong password, 404 unknown account, 429 |
+| GET | `/v1/admin/accounts` | List staff accounts: `name`, `claimed`. | none | |
+| POST | `/v1/admin/accounts/unclaim` | Free every staff account. Homes stay claimed. | none | |
 | POST | `/v1/admin/demo/reset` | Clear demo bookings and reminders. Returns `{"status": "reset"}`. | none | |
 | GET | `/v1/admin/partners` | List partners. | none | |
 | PATCH | `/v1/admin/partners/{partner_id}` | Change a partner. | `price_min`, `price_max`, `tier_discount_percent`, `if_vetted`, `listing_fee_tier` (`basic` or `plus`) | 404, 400 if min above max |
 | GET | `/v1/admin/tiers` | List tiers. | none | |
-| PATCH | `/v1/admin/tiers/{tier_index}` | Change a tier. | `name`, `min_score`, `partner_discount_percent`, `bonuses[]` | 404, 400 if `min_score` is not between the tiers below and above |
+| PATCH | `/v1/admin/tiers/{tier_index}` | Change a tier. | `name`, `min_score`, `partner_discount_percent`, `bonuses[]` | 404, 400 if `min_score` is not between the tiers below and above, or tier 0 is not 0, or above the maximum score |
 
-A default rule has an id that starts with `default.`. Staff can switch it off but not delete it. Its priority does not change.
+Rule priorities are unique per risk. A default rule has an id that starts with `default.`. Staff can switch it off but not delete it. Its priority does not change.

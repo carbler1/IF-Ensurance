@@ -33,7 +33,7 @@ flowchart LR
 | `backend/api.py` | Customer endpoints, bearer token check, CORS allow-list, `/health` |
 | `backend/upload.py` | `POST /v1/homes/me/documents` |
 | `backend/app_api.py` | The mobile app: `/v1/me/app`, bookings, reminders |
-| `backend/admin.py` | Staff dashboard API under `/v1/admin` (classes, rules, bands, tiers, partners, simulate, demo reset) |
+| `backend/admin.py` | Staff dashboard API under `/v1/admin` (staff login, classes, rules, bands, tiers, partners, simulate, demo reset) |
 | `backend/engine.py` | Risk list, risk detail, fix points |
 | `backend/maintenance.py` | Maintenance list |
 | `backend/insurance.py` | Insurance scores, discount bands, tiers |
@@ -62,7 +62,7 @@ flowchart LR
 
 | Container | Role |
 |---|---|
-| `caddy` | `caddy:2-alpine`, `Caddyfile` at the repo root. The only container with host ports (80, 443). Gets HTTPS certificates itself. Routes `APP_DOMAIN` to `mobile` and `DASHBOARD_DOMAIN` to `frontend`. The dashboard is public, with no login |
+| `caddy` | `caddy:2-alpine`, `Caddyfile` at the repo root. The only container with host ports (80, 443). Gets HTTPS certificates itself. Routes `APP_DOMAIN` to `mobile` and `DASHBOARD_DOMAIN` to `frontend`. Public: the dashboard has its own staff login (see §5) |
 | `postgres` | Postgres 17, the only database. Private `db` network, no host port |
 | `backend` | FastAPI API (:8000) and job worker. Runs migrations on start. PDFs in the `backend-var` volume. Talks to Postgres and host Ollama |
 | `frontend` | Staff dashboard, Next.js (:3000). Calls `/v1/admin` with `ADMIN_TOKEN` server-side |
@@ -70,7 +70,7 @@ flowchart LR
 
 ## 4. Pipeline
 
-1. **Upload.** `POST /v1/homes/me/documents` takes a multipart form with `file` and `type`. Only `type=kuntotarkastus` is accepted. The server checks the `%PDF-` magic bytes and the 20 MB limit. It saves the file as `var/uploads/<document_id>.pdf` (never under the client filename). It inserts a `documents` row and a `jobs` row, both `queued`. It returns `202` with `document_id` and `job_id`.
+1. **Upload.** `POST /v1/homes/me/documents` takes a multipart form with `file` and `type`. Only `type=kuntotarkastus` is accepted. The server checks the `%PDF-` magic bytes and the 20 MB limit. Ids are `doc_` or `job_` plus 16 hex characters. Neither app has an upload screen: uploads are API only. The app's nginx accepts bodies up to 21 MB so the backend answers oversize files with its own `too_large` error. It saves the file as `var/uploads/<document_id>.pdf` (never under the client filename). It inserts a `documents` row and a `jobs` row, both `queued`. It returns `202` with `document_id` and `job_id`.
 2. **Run.** The worker takes the oldest queued job and sets it `running`. The client reads progress with `GET /v1/jobs/{id}` (`status`, `stage`, `error`).
 3. **Extract** (`stage: extracting`). pypdfium2 reads the text. A PDF with no text layer fails the job (`no_text_layer`). One Ollama call gets the whole report text, with `prompts/extract.schema.json` as output format. The model returns field candidates with a value, a confidence and a quote. Code drops candidates whose value does not fit `data/home-profile.schema.json`.
 4. **Merge** (code). Each candidate that is not `"unknown"` replaces the current field value, with `source: document`. Code builds `evidence` from the `document_id`, the quote and `page`. The page is the first PDF page whose text holds the quote. If no page holds it, `page` is left out. Code saves the profile.
@@ -79,9 +79,9 @@ flowchart LR
 7. **Finish.** The job becomes `done` and the document `processed`. On any error both become `failed`, with an error code and message.
 
 Limits:
-- The worker fails a job after 180 s (`timeout`). Known issue: on the live host Ollama runs on CPU, extraction exceeds this limit, and PDF upload fails.
+- A job has a 180 s budget. Each Ollama call gets the remaining time as its timeout, and a slow model gives `timeout`. Known issue: on the live host Ollama runs on CPU, extraction exceeds this limit, and PDF upload fails.
 - At start, the worker fails every job still `running` (`worker_restart`).
-- Every Ollama call uses `POST /api/chat` with `stream: false`, `think: false`, `format` set to the schema, `temperature: 0` and `num_ctx: 16384`. The job fails when `done_reason` is `length` or `prompt_eval_count` reaches `num_ctx`. Without `think: false` and a larger `num_ctx`, output was cut on the test machine.
+- Every Ollama call uses `POST /api/chat` with `stream: false`, `think: false`, `format` set to the schema, `temperature: 0` and `num_ctx: 16384`. The job fails (`llm_truncated`) when `done_reason` is `length`, `prompt_eval_count` comes within 512 of `num_ctx`, or it is far below the input size. A report over 150 pages, about 45,000 characters or about 14,000 estimated tokens fails with `document_too_long`. Without `think: false` and a larger `num_ctx`, output was cut on the test machine.
 
 ## 5. Risk list and partners
 
@@ -99,7 +99,7 @@ Code builds both from the profile, the catalogue and the database. No model is i
 | `POST /v1/me/bookings/{risk_id}/advance` | Moves a booking one step (steps 0 to 2). Step 2 confirms the fix |
 | `PUT /v1/me/reminders/{task_id}` | Sets or clears a maintenance reminder |
 
-Customer auth is one bearer token (`CUSTOMER_TOKEN`). Staff routes use the header `X-Admin-Token` (`ADMIN_TOKEN`).
+Customer auth is a bearer token: `CUSTOMER_TOKEN` opens the shared demo home `home_01`. Each of the 50 preset homes (`home_02` to `home_51`, own mock data) is claimed with a password through `POST /v1/claim`, which returns that home's token. Staff routes use the header `X-Admin-Token` (`ADMIN_TOKEN`). The dashboard has a login on top: 6 preset company accounts (`staff_accounts`), each claimed on first use. Passwords are hashed with scrypt. 5 wrong passwords lock an account and client IP for 60 s. Claims and staff logins are also limited to 20 attempts per minute per IP (429 `too_many_attempts`). Both counts live in process memory.
 
 ### Condition semantics
 
@@ -122,11 +122,12 @@ The mobile app also shows seasonal `maintenance_tasks` for the demo customer. Th
 
 | Table | Holds |
 |---|---|
-| `homes`, `profiles` | The demo home `home_01` and its profile (20 fields) |
+| `homes`, `profiles` | The demo home `home_01` and 50 preset homes, each with a profile (20 fields) |
 | `documents`, `jobs` | Uploads and pipeline state |
 | `risk_texts` | Written `why` and `benefit` per home and risk, and the `llm_proposed` flag |
 | `work_orders`, `score_events` | Confirmed work for the catalogue risk list and maintenance |
-| `customers`, `insured_objects` | The demo customer with a house, a summer cottage, a boat, a car and a dog |
+| `customers`, `insured_objects` | The demo customer with a house, a summer cottage, a boat, a car and a dog, and 50 preset customers with a house each. A customer holds the password hash and token hash |
+| `staff_accounts` | Dashboard logins (6). Password hash is null until claimed |
 | `insurance_classes`, `insurance_settings`, `discount_bands`, `tiers` | Score model, edited by staff |
 | `fix_rules` | Points and half-life of a fix in a context. Staff set the points by hand per rule |
 | `assigned_risks`, `bids`, `bookings`, `maintenance_tasks`, `reminders` | Mobile app content and state |
@@ -157,7 +158,9 @@ Static files:
 | Gold | 700 | 15 % |
 | Platinum | 850 | 20 % |
 
-Tier bonuses are display texts only. A fix earns the points of its `fix_rules` row.
+Tier bonuses are display texts only. A fix earns the points of its `fix_rules` row, decayed: `points * 0.5 ** (years / half_life_years)`, with years counted from the confirmation date. Without a half-life or a date there is no decay.
+
+`scripts/reset-demo.sh` clears demo bookings and reminders and unclaims staff accounts. Homes stay claimed.
 
 ## 8. Risks of the design
 
