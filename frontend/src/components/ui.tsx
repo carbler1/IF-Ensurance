@@ -34,7 +34,7 @@ export const classIcon: Record<string, LucideIcon> = {
 
 // Lives here, not in the client-only ./form, so server pages get the string rather than a client reference.
 export const inputClass =
-  "h-11 w-full rounded-lg border border-input bg-card px-3.5 text-base tabular-nums text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-3 focus:ring-primary/20";
+  "h-11 w-full rounded-lg border border-input bg-card px-3.5 text-base tabular-nums text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-3 focus:ring-primary/20 [&:is(select)]:pr-8";
 
 export const tierColor = ["bg-tier-bronze", "bg-tier-silver", "bg-tier-gold", "bg-tier-platinum"];
 
