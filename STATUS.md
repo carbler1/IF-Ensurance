@@ -34,5 +34,5 @@ Where the project stands, checked against the code.
 - Small known bugs: startup recovery can fail a live worker's job (only with two workers); `seed()` is not safe to run in parallel; a failed job leaves the profile already merged; a second upload keeps stale fields from the first; the upload handler does blocking I/O; the "Check roof snow load" task goes to flat homes; `RISK_IDS` in `backend/presets.py` is unused.
 - Untested: the new login, claim and onboarding flows in a real browser; the nginx changes in a running container; mobile `tsc` needs `npm ci` in `mobile-app/`.
 - Router: no DHCP reservation for the PC (192.168.50.17); the port forward breaks if its address changes. You do this in the router.
-- Repo clean-up: `frontend/AGENTS.md` is untracked (written by a tool, keep or delete); old worktrees and branches remain (`.claude/worktrees/`, `/home/ant/IF-Life-Partner-fix/`, `/home/ant/IF-Life-Partner-main`, branches `fix/*`, `worktree-agent-*`, `dev`, `dev2`).
+- Repo clean-up: `frontend/AGENTS.md` is untracked (written by a tool, keep or delete); the local branches `dev` and `dev2` are fully merged and can be deleted.
 - Hackathon submission: pitch video (2 minutes at most), pitch deck PDF, project description, source-code link and publicity, team phone numbers and Discord name.
