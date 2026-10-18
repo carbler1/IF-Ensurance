@@ -1,6 +1,6 @@
 # If Life Partner: design
 
-This file describes the system as the code builds it today. It covers the pipeline, the stack, the decisions that still hold and the colour palette.
+This file describes the system as the code builds it today. It covers the pipeline, the stack, the decisions and the colour palette.
 
 ## 1. What the system does
 
@@ -58,7 +58,6 @@ flowchart LR
 | LLM | Ollama, `qwen3.5:9b` by default (`OLLAMA_MODEL`), called with httpx |
 | Validation | jsonschema |
 | Deployment | `docker-compose.yml`, 5 containers (below). Ollama runs on the host, not in a container |
-| Dev shell | Nix flake (`flake.nix`) |
 | Config | `.env` (not in git): `CUSTOMER_TOKEN` (required), `ADMIN_TOKEN`, `CORS_ORIGINS` (not needed for the app demo behind Caddy: it shares one origin with the API through nginx; only other browser origins need it), `OLLAMA_URL` (in compose `http://host.docker.internal:11434`; `127.0.0.1` would be the container itself), `EXPO_PUBLIC_API_URL` (public app URL, baked in at mobile build time; set it to `https://<APP_DOMAIN>`. The default `http://localhost:8082` points to a port no compose container publishes), `APP_DOMAIN` and `DASHBOARD_DOMAIN` (both required), `DATABASE_URL`, Postgres settings |
 
 | Container | Role |
@@ -165,7 +164,7 @@ Tier bonuses are display texts only. A fix earns the points of its `fix_rules` r
 | A bad upload | Magic bytes, 20 MB limit, server-side filename |
 | Browser access from other sites | CORS allow-list from `CORS_ORIGINS` |
 
-## 9. Decisions that still hold
+## 9. Decisions
 
 | Topic | Decision |
 |---|---|

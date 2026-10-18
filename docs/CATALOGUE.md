@@ -52,32 +52,9 @@ When a work order is confirmed, the `on_done` rule can write a field back to the
 
 ## Profile fields
 
-`data/home-profile.schema.json` lists all profile fields. Every field exists in every profile. Each field holds `value`, `confidence` (0 to 1), `source`, `evidence` and `doubt`. A field that nothing filled has value "unknown", confidence 0 and source "none". When sources disagree, the rank is partner, then document, then register, then customer.
+`data/home-profile.schema.json` lists the 20 profile fields and their allowed values. Every field exists in every profile. Each field holds `value`, `confidence` (0 to 1), `source`, `evidence` and `doubt`. A field that nothing filled has value "unknown", confidence 0 and source "none". When sources disagree, the rank is partner, then document, then register, then customer.
 
-| Field | Values |
-|---|---|
-| house_type | detached, semi_detached, row_house, flat |
-| building_year | year |
-| heating | oil, electric, district, ground_heat, air_heat_pump, wood, pellet, gas |
-| panel_type | screw_fuse, automatic_fuses |
-| pipe_material | galvanized_steel, copper, plastic, pex |
-| roof_material | sheet_metal, tile, bitumen_felt, fibre_cement |
-| last_pipe_renovation | year |
-| last_electrical_check | date |
-| ventilation | natural, mechanical_exhaust, mechanical_supply_exhaust |
-| sauna | none, electric_stove, wood_stove |
-| bathroom_waterproofing_year | year |
-| floor_drain_type | cast_iron, plastic |
-| water_heater_year | year |
-| foundation_type | slab_on_ground, crawl_space, basement |
-| subsoil_drains | present, absent |
-| last_roof_renovation | year |
-| oil_tank_year | year (only meaningful with oil heating) |
-| last_chimney_sweep | date |
-| last_moisture_inspection | date |
-| last_ventilation_service | date |
-
-Every field also accepts "unknown". A year is an integer from 1800 to 2100. A date is an ISO date.
+Every field also accepts "unknown". An enum field takes only its listed values. A year is an integer from 1800 to 2100. A date is an ISO date.
 
 ## Partner categories
 
