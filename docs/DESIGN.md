@@ -56,16 +56,17 @@ flowchart LR
 | PDF text | pypdfium2 |
 | LLM | Ollama, `qwen3.5:9b` by default (`OLLAMA_MODEL`), called with httpx |
 | Validation | jsonschema |
-| Deployment | `docker-compose.yml`, 4 containers (below). Ollama runs on the host, not in a container |
+| Deployment | `docker-compose.yml`, 5 containers (below). Ollama runs on the host, not in a container |
 | Dev shell | Nix flake (`flake.nix`) |
-| Config | `.env` (not in git): `CUSTOMER_TOKEN` (required), `ADMIN_TOKEN`, `CORS_ORIGINS`, `OLLAMA_URL` (must be reachable from inside the backend container), `EXPO_PUBLIC_API_URL` (mobile build, default `http://localhost:8082`), `DATABASE_URL`, Postgres settings |
+| Config | `.env` (not in git): `CUSTOMER_TOKEN` (required), `ADMIN_TOKEN`, `CORS_ORIGINS` (not needed for the app: it shares one origin with the API through nginx), `OLLAMA_URL` (in compose `http://host.docker.internal:11434`; `127.0.0.1` would be the container itself), `EXPO_PUBLIC_API_URL` (public app URL, baked in at mobile build time, default `http://localhost:8082`), `APP_DOMAIN` and `DASHBOARD_DOMAIN` (both required), `DATABASE_URL`, Postgres settings |
 
 | Container | Role |
 |---|---|
+| `caddy` | `caddy:2-alpine`, `Caddyfile` at the repo root. The only container with host ports (80, 443). Gets HTTPS certificates itself. Routes `APP_DOMAIN` to `mobile` and `DASHBOARD_DOMAIN` to `frontend`. The dashboard is public, with no login |
 | `postgres` | Postgres 17, the only database. Private `db` network, no host port |
 | `backend` | FastAPI API (:8000) and job worker. Runs migrations on start. PDFs in the `backend-var` volume. Talks to Postgres and host Ollama |
 | `frontend` | Staff dashboard, Next.js (:3000). Calls `/v1/admin` with `ADMIN_TOKEN` server-side |
-| `mobile` | Web demo of the customer app: Expo static export on nginx (:8082 to 80). nginx proxies `/v1/` to the backend |
+| `mobile` | Web demo of the customer app: Expo static export on nginx (:80). nginx proxies `/v1/` to the backend |
 
 ## 4. Pipeline
 
@@ -78,7 +79,7 @@ flowchart LR
 7. **Finish.** The job becomes `done` and the document `processed`. On any error both become `failed`, with an error code and message.
 
 Limits:
-- The worker fails a job after 180 s (`timeout`).
+- The worker fails a job after 180 s (`timeout`). Known issue: on the live host Ollama runs on CPU, extraction exceeds this limit, and PDF upload fails.
 - At start, the worker fails every job still `running` (`worker_restart`).
 - Every Ollama call uses `POST /api/chat` with `stream: false`, `think: false`, `format` set to the schema, `temperature: 0` and `num_ctx: 16384`. The job fails when `done_reason` is `length` or `prompt_eval_count` reaches `num_ctx`. Without `think: false` and a larger `num_ctx`, output was cut on the test machine.
 
