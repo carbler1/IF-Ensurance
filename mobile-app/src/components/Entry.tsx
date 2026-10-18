@@ -4,9 +4,7 @@ import { choices, type Choice } from "@/lib/choice";
 import { useStore } from "@/lib/store";
 import { colors, radius, shadows } from "@/lib/theme";
 
-const icon = { house: insuranceIcon.house, car: insuranceIcon.car, dog: insuranceIcon.dog, boat: insuranceIcon.boat };
-
-// The first screen: one tap on an icon picks it and opens the dashboard.
+// The first screen: one tap on an icon picks the insurance class and opens the login.
 export function Entry({ onChoose }: { onChoose: (c: Choice) => void }) {
   const { t } = useStore();
   return (
@@ -14,7 +12,7 @@ export function Entry({ onChoose }: { onChoose: (c: Choice) => void }) {
       <Heading size="2xl" center style={{ marginTop: 24 }}>{t("entry.title")}</Heading>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16, marginTop: 16 }}>
         {choices.map((c) => {
-          const Icon = icon[c];
+          const Icon = insuranceIcon[c];
           const label = t(`ins.${c}`);
           return (
             <PressCard

@@ -7,7 +7,7 @@ import type { AppData, Band, Job, JobStep, Tier } from "./types";
 export type { Job, JobStep } from "./types";
 
 // The customer's data lives in the backend; the store loads it once and saves every change there.
-// There is no sign-in: the app opens on the shared demo home. Language is saved under "ilp.lang".
+// api.ts keeps the sign-in token; a 401 calls onSignedOut. Language is saved under "ilp.lang".
 
 type Status = "loading" | "ready" | "error";
 
@@ -68,12 +68,15 @@ export function tierFor(score: number, tiers: Tier[]) {
 
 const Ctx = createContext<Store | null>(null);
 
-export function StoreProvider({ children, choice }: { children: ReactNode; choice?: string | null }) {
+export function StoreProvider({ children, choice, paused, onSignedOut }: { children: ReactNode; choice?: string | null; paused?: boolean; onSignedOut?: () => void }) {
   const [lang, setLangState] = useState<Lang>("en");
   const setLang = useCallback((l: Lang) => { setLangState(l); api.setLang(l); }, []);
   const [data, setData] = useState<AppData>(EMPTY);
   const [status, setStatus] = useState<Status>("loading");
   const [error, setError] = useState<string | null>(null);
+
+  // A 401 means the token is invalid (api.ts has forgotten it): back to the login.
+  const unauth = useCallback((e: Error & { status?: number }) => { if (e.status === 401) onSignedOut?.(); }, [onSignedOut]);
 
   const loads = useRef(0);
   const reload = useCallback(() => {
@@ -83,18 +86,25 @@ export function StoreProvider({ children, choice }: { children: ReactNode; choic
       (d) => { if (mine === loads.current) { setData(d); setStatus("ready"); setError(null); } },
       (e: Error) => {
         if (mine !== loads.current) return;
+        unauth(e);
         setError(e.message);
         setStatus("error");
       },
     );
-  }, []);
+  }, [unauth]);
   useEffect(() => {
     api.getLang().then((l) => {
       if (l === "en" || l === "fi" || l === "sv") setLangState(l);
     });
   }, []);
   // The backend sends its text in the app's language, so a language change loads the data again.
-  useEffect(() => reload(), [reload, lang]);
+  // While paused (not signed in) nothing loads, and the last customer's data is dropped.
+  useEffect(() => {
+    if (!paused) return reload();
+    loads.current++;
+    setData(EMPTY);
+    setStatus("loading");
+  }, [reload, lang, paused]);
 
   // Show the change at once, then take the backend's answer (it recomputes the scores).
   // Only the latest request's reply is applied. A failed save refetches quietly, so the screen stays put.
@@ -103,8 +113,8 @@ export function StoreProvider({ children, choice }: { children: ReactNode; choic
     const mine = ++seq.current;
     const apply = (d: AppData) => { if (mine === seq.current) setData(d); };
     setData(optimistic);
-    return request().then(apply, () => api.load().then(apply, () => {}));
-  }, []);
+    return request().then(apply, () => api.load().then(apply, unauth));
+  }, [unauth]);
 
   const value = useMemo<Store>(() => {
     const all = data.insurances;
@@ -143,7 +153,7 @@ export function StoreProvider({ children, choice }: { children: ReactNode; choic
       scores,
       aggregate: view.aggregate,
       bands,
-      addInsurance: (classId) => api.addInsurance(classId).then(setData),
+      addInsurance: (classId) => api.addInsurance(classId).then(setData, (e) => { unauth(e); throw e; }),
       toggleReminder: (id) => {
         const on = !data.reminders.includes(id);
         save((d) => ({ ...d, reminders: on ? [...d.reminders, id] : d.reminders.filter((x) => x !== id) }), () => api.setReminder(id, on));

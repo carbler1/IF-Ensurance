@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Platform, View, useWindowDimensions } from "react-native";
 import { Link, Stack, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -13,6 +13,8 @@ import { Fraunces_600SemiBold } from "@expo-google-fonts/fraunces/600SemiBold";
 import { TabBar } from "@/components/TabBar";
 import { Button, Heading, Spinner, Text } from "@/components/ui";
 import { Entry } from "@/components/Entry";
+import { Login } from "@/components/Login";
+import { api } from "@/lib/api";
 import { useChoice } from "@/lib/choice";
 import { StoreProvider, useStore } from "@/lib/store";
 import { dictionaries } from "@/lib/i18n";
@@ -31,14 +33,18 @@ export default function RootLayout() {
   }, [loaded, fontError]);
 
   const [choice, choose] = useChoice();
+  // undefined: still reading the stored token.
+  const [signedIn, setSignedIn] = useState<boolean | undefined>(undefined);
+  useEffect(() => { api.restore().then(setSignedIn); }, []);
+  const signedOut = useCallback(() => setSignedIn(false), []);
 
   if (!loaded && !fontError) return null;
 
   return (
     <SafeAreaProvider>
-      <StoreProvider choice={choice}>
+      <StoreProvider choice={choice} paused={!signedIn} onSignedOut={signedOut}>
         <StatusBar style="dark" />
-        <AppFrame choice={choice} choose={choose} />
+        <AppFrame choice={choice} choose={choose} signedIn={signedIn} onSignedIn={() => setSignedIn(true)} />
       </StoreProvider>
     </SafeAreaProvider>
   );
@@ -48,7 +54,7 @@ export default function RootLayout() {
 const PHONE = { width: 390, height: 844 };
 
 // On web at 600 px or wider the app sits in the phone frame; elsewhere it fills the screen up to 430 px.
-function AppFrame({ choice, choose }: { choice: ReturnType<typeof useChoice>[0]; choose: ReturnType<typeof useChoice>[1] }) {
+function AppFrame({ choice, choose, signedIn, onSignedIn }: { choice: ReturnType<typeof useChoice>[0]; choose: ReturnType<typeof useChoice>[1]; signedIn: boolean | undefined; onSignedIn: () => void }) {
   const { status, error, reload, t } = useStore();
   const window = useWindowDimensions();
   const phoneFrame = Platform.OS === "web" && window.width >= 600;
@@ -61,8 +67,10 @@ function AppFrame({ choice, choose }: { choice: ReturnType<typeof useChoice>[0];
             : { flex: 1, width: "100%", maxWidth: 430, backgroundColor: colors.background, boxShadow: shadows.soft }
         }
       >
-        {choice === undefined ? null : choice === null ? (
+        {choice === undefined || signedIn === undefined ? null : choice === null ? (
           <Entry onChoose={choose} />
+        ) : !signedIn ? (
+          <Login choice={choice} onBack={() => choose(null)} onDone={onSignedIn} />
         ) : status === "loading" ? (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 16 }}>
             <Spinner size={48} color={colors.primary} />
