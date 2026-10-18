@@ -2,29 +2,15 @@
 
 Where the project stands, checked against the code.
 
-## First deploy: minimum steps (one at a time)
+## Deployment
 
-Goal: `docker compose up` serves the dashboard, the app demo and the API on one host. Tests and polish are skipped on purpose.
+Live: `https://app.antal.fi` (app demo and API) and `https://dashboard.antal.fi` (staff dashboard). Five containers (postgres, backend, frontend, mobile, caddy) run on one host. Caddy is the only service that publishes ports (80, 443) and issues the HTTPS certificates.
 
-1. Finalize docs. Done.
-2. Backend. Done: compose fixes, all three images build, `docker compose up` passes `/health`, dashboard, app demo.
-3. Deploy. Below.
+Broken: PDF upload. The extract job fails after 180 s with `llm_unreachable: timed out`. Ollama on the host runs `qwen3.5:9b` on the CPU only (its log shows `inference compute id=cpu`), although the host has an AMD GPU and a ROCm Ollama package in its config. Why the GPU is not used is not diagnosed.
 
-### 3. Deploy
-
-Host: the PC (`pc-btw`, ssh alias `pc-btw`). Ollama runs there with `qwen3.5:9b`. Domains: `app.antal.fi` and `dashboard.antal.fi` (Zoner CNAMEs to `antal.bounceme.net`, which resolves to the PC). Router forwards ports 80 and 443 to the PC; the PC firewall allows them.
-
-Done:
-- PC `.env`: `OLLAMA_URL=http://host.docker.internal:11434`.
-- DNS, router and firewall.
-- Caddy container added to `docker-compose.yml` (`Caddyfile`); only Caddy publishes ports (80, 443).
-
-Left:
-- On the PC: pull, set `APP_DOMAIN`, `DASHBOARD_DOMAIN` and `EXPO_PUBLIC_API_URL=https://app.antal.fi` in `.env`, run `docker compose up -d --build`.
-- Open both URLs.
-- Upload one sample PDF from `samples/synthetic/` and check that a risk list comes back.
-
-Known: the dashboard is public with no login.
+Open:
+- The dashboard is public and has no login.
+- The router has no DHCP reservation for the host, so the port forward breaks if the host's LAN address changes.
 
 ## Working
 
