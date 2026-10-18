@@ -273,3 +273,27 @@ def test_presets_are_deterministic():
     demo = json.loads((ROOT / "data/demo-person.json").read_text())
     a = presets.all_presets(demo)
     assert a == presets.all_presets(demo) and len(a) == 50 and len({p["home"]["home_id"] for p in a}) == 50
+
+
+def test_fix_api_misc(tmp_path, monkeypatch):
+    from backend.insurance import _round, decayed
+    assert decayed(100, "garbage", 10) == 100 and decayed(100, "2020-01-01", 0) == 100 and decayed(100, "2020-01-01", None) == 100
+    assert _round(2.5) == 3 and _round(0.5) == 1
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/t.db")
+    monkeypatch.setenv("ADMIN_TOKEN", "a")
+    monkeypatch.setenv("CUSTOMER_TOKEN", "t")
+    from fastapi.testclient import TestClient
+    from backend import auth
+    from backend.api import app
+    auth._HITS.clear()
+    with TestClient(app) as c:
+        assert c.get("/v1/nope").status_code == 404 and c.get("/v1/nope").json()["error"]["code"] == "not_found"
+        assert c.delete("/health").json()["error"]["code"] == "method_not_allowed"
+        assert c.get("/v1/homes/me", headers={"Authorization": "Bearer é".encode()}).status_code == 401
+        assert c.get("/v1/admin/accounts", headers={"X-Admin-Token": "é".encode()}).status_code == 401
+        assert c.get("/v1/jobs/nope", headers={"Authorization": "Bearer t"}).status_code == 404
+        for _ in range(20):
+            c.post("/v1/claim", json={"home_id": "nope", "password": "password1"})
+        r = c.post("/v1/claim", json={"home_id": "nope", "password": "password1"})
+        assert r.status_code == 429 and r.json()["error"]["code"] == "too_many_attempts"
+    auth._HITS.clear()

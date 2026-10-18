@@ -4,15 +4,16 @@ import json
 import os
 import secrets
 
-from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from backend import admin, app_api, db, engine, insurance, maintenance
-from backend.auth import DEMO_CUSTOMER, Who, require_token, sha
+from backend.auth import DEMO_CUSTOMER, Who, client_ip, rate_limit, require_token, sha
 from backend.models import Customer, Document, Home, Job, Profile, RiskText
 
 app = FastAPI(title="If Life Partner")
@@ -28,11 +29,11 @@ def _err(status: int, code: str, message: str) -> JSONResponse:
     return JSONResponse({"error": {"code": code, "message": message}}, status_code=status)
 
 
-_CODES = {400: "bad_request", 401: "unauthorized", 404: "not_found", 409: "conflict"}
+_CODES = {400: "bad_request", 401: "unauthorized", 404: "not_found", 405: "method_not_allowed", 409: "conflict", 429: "too_many_attempts"}
 
 
-@app.exception_handler(HTTPException)
-async def _http_error(request, exc: HTTPException):
+@app.exception_handler(StarletteHTTPException)
+async def _http_error(request, exc: StarletteHTTPException):
     # A dict detail carries its own code, for example unsupported_document.
     if isinstance(exc.detail, dict):
         return _err(exc.status_code, exc.detail.get("code", _CODES.get(exc.status_code, "error")), exc.detail.get("message", ""))
@@ -71,15 +72,16 @@ class ClaimBody(BaseModel):
 
 
 @app.post("/v1/claim")
-def claim(body: ClaimBody):
+def claim(body: ClaimBody, request: Request):
     """Claim a free home (sets its password) or sign in to a taken one. Answers with a new bearer token.
     shortcut: one token per home, so a sign-in on a second device signs the first one out."""
+    rate_limit(request, "claim")
     with db.connect() as s:
         home = s.get(Home, body.home_id)
         c = s.get(Customer, home.customer_id) if home else None
         if c is None or c.customer_id == DEMO_CUSTOMER:
             raise HTTPException(404, "Unknown home.")
-        admin.claim_or_verify(s, c, "home:" + home.home_id, Customer.customer_id == c.customer_id, body.password)
+        admin.claim_or_verify(s, c, f"home:{home.home_id}:{client_ip(request)}", Customer.customer_id == c.customer_id, body.password)
         token = secrets.token_urlsafe(32)
         c.token_hash = sha(token)
         s.commit()
@@ -106,10 +108,11 @@ def get_home(who: Who = Depends(require_token)):
 
 
 @v1.get("/jobs/{job_id}")
-def get_job(job_id: str):
+def get_job(job_id: str, who: Who = Depends(require_token)):
     with db.connect() as s:
         job = s.get(Job, job_id)
-    if job is None:
+        doc = s.get(Document, job.document_id) if job else None
+    if job is None or doc is None or doc.home_id != who.home_id:
         raise HTTPException(404, f"Job {job_id} not found.")
     error = None
     if job.error:

@@ -131,7 +131,10 @@ def seed_presets(s: Session, demo: dict) -> None:
     now = now_iso()
     for p in presets.all_presets(demo):
         c, h = p["customer"], p["home"]
-        if s.get(Home, h["home_id"]) is not None:
+        if (old := s.get(Home, h["home_id"])) is not None:
+            if old.customer_id is None and s.get(Customer, c["customer_id"]) is not None:
+                old.customer_id = c["customer_id"]  # repair after a downgrade and re-upgrade
+                s.commit()
             continue
         s.add(Customer(customer_id=c["customer_id"], name=c["name"], created_at=now))
         s.flush()
