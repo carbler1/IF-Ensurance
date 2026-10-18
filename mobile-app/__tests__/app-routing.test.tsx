@@ -1,4 +1,5 @@
 import { act, fireEvent, renderRouter, screen } from "expo-router/testing-library";
+import { signOutFakeApi } from "../test-support/fakeApi";
 
 // Font files do not load under Jest; treat them as ready so the app renders.
 jest.mock("expo-font", () => ({ ...jest.requireActual("expo-font"), useFonts: () => [true, null] }));
@@ -7,11 +8,15 @@ const press = (text: string) => fireEvent.press(screen.getByText(text));
 
 describe("App routing", () => {
   it("walks onboarding and lands on the home page instead of not found", async () => {
+    signOutFakeApi();
     jest.useFakeTimers();
     await renderRouter("./src/app", { initialUrl: "/" });
 
     expect(await screen.findByText("Let's look after your home together")).toBeOnTheScreen();
-    await press("Find my home");
+    await press("Lehtotie 16, 13185 Hämeenlinna");
+    fireEvent.changeText(screen.getByLabelText("Password"), "hunter2hunter2");
+    await press("Continue");
+    expect(await screen.findByText("We found your home")).toBeOnTheScreen();
     await press("Looks right");
     for (let i = 0; i < 4; i++) await press("Yes");
     await press("Skip for now");

@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { Bath, Camera, Check, Droplets, FileText, House, MapPin, X, Zap } from "@/lib/icons";
 import { questions } from "@/data/mock";
+import { api, type HomeOption } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { colors, radius, shadows } from "@/lib/theme";
 import { Button, Card, Heading, Input, PressCard, Spinner, Text, Wordmark, useReducedMotion } from "./ui";
@@ -49,12 +50,28 @@ function SlideIn({ children }: { children: ReactNode }) {
 }
 
 export function Onboarding() {
-  const { t, finishOnboarding, home } = useStore();
+  const { t, finishOnboarding, claimHome, home } = useStore();
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState<
-    "address" | "found" | "q" | "photos" | "analysing"
+    "address" | "password" | "found" | "q" | "photos" | "analysing"
   >("address");
-  const [addr, setAddr] = useState(home.address);
+  const [homes, setHomes] = useState<HomeOption[] | null>(null);
+  const [chosen, setChosen] = useState<HomeOption | null>(null);
+  const [password, setPassword] = useState("");
+  const [problem, setProblem] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    api.homes().then(setHomes, (e: Error) => { setHomes([]); setProblem(e.message); });
+  }, []);
+  const submit = () => {
+    if (!chosen || busy) return;
+    setBusy(true);
+    setProblem(null);
+    claimHome(chosen.home_id, password).then(
+      () => setStep("found"),
+      (e: Error) => setProblem(e.message),
+    ).finally(() => setBusy(false));
+  };
   const [qi, setQi] = useState(0);
   const [added, setAdded] = useState<string[]>([]);
 
@@ -102,14 +119,51 @@ export function Onboarding() {
               <Text weight={500} style={{ marginTop: 32, marginBottom: 8 }}>
                 {t("ob.address")}
               </Text>
+              {homes === null && <Spinner size={32} color={colors.primary} />}
+              {problem && <Text color="mutedForeground">{problem}</Text>}
+              <View style={{ gap: 8 }}>
+                {homes?.map((h) => (
+                  <PressCard
+                    key={h.home_id}
+                    accessibilityRole="button"
+                    onPress={() => { setChosen(h); setPassword(""); setProblem(null); setStep("password"); }}
+                    style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 12, backgroundColor: colors.card, borderRadius: radius["2xl"] }}
+                  >
+                    <MapPin size={20} color={h.taken ? colors.mutedForeground : colors.primary} />
+                    <Text style={{ flex: 1 }}>{h.address}</Text>
+                    <Text size="sm" weight={600} color={h.taken ? "mutedForeground" : "primary"}>
+                      {h.taken ? t("ob.taken") : t("ob.free")}
+                    </Text>
+                  </PressCard>
+                ))}
+              </View>
+            </>
+          )}
+          {step === "password" && chosen && (
+            <>
+              <Heading center>{chosen.address}</Heading>
+              <Text color="mutedForeground" center style={{ marginTop: 12 }}>
+                {chosen.taken ? t("ob.passwordTaken") : t("ob.passwordNew")}
+              </Text>
+              <Text weight={500} style={{ marginTop: 32, marginBottom: 8 }}>
+                {t("ob.password")}
+              </Text>
               <Input
-                value={addr}
-                onChangeText={setAddr}
-                accessibilityLabel={t("ob.address")}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                onSubmitEditing={submit}
+                accessibilityLabel={t("ob.password")}
                 style={{ backgroundColor: colors.card }}
               />
-              <Button big style={bigBottom} onPress={() => setStep("found")}>
-                {t("ob.find")}
+              {problem && <Text color="mutedForeground" style={{ marginTop: 8 }}>{problem}</Text>}
+              <Button big style={bigBottom} onPress={submit}>
+                {t("ob.continue")}
+              </Button>
+              <Button big variant="ghost" onPress={() => { setProblem(null); setStep("address"); }}>
+                {t("ob.back")}
               </Button>
             </>
           )}
@@ -122,7 +176,7 @@ export function Onboarding() {
                 >
                   <MapPin size={20} color={colors.primary} />
                   <Text weight={600} style={{ flexShrink: 1 }}>
-                    {addr}
+                    {home.address}
                   </Text>
                 </View>
                 <Text color="mutedForeground">{home.type}</Text>
