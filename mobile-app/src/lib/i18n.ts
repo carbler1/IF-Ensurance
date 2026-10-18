@@ -109,6 +109,20 @@ const en = {
   "entry.title": "Who do you want to insure?",
   "app.error": "We could not load your data",
   "app.retry": "Try again",
+  "login.title": "Find your insurance",
+  "login.hint.house": "Street address or postal code",
+  "login.hint.cottage": "Property ID",
+  "login.hint.boat": "Boat registration number",
+  "login.hint.car": "Registration plate",
+  "login.hint.dog": "Chip ID",
+  "login.none": "Nothing found. Check what you typed.",
+  "login.passwordTaken": "Enter your password",
+  "login.passwordNew": "Choose a password",
+  "login.continue": "Continue",
+  "login.back": "Back",
+  "login.wrong": "The password is wrong.",
+  "login.locked": "Too many attempts. Try again later.",
+  "login.network": "No connection. Check your network and try again.",
 };
 
 type Dict = Record<keyof typeof en, string>;
@@ -222,6 +236,20 @@ const fi: Dict = {
   "entry.title": "Mitä haluat vakuuttaa?",
   "app.error": "Tietojasi ei voitu ladata",
   "app.retry": "Yritä uudelleen",
+  "login.title": "Etsi vakuutuksesi",
+  "login.hint.house": "Katuosoite tai postinumero",
+  "login.hint.cottage": "Kiinteistötunnus",
+  "login.hint.boat": "Veneen rekisterinumero",
+  "login.hint.car": "Auton rekisteritunnus",
+  "login.hint.dog": "Mikrosirun numero",
+  "login.none": "Mitään ei löytynyt. Tarkista kirjoittamasi.",
+  "login.passwordTaken": "Anna salasanasi",
+  "login.passwordNew": "Valitse salasana",
+  "login.continue": "Jatka",
+  "login.back": "Takaisin",
+  "login.wrong": "Salasana on väärä.",
+  "login.locked": "Liian monta yritystä. Yritä myöhemmin uudelleen.",
+  "login.network": "Ei yhteyttä. Tarkista verkko ja yritä uudelleen.",
 };
 
 const sv: Dict = {
@@ -333,6 +361,20 @@ const sv: Dict = {
   "entry.title": "Vad vill du försäkra?",
   "app.error": "Vi kunde inte ladda dina uppgifter",
   "app.retry": "Försök igen",
+  "login.title": "Hitta din försäkring",
+  "login.hint.house": "Gatuadress eller postnummer",
+  "login.hint.cottage": "Fastighetsbeteckning",
+  "login.hint.boat": "Båtens registreringsnummer",
+  "login.hint.car": "Bilens registreringsnummer",
+  "login.hint.dog": "Chipnummer",
+  "login.none": "Inget hittades. Kontrollera det du skrev.",
+  "login.passwordTaken": "Ange ditt lösenord",
+  "login.passwordNew": "Välj ett lösenord",
+  "login.continue": "Fortsätt",
+  "login.back": "Tillbaka",
+  "login.wrong": "Lösenordet är fel.",
+  "login.locked": "För många försök. Försök igen senare.",
+  "login.network": "Ingen anslutning. Kontrollera nätverket och försök igen.",
 };
 
 export const dictionaries: Record<Lang, Dict> = { en, fi, sv };

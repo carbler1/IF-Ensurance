@@ -7,7 +7,7 @@ import recorded from "./app.json";
 
 let state: AppData = structuredClone(recorded as AppData);
 
-// The entry choice is preset so tests open on the dashboard; the entry test clears it.
+// The entry choice and the token are preset so tests open on the dashboard; the entry and login tests clear them.
 export const memStorage = new Map<string, string>();
 export const storage = {
   get: (k: string) => Promise.resolve(memStorage.get(k) ?? null),
@@ -20,7 +20,18 @@ export function resetFakeApi() {
   lang = "en";
   loadLangs.length = 0;
   memStorage.set("ilp.choice", "house");
+  memStorage.set("ilp.token", "fake-token");
+  passwords.clear();
 }
+
+// Fake profiles for the search. `key` is what a person types; the real backend matches its own fields.
+const profiles = [
+  { customer_id: "cust_house_1", cls: "house", key: "lehtotie 16 13185", label: "Lehtotie 1*, 131** Hämeenlinna", taken: true },
+  { customer_id: "cust_house_2", cls: "house", key: "puutarhakatu 6 65057", label: "Puutarhakatu *, 650** Vaasa", taken: false },
+  { customer_id: "cust_boat_1", cls: "boat", key: "fin 1234", label: "FIN ****", taken: false },
+];
+export const FAKE_PASSWORD = "hunter2hunter2";
+const passwords = new Map<string, string>();
 
 function rescore() {
   const start = structuredClone(recorded as AppData);
@@ -50,6 +61,20 @@ export class ApiError extends Error {
 export const dropInsuranceFromFakeApi = (id: string) => { state.insurances = state.insurances.filter((i) => i.id !== id); };
 
 export const api = {
+  restore: () => Promise.resolve((memStorage.get("ilp.token") ?? "") !== ""),
+  search: (cls: string, q: string) => {
+    const n = q.toLowerCase().replace(/[\s-]/g, "");
+    return Promise.resolve(profiles.filter((p) => p.cls === cls && p.key.replace(/\s/g, "").includes(n)).map(({ customer_id, label, taken }) => ({ customer_id, label, taken })));
+  },
+  // Like POST /v1/claim: the first claim sets the password, later ones verify it.
+  claim: (customerId: string, password: string) => {
+    const p = profiles.find((x) => x.customer_id === customerId);
+    const set = passwords.get(customerId) ?? (p?.taken ? FAKE_PASSWORD : undefined);
+    if (set !== undefined && set !== password) return Promise.reject(new ApiError("Wrong password.", 401));
+    passwords.set(customerId, password);
+    memStorage.set("ilp.token", "fake-token");
+    return Promise.resolve();
+  },
   getLang: () => Promise.resolve(null as string | null),
   setLang: (l: string) => { lang = l; return Promise.resolve(); },
   load: () => { loadLangs.push(lang); return answer(); },
