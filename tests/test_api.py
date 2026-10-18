@@ -190,3 +190,12 @@ def test_app_api(tmp_path, monkeypatch):
         assert c.post("/v1/admin/demo/reset", headers={"X-Admin-Token": "a"}).status_code == 200
         d = c.get("/v1/me/app", headers=H).json()
         assert d["aggregate"] == 599 and d["reminders"] == ["t1"] and all(r["job"] is None for r in d["risks"])
+
+
+def test_score_decay():
+    from datetime import timedelta
+    from backend.insurance import decayed
+    now = datetime(2026, 10, 18, tzinfo=timezone.utc)
+    assert decayed(100, now.isoformat(), 10, now) == 100
+    assert decayed(100, (now - timedelta(days=365.25 * 10)).isoformat(), 10, now) == 50
+    assert decayed(100, None, 10, now) == 100
