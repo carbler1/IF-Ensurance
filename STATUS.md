@@ -8,35 +8,26 @@ Goal: `docker compose up` serves the dashboard, the app demo and the API on one 
 
 1. Finalize docs. Done.
 2. Backend.
-3. Hosting.
-4. DNS and domains.
-5. First working version.
+3. Deployment.
+4. First working version.
 
 ### 2. Backend
 
-Code and compose wiring. Values that need the host or domain stay as `.env` variables here and get filled in steps 3 and 4.
+Code and compose wiring. Values that need the host or domain stay as `.env` variables here and get filled in step 3.
 
-- `docker-compose.yml:81`: the mobile build bakes in the placeholder `https://<app-domain>`. Read it from `.env` (`EXPO_PUBLIC_API_URL`).
-- `docker-compose.yml:41`: `CORS_ORIGINS` is fixed to `localhost` values. Read it from `.env`.
-- `docker-compose.yml:38`: compose ignores `OLLAMA_URL` in `.env` and uses `OLLAMA_URL_DOCKER`. Keep one name.
-- `docker-compose.yml`: the backend gets `CUSTOMER_TOKEN` only from the optional `.env`. Pass it in `environment`, or every customer route returns 401.
-- Run `docker compose build`. Nothing in the compose file has been built end to end yet.
+- Done: the four compose fixes (API address, CORS, `OLLAMA_URL`, `CUSTOMER_TOKEN`) and the build of all three images.
 - Run `docker compose up` and check `/health`, the dashboard (`:3000`) and the app demo (`:8082`).
 
-### 3. Hosting
+### 3. Deployment
 
 - Pick the host. Unknown today.
 - Run Ollama on the host with `qwen3.5:9b` pulled, or PDF upload fails. `ollama` is not on this machine's PATH.
-- Set `OLLAMA_URL` in `.env` to the host's Ollama address.
 - Put a reverse proxy in front of the three ports (3000, 8082, 8000).
-
-### 4. DNS and domains
-
 - Pick the public URL of the app and point DNS at the host.
 - Get an HTTPS certificate for it.
-- Set `EXPO_PUBLIC_API_URL` and `CORS_ORIGINS` in `.env` to that URL, then rebuild the mobile image (the URL is baked in at build time).
+- Set `OLLAMA_URL`, `EXPO_PUBLIC_API_URL` and `CORS_ORIGINS` in `.env`, then rebuild the mobile image (the URL is baked in at build time).
 
-### 5. First working version
+### 4. First working version
 
 - Open the dashboard and the app demo on the public URL.
 - Upload one sample PDF from `samples/synthetic/` and check that a risk list comes back.
