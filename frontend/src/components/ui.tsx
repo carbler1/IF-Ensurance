@@ -40,9 +40,9 @@ export const tierColor = ["bg-tier-bronze", "bg-tier-silver", "bg-tier-gold", "b
 
 export function PageHeader({ title, sub, children }: { title: string; sub: string; children?: ReactNode }) {
   return (
-    <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <header className="mb-6 flex md:mb-8 flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-[2.125rem] leading-tight font-medium">{title}</h1>
+        <h1 className="text-[1.75rem] leading-tight font-medium text-balance md:text-[2.125rem]">{title}</h1>
         <p className="mt-2 max-w-3xl text-[1.0625rem] text-muted-foreground">{sub}</p>
       </div>
       {children}
