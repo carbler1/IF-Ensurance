@@ -16,7 +16,7 @@
   "severity": 3,
   "probability": 4,
   "service_life_years": 20,
-  "check_interval_years": 10,
+  "check_interval_years": 5,
   "half_life_years": 10,
   "mitigation": {
     "action": "Plumber inspects the hot-water tank and the safety valve and replaces the tank when it is over 20 years old",
