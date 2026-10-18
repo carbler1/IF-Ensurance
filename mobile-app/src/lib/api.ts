@@ -44,11 +44,20 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
-const call = (path: string, init?: RequestInit) => request<AppData>(path, init);
+// The backend answers in the app's language (backend/i18n_data.py).
+let lang = "en";
+const call = (path: string, init?: RequestInit) => request<AppData>(`${path}?lang=${lang}`, init);
 
 export const api = {
-  getLang: () => storage.get("ilp.lang"),
-  setLang: (l: string) => storage.set("ilp.lang", l),
+  getLang: async () => {
+    const l = await storage.get("ilp.lang");
+    if (l === "en" || l === "fi" || l === "sv") lang = l;
+    return l;
+  },
+  setLang: (l: string) => {
+    lang = l;
+    return storage.set("ilp.lang", l);
+  },
   load: () => call("/me/app"),
   book: (riskId: string, bidId: string, mode: "hire" | "diy") =>
     call("/me/bookings", { method: "POST", body: JSON.stringify({ risk_id: riskId, bid_id: bidId, mode }) }),
