@@ -22,7 +22,7 @@ async function Shell({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <ReadOnlyProvider value={readOnly}>
       {readOnly && (
-        <p role="status" className="fixed top-2 right-2 z-50 rounded-lg border bg-card px-3 py-1.5 text-sm text-muted-foreground shadow-soft">
+        <p role="status" className="fixed right-2 bottom-2 md:top-2 md:bottom-auto z-50 rounded-lg border bg-card px-3 py-1.5 text-sm text-muted-foreground shadow-soft">
           Editing is disabled to prevent sabotage.
         </p>
       )}

@@ -9,7 +9,7 @@ function Stat({ label, value, sub }: { label: string; value: string | number; su
   return (
     <div className="bg-card px-5 py-4">
       <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-1 text-[2.25rem] leading-tight font-light tabular-nums">{value}</p>
+      <p className="mt-1 text-3xl sm:text-[2.25rem] leading-tight font-light tabular-nums">{value}</p>
       <p className="mt-1 text-sm text-muted-foreground">{sub}</p>
     </div>
   );

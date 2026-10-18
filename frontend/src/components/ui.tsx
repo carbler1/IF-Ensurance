@@ -34,7 +34,7 @@ export const classIcon: Record<string, LucideIcon> = {
 
 // Lives here, not in the client-only ./form, so server pages get the string rather than a client reference.
 export const inputClass =
-  "h-11 w-full rounded-lg border border-input bg-card px-3.5 text-base tabular-nums text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-3 focus:ring-primary/20 [&:is(select)]:pr-8";
+  "h-11 w-full rounded-lg border border-input bg-card px-3.5 text-base tabular-nums text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-3 focus:ring-primary/40 [&:is(select)]:pr-8";
 
 export const tierColor = ["bg-tier-bronze", "bg-tier-silver", "bg-tier-gold", "bg-tier-platinum"];
 
@@ -64,7 +64,7 @@ export function Disclosure({ title, meta, open, inline = false, className = "", 
     <details open={open} className={`group ${inline ? "mt-4 border-t" : "rounded-xl border bg-card"} ${className}`}>
       <summary className={`flex cursor-pointer list-none items-center gap-3 rounded-xl hover:bg-secondary/40 [&::-webkit-details-marker]:hidden ${inline ? "min-h-11 px-1 font-medium" : "px-5 py-4"}`}>
         <div className="min-w-0 flex-1">{title}</div>
-        {meta && <div className="shrink-0 text-right text-sm text-muted-foreground">{meta}</div>}
+        {meta && <div className="max-w-1/2 text-right text-sm text-muted-foreground">{meta}</div>}
         <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
       </summary>
       <div className={inline ? "pt-2" : "px-5 pb-5"}>{children}</div>
