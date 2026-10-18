@@ -180,13 +180,17 @@ def sync_demo_person(s: Session, demo: dict | None = None) -> None:
 
 
 def reset_demo(s: Session) -> None:
-    """Clear the demo customer's bookings and reminders, back to the state in data/demo-person.json."""
+    """Restore the whole demo: clear bookings and reminders, drop the dashboard-editable tables
+    (partners, tiers, discount bands, insurance settings, fix rules), then seed them again."""
     demo = json.loads((ROOT / "data" / "demo-person.json").read_text())
     cid = demo["customer"]["customer_id"]
     s.execute(delete(Booking).where(Booking.customer_id == cid))
     s.execute(delete(Reminder).where(Reminder.customer_id == cid))
     s.add_all(Reminder(customer_id=cid, task_id=t) for t in demo["reminders"])
+    for m in (Partner, Tier, DiscountBand, InsuranceSettings, FixRule):
+        s.execute(delete(m))
     s.commit()
+    seed(s)
 
 
 def partner_dict(p: Partner) -> dict:
