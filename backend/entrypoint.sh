@@ -1,5 +1,5 @@
 #!/bin/sh
-# Start the API and the worker. Both use var/ilp.sqlite in this container.
+# Start the API and the worker. Both use the database in DATABASE_URL (Postgres in docker compose).
 set -eu
 
 cd /app

@@ -153,7 +153,7 @@ try:
     from backend.upload import router as _upload_router
 
     v1.include_router(_upload_router)
-except ImportError:  # upload.py not written yet
+except ImportError:
     pass
 
 v1.include_router(app_api.router)  # the mobile app: /v1/me/app, bookings, reminders

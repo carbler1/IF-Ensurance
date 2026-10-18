@@ -91,7 +91,7 @@ class ScoreEvent(Base):
 
 
 # Editable by If staff in the dashboard. Seeded once from fixtures/partners.json
-# and fixtures/score-tiers.json; after that the database is the source.
+# and data/score-model.json; after that the database is the source.
 class Partner(Base):
     __tablename__ = "partners"
 

@@ -34,7 +34,7 @@ def _full(e: dict, profile: dict) -> dict:
 
 
 def _call(profile: dict, matched: list[dict], unmatched: list[dict]) -> dict:
-    from backend import llm  # lazy: tests patch llm.chat
+    from backend import llm
 
     blocks = re.findall(r"```text\n(.*?)\n```", (ROOT / "prompts" / "write.md").read_text(), re.S)
     system, user = blocks[0], blocks[1]

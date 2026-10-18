@@ -19,7 +19,7 @@ import { colors, shadows } from "@/lib/theme";
 
 SplashScreen.preventAutoHideAsync();
 
-// Tab pages swap in place like the web app; detail pages slide in.
+// Tab pages swap in place; detail pages slide in.
 const tabPage = { animation: "none" } as const;
 
 export default function RootLayout() {
@@ -44,7 +44,7 @@ export default function RootLayout() {
 // The web demo (mobile-app/Dockerfile) shows the app inside a phone-sized frame on a wide screen.
 const PHONE = { width: 390, height: 844 };
 
-// On wide screens (web, tablets) the app keeps its 430px phone column on the frame colour.
+// On web at 600 px or wider the app sits in the phone frame; elsewhere it fills the screen up to 430 px.
 function AppFrame() {
   const { onboarded, status, error, reload, t } = useStore();
   const window = useWindowDimensions();

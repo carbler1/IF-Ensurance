@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* The customer app's design tokens. */
 :root {
   /* Staff dashboard palette: the app's blue, tier and state colours on cool neutrals.
      The canvas, text and lines are cooler than the customer app's warm beige on purpose. */
@@ -92,7 +91,7 @@ body {
   line-height: 1.5;
 }
 
-/* Fraunces only for the page title and the logo; the rest of the interface is Figtree. */
+/* Fraunces only for the page title (h1); the rest of the interface is Figtree. */
 h1 {
   font-family: var(--font-display);
   letter-spacing: -0.01em;

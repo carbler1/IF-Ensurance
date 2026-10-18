@@ -18,7 +18,7 @@ def _norm(s):
 
 
 def run(pdf_path, document_id):
-    from backend import llm  # lazy: written by another module
+    from backend import llm
 
     pdf = pdfium.PdfDocument(str(pdf_path))
     pages = [p.get_textpage().get_text_range() for p in pdf]

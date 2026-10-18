@@ -100,7 +100,7 @@ export function Text({ size = "body", weight = 400, display = false, color = "fo
   );
 }
 
-// h1-h3 use the display face with slightly tight tracking, like the web base styles.
+// Headings use the display face with slightly tight tracking.
 export function Heading({ size = "3xl", weight = 600, display = true, style, ...props }: TextProps & TextOwnProps) {
   return <Text accessibilityRole="header" size={size} weight={weight} display={display} style={[{ letterSpacing: -0.01 * sizes[size][0] }, style]} {...props} />;
 }
@@ -184,7 +184,6 @@ export function PressCard({ style, children, ...props }: PressableProps & { styl
   );
 }
 
-// A tappable block that navigates, like a web <Link className="block">.
 export function LinkBlock({ href, style, accessibilityLabel, children }: { href: Href; style?: StyleProp<ViewStyle>; accessibilityLabel?: string; children: ReactNode }) {
   return (
     <Link href={href} asChild>
@@ -265,7 +264,7 @@ export function SwitchRow({ value, onValueChange, label, style, children }: { va
   );
 }
 
-// The web "pop-in" utility: scale 0.85 -> 1 and fade in with a slight overshoot.
+// Fades in and rises 6 px with a slight overshoot.
 export function PopIn({ style, children }: { style?: StyleProp<ViewStyle>; children: ReactNode }) {
   const v = useRef(new Animated.Value(0)).current;
   const reducedMotion = useReducedMotion();
@@ -452,7 +451,7 @@ export function Arrive({ delay = 0, once, style, children }: { delay?: number; o
   return <Animated.View style={[style, { opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [6, 0] }) }] }]}>{children}</Animated.View>;
 }
 
-// Centres its children over a ScoreRing, like the web "absolute inset-0" overlay.
+// Centres its children over a ScoreRing.
 export function RingOverlay({ children }: { children: ReactNode }) {
   return <View pointerEvents="none" style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, alignItems: "center", justifyContent: "center" }}>{children}</View>;
 }
