@@ -63,6 +63,8 @@ services:
       # Server-side calls over the compose network; the browser never sees the token.
       BACKEND_URL: http://backend:8000
       ADMIN_TOKEN: ${ADMIN_TOKEN:?Set ADMIN_TOKEN in .env}
+      # Read-only unless set to 0 or false.
+      DASHBOARD_READONLY: ${DASHBOARD_READONLY:-1}
       # Signs the dashboard login cookie (16+ random characters).
     networks:
       - app

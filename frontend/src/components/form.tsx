@@ -1,7 +1,12 @@
 "use client";
 
-import { useActionState, useState, type ReactNode } from "react";
+import { createContext, useActionState, useContext, useState, type ReactNode } from "react";
 import type { SaveState } from "@/app/actions";
+const ReadOnly = createContext(false);
+export const ReadOnlyProvider = ReadOnly.Provider;
+/** True when the dashboard is read-only: every data-changing control is disabled. */
+export const useReadOnly = () => useContext(ReadOnly);
+
 // Form controls: 40–44 px buttons, the app's small blue switch.
 
 export function Label({ text, hint, children, className = "" }: { text: string; hint?: string; children: ReactNode; className?: string }) {
@@ -45,14 +50,16 @@ export function Switch({ name, defaultChecked, label, onChange, children }: { na
 /** A submit button that asks once more before it submits: the first click arms it, leaving it disarms it. */
 export function ConfirmSubmit({ children, confirm, label, className, armedClassName }: { children: ReactNode; confirm: string; label?: string; className: string; armedClassName: string }) {
   const [armed, setArmed] = useState(false);
+  const readOnly = useReadOnly();
   return (
     <>
       <button
         type={armed ? "submit" : "button"}
+        disabled={readOnly}
         aria-label={armed ? confirm : label}
         onClick={() => setArmed(true)}
         onBlur={() => setArmed(false)}
-        className={armed ? armedClassName : className}
+        className={`${armed ? armedClassName : className} disabled:cursor-not-allowed disabled:opacity-50`}
       >
         {armed ? confirm : children}
       </button>
@@ -84,15 +91,17 @@ export function SaveForm({ action, children, className = "", button = "Save", bi
   // Typing again hides the result of the last save.
   const [dismissed, setDismissed] = useState<SaveState>(null);
   const shown = state === dismissed ? null : state;
+  const readOnly = useReadOnly();
   return (
     <form
       action={(f) => { setDirty(false); run(f); }}
       onInput={() => { setDirty(true); setDismissed(state); }}
       className={className}
     >
-      {children}
+      {/* A disabled fieldset disables every input, select, textarea, switch and button inside it. */}
+      <fieldset disabled={readOnly} className="contents">{children}</fieldset>
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <Button type="submit" big={big} disabled={pending || !dirty}>{pending ? "Saving…" : button}</Button>
+        <Button type="submit" big={big} disabled={readOnly || pending || !dirty}>{pending ? "Saving…" : button}</Button>
         <span aria-live="polite" className={`text-sm font-semibold ${shown?.ok ? "text-success" : "text-destructive"}`}>
           {!pending && shown?.message}
         </span>

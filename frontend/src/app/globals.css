@@ -115,3 +115,9 @@ h1 {
 @media (prefers-reduced-motion: reduce) {
   .pop-in { animation: none; }
 }
+
+/* Read-only: disabled form controls look disabled. */
+:is(input, select, textarea, button):disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
