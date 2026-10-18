@@ -96,7 +96,7 @@ def risk_detail(s, home_id: str, risk_id: str) -> dict:
         ev = ev.get("evidence") if isinstance(ev, dict) else None
         if ev and leaf["field"] not in seen:
             seen.add(leaf["field"])
-            evidence.append({k: ev[k] for k in ("document_id", "page", "quote")})
+            evidence.append({"document_id": ev["document_id"], "page": ev.get("page"), "quote": ev["quote"]})
     city = s.get(Home, home_id).city
     cat = e["mitigation"]["partner_category"]
     # Partners live in SQLite so If staff can change prices and vetting in the dashboard.
